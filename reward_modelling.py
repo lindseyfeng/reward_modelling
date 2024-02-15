@@ -1,6 +1,8 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import RewardConfig
 from reward_trainer import IterativeRewardTrainer
+from datasets import load_dataset
+from tqdm import tqdm
 
 
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
