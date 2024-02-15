@@ -12,6 +12,17 @@ raw_datasets = load_dataset("Anthropic/hh-rlhf")
     # Tokenize chosen/rejected pairs of inputs
     # Adapt this section to your needs for custom datasets
 
+reward_config = RewardConfig(
+    output_dir="hh_openllama3b_temp1.2",
+    per_device_train_batch_size=64,
+    per_device_eval_batch_size = 64,
+    # gradient_accumulation_steps = 4, 
+    max_length = 512, 
+    learning_rate=1e-5,
+    report_to="wandb",
+    optim="adamw_torch"
+)
+
 def preprocess_function(examples):
     new_examples = {
             "input_ids_chosen": [],
@@ -53,15 +64,6 @@ eval_dataset = raw_datasets["test"]
 #     lora_dropout=0.1,
 # )
 
-reward_config = RewardConfig(
-    output_dir="hh_openllama3b_temp1.2",
-    per_device_train_batch_size=64,
-    per_device_eval_batch_size = 64,
-    # gradient_accumulation_steps = 4, 
-    learning_rate=1e-5,
-    report_to="wandb",
-    optim="adamw_torch"
-)
 print(train_dataset)
 
 trainer = IterativeRewardTrainer(
