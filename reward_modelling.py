@@ -71,8 +71,7 @@ trainer = IterativeRewardTrainer(
         tokenizer=tokenizer,
         args=reward_config,
         train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        peft_config=get_peft_config(model_config),
+        eval_dataset=eval_dataset
     )
 trainer.custom_train_loop()
 trainer.save_model(reward_config.output_dir)
