@@ -15,6 +15,7 @@ import inspect
 import warnings
 from dataclasses import FrozenInstanceError, replace
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from torch.utils.data import DataLoader
 
 import torch
 import torch.nn as nn
@@ -299,6 +300,7 @@ class IterativeRewardTrainer(Trainer):
 
     def custom_train_loop(self):
         # step = 0
+        train_loader = DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
         # while not self.check_convergence(step):
         self.model.train()  # Set model to training mode
     
