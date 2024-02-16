@@ -12,7 +12,6 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
 
 
-
 raw_datasets = load_dataset("Anthropic/hh-rlhf")
     # Tokenize chosen/rejected pairs of inputs
     # Adapt this section to your needs for custom datasets
@@ -25,13 +24,11 @@ reward_config = RewardConfig(
     max_length = 512, 
     learning_rate=1e-5,
     report_to="wandb",
-    optim="adamw_torch",
-    remove_unused_columns = False
+    optim="adamw_torch"
 )
 
 def preprocess_function(examples):
     new_examples = {
-            "labels": [],
             "input_ids_chosen": [],
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
@@ -45,7 +42,6 @@ def preprocess_function(examples):
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["labels"].append(1)
 
     return new_examples
 

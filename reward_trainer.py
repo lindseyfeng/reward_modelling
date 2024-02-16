@@ -316,11 +316,10 @@ class IterativeRewardTrainer(Trainer):
             yield batch
 
 
-
     def custom_train_loop(self):
         # step = 0
         train_loader = self.get_train_dataloader()
-        train_loader = append_labels_to_batches(train_loader)
+        train_loader = self.append_labels_to_batches(train_loader)
         print(train_loader)
         # while not self.check_convergence(step):
         self.model.train()  # Set model to training mode
