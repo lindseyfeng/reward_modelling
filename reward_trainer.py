@@ -223,6 +223,10 @@ class IterativeRewardTrainer(Trainer):
                 " if you are using a custom data collator make sure you know what you are doing or"
                 " implement your own compute_loss method."
             )
+        print(inputs["input_ids_chosen"].shape)
+        print(inputs["attention_mask_chosen"].shape)
+        print(input_ids=inputs["input_ids_rejected"].shape)
+        print(inputs["attention_mask_rejected"].shape)
         rewards_chosen = model(
             input_ids=inputs["input_ids_chosen"],
             attention_mask=inputs["attention_mask_chosen"],
