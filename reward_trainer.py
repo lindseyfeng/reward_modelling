@@ -19,6 +19,7 @@ from torch.utils.data import DataLoader
 
 import torch
 import torch.nn as nn
+from torch.optim import AdamW
 from datasets import Dataset
 from transformers import DataCollator, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.trainer_callback import TrainerCallback
@@ -34,6 +35,7 @@ if is_peft_available():
     from peft import PeftModel, get_peft_model, prepare_model_for_kbit_training
 
 BETA = 0.7
+ALPHA = 1e-5
 TEMPERATURE = 1/1.2
 EPOCH = 2
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -70,7 +72,7 @@ class IterativeRewardTrainer(Trainer):
         compute_metrics: Optional[Callable[[EvalPrediction], Dict]] = None,
         callbacks: Optional[List[TrainerCallback]] = None,
         optimizers: Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler.LambdaLR] = (
-            adamw_torch,
+            None,
             None,
         ),
         preprocess_logits_for_metrics: Optional[Callable[[torch.Tensor, torch.Tensor], torch.Tensor]] = None,
@@ -212,6 +214,8 @@ class IterativeRewardTrainer(Trainer):
             optimizers,
             preprocess_logits_for_metrics,
         )
+        if self.optimizer == None:
+            self.optimizer = AdamW(model.parameters(), lr=ALPHA)
     
     def compute_loss(
         self,
