@@ -253,7 +253,7 @@ class IterativeRewardTrainer(Trainer):
         print(rewards_chosen.shape)
         print(rewards_rejected.shape)
         exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
-         
+        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
