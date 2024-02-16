@@ -305,13 +305,15 @@ class IterativeRewardTrainer(Trainer):
 
     def custom_train_loop(self):
         # step = 0
-        train_loader =  DataLoader(self.train_dataset, batch_size=self.args.per_device_train_batch_size, shuffle=True)
+        train_loader = self.get_train_dataloader()
+        train_loader.append(self.train_dataset["labels"])
+        print(train_loader)
         # while not self.check_convergence(step):
         self.model.train()  # Set model to training mode
     
         for epoch in range(EPOCH):
             for batch in train_loader:
-                print(batch)
+                print(self.model)
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
                 loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch)  # Implement this method based on your loss calculation
                     
