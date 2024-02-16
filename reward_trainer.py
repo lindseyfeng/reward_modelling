@@ -328,7 +328,7 @@ class IterativeRewardTrainer(Trainer):
         
         self.model.train()  # Set model to training mode
         train_loader = self.get_train_dataloader()
-        print(type(train_loader))
+        len_data = len(train_loader)
         train_loader = self.append_labels_to_batches(train_loader)
         wandb.init(project='rm_ALPHA{}_BETA{}_EPOCH{}_TEMP{}'.format(ALPHA, BETA, EPOCH, TEMPERATURE), config={
             'learning_rate': ALPHA,
@@ -352,7 +352,7 @@ class IterativeRewardTrainer(Trainer):
                 loss.backward()
                 
                 # Accumulate gradients
-                if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len(train_loader):
+                if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
                     # Perform a single optimization step (parameter update)
                     self.optimizer.step()
                     
