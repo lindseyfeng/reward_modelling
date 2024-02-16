@@ -320,31 +320,40 @@ class IterativeRewardTrainer(Trainer):
             yield batch
 
 
-    def custom_train_loop(self):
-        # step = 0
-        train_loader = self.get_train_dataloader()
-        train_loader = self.append_labels_to_batches(train_loader)
-        print(train_loader)
-        # while not self.check_convergence(step):
-        self.model.train()  # Set model to training mode
+ def custom_train_loop(self):
+    self.model.train()  # Set model to training mode
+    train_loader = self.get_train_dataloader()
+    train_loader = self.append_labels_to_batches(train_loader)
     
-        for epoch in range(EPOCH):
-            for batch in train_loader:
-                print(batch)
-                # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
-                loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch)  # Implement this method based on your loss calculation
-                    
-                # Backward pass: compute gradient of the loss with respect to model parameters
-                self.optimizer.zero_grad()  # Clear the gradients of all optimized tensors
-                loss.backward()
-                    
+    gradient_accumulation_steps = 4  # Set this to your desired accumulation steps
+    accumulation_counter = 0  # Counter to keep track of steps taken
+    
+    for epoch in range(EPOCH):
+        for step, batch in enumerate(train_loader):
+            # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
+            loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
+            
+            # Normalize loss to account for accumulation
+            loss = loss / gradient_accumulation_steps
+            
+            # Backward pass: compute gradient of the loss with respect to model parameters
+            loss.backward()
+            
+            # Accumulate gradients
+            if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len(train_loader):
                 # Perform a single optimization step (parameter update)
                 self.optimizer.step()
-                    
+                
+                # Clear the gradients of all optimized tensors
+                self.optimizer.zero_grad()
+                
+                # Update the counter and labels after performing an optimizer step
+                accumulation_counter += 1
                 self.update_labels_with_model_predictions(batch, probs_chosen)
-                print(batch["labels"])
-                    
 
+                print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
+                
+            # Optional: Add any logging or metric computation here
 
             
             # Update labels based on model prediction
