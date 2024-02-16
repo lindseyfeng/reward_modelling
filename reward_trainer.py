@@ -306,16 +306,16 @@ class IterativeRewardTrainer(Trainer):
     
         for epoch in range(EPOCH):
             for batch in train_loader:
+                print(self.model)
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
-                print(batch)
-                loss, probs_chosen = self.compute_loss(model, batch)  # Implement this method based on your loss calculation
+                loss, probs_chosen = self.compute_loss(self.model, batch)  # Implement this method based on your loss calculation
                     
                 # Backward pass: compute gradient of the loss with respect to model parameters
-                self.optimizer.zero_grad()  # Clear the gradients of all optimized tensors
+                self.optimizers.zero_grad()  # Clear the gradients of all optimized tensors
                 loss.backward()
                     
                 # Perform a single optimization step (parameter update)
-                self.optimizer.step()
+                self.optimizers.step()
                     
                 self.update_labels_with_model_predictions(batch, probs_chosen)
                     
