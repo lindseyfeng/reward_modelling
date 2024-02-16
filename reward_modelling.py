@@ -9,7 +9,7 @@ tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
-    tokenizer.pad_token = "[PAD]"
+    tokenizer.pad_token = tokenizer.eos_token
 
 
 
