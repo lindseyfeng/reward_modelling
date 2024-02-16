@@ -37,8 +37,8 @@ def preprocess_function(examples):
             "labels": [],
     }
     for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
-        tokenized_chosen = tokenizer(chosen, padding=True, max_length = 512)
-        tokenized_rejected = tokenizer(rejected, padding=True, max_length = 512)
+        tokenized_chosen = tokenizer(chosen, padding='max_length', max_length = 512)
+        tokenized_rejected = tokenizer(rejected, padding='max_length', max_length = 512)
 
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
