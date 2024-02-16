@@ -18,8 +18,8 @@ raw_datasets = load_dataset("Anthropic/hh-rlhf")
 
 reward_config = RewardConfig(
     output_dir="hh_openllama3b_temp1.2",
-    per_device_train_batch_size=2,
-    per_device_eval_batch_size = 2,
+    per_device_train_batch_size=1,
+    per_device_eval_batch_size = 1,
     gradient_accumulation_steps = 16, 
     max_length = 512, 
     learning_rate=1e-5,
