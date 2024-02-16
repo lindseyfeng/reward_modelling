@@ -9,7 +9,7 @@ tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.pad_token = PAD_TOKEN
 
 
 
@@ -37,8 +37,8 @@ def preprocess_function(examples):
             "labels": [],
     }
     for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
-        tokenized_chosen = tokenizer(chosen, padding=True)
-        tokenized_rejected = tokenizer(rejected, padding=True)
+        tokenized_chosen = tokenizer(chosen, padding=True, max_length = 512)
+        tokenized_rejected = tokenizer(rejected, padding=True, max_length = 512)
 
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
