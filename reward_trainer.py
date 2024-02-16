@@ -302,7 +302,7 @@ class IterativeRewardTrainer(Trainer):
         inputs["labels"] = (1-BETA)*inputs["labels"] + BETA * probs_chosen
 
 
-    def append_labels_to_batches(data_loader):
+    def append_labels_to_batches(self, data_loader):
         # Iterate over all batches in the DataLoader
         for batch in data_loader:
             # Create a tensor of ones with size equal to the batch size
