@@ -211,7 +211,8 @@ class IterativeRewardTrainer(Trainer):
             preprocess_logits_for_metrics,
         )
     
-       def get_dataloader(self) -> DataLoader:
+    def get_dataloader(self) -> DataLoader:
+        
         """
         Returns the training [`~torch.utils.data.DataLoader`].
 
