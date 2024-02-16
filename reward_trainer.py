@@ -330,7 +330,7 @@ class IterativeRewardTrainer(Trainer):
         train_loader = self.get_train_dataloader()
         train_loader = self.append_labels_to_batches(train_loader)
         wandb.init(project='your_project_name', config={
-            'learning_rate': 0.ALPHA,
+            'learning_rate': ALPHA,
             'epochs': EPOCH,
             'batch_size': self._train_batch_size,
             'gradient_accumulation_steps': 4,
