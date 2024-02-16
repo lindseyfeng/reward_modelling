@@ -311,7 +311,7 @@ class IterativeRewardTrainer(Trainer):
     
         for epoch in range(EPOCH):
             for batch in train_loader:
-                print(self.model)
+                print(batch)
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
                 loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch)  # Implement this method based on your loss calculation
                     
