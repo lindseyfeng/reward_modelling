@@ -307,6 +307,7 @@ class IterativeRewardTrainer(Trainer):
         for epoch in range(EPOCH):
             for batch in train_loader:
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
+                print(batch)
                 inputs = {k: v.to(self.model.device) for k, v in batch.items() if k != 'labels'}
                 labels = batch['labels'].to(self.model.device)
                     

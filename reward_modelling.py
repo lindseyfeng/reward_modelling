@@ -4,12 +4,13 @@ from reward_trainer import IterativeRewardTrainer
 from datasets import load_dataset
 from tqdm import tqdm
 
-
+PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
-    tokenizer.pad_token = '[PAD]'
+    tokenizer.add_special_tokens({'pad_token': PAD_TOKEN})
+    model.resize_token_embeddings(len(tokenizer))
 
 
 raw_datasets = load_dataset("Anthropic/hh-rlhf")
