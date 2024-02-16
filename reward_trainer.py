@@ -346,7 +346,7 @@ class IterativeRewardTrainer(Trainer):
             # for step, 
             for batch in enumerate(train_loader):
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
-                print(batch)
+                print(type(inputs)) 
                 loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
                 
                 # Normalize loss to account for accumulation
