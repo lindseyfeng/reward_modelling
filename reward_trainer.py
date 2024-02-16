@@ -210,6 +210,38 @@ class IterativeRewardTrainer(Trainer):
             optimizers,
             preprocess_logits_for_metrics,
         )
+    
+       def get_dataloader(self) -> DataLoader:
+        """
+        Returns the training [`~torch.utils.data.DataLoader`].
+
+        Will use no sampler if `train_dataset` does not implement `__len__`, a random sampler (adapted to distributed
+        training if necessary) otherwise.
+
+        Subclass and override this method if you want to inject some custom behavior.
+        """
+        if self.train_dataset is None:
+            raise ValueError("Trainer: training requires a train_dataset.")
+
+        train_dataset = self.train_dataset
+        data_collator = self.data_collator
+
+        dataloader_params = {
+            "batch_size": self._train_batch_size,
+            "collate_fn": data_collator,
+            "num_workers": self.args.dataloader_num_workers,
+            "pin_memory": self.args.dataloader_pin_memory,
+            "persistent_workers": self.args.dataloader_persistent_workers,
+        }
+
+        if not isinstance(train_dataset, torch.utils.data.IterableDataset):
+            dataloader_params["sampler"] = self._get_train_sampler()
+            dataloader_params["drop_last"] = self.args.dataloader_drop_last
+            dataloader_params["worker_init_fn"] = seed_worker
+            dataloader_params["prefetch_factor"] = self.args.dataloader_prefetch_factor
+
+        return self.accelerator.prepare(DataLoader(train_dataset, **dataloader_params))
+
 
     def compute_loss(
         self,
@@ -305,7 +337,7 @@ class IterativeRewardTrainer(Trainer):
 
     def custom_train_loop(self):
         # step = 0
-        train_loader = self.get_train_dataloader()
+        train_loader = self.get_dataloader()
         train_loader.append(self.train_dataset["labels"])
         print()
         # while not self.check_convergence(step):
@@ -333,6 +365,8 @@ class IterativeRewardTrainer(Trainer):
             # Update labels based on model prediction
             
             # step += 1
+
+    
 
 
     
