@@ -198,7 +198,7 @@ class IterativeRewardTrainer(Trainer):
             self.use_reward_data_collator = True
         else:
             self.use_reward_data_collator = False
-        print(optimizers)
+        print("optimizers", optimizers)
         super().__init__(
             model,
             args,
