@@ -330,11 +330,11 @@ class IterativeRewardTrainer(Trainer):
                 loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch)  # Implement this method based on your loss calculation
                     
                 # Backward pass: compute gradient of the loss with respect to model parameters
-                self.optimizers.zero_grad()  # Clear the gradients of all optimized tensors
+                self.optimizer.zero_grad()  # Clear the gradients of all optimized tensors
                 loss.backward()
                     
                 # Perform a single optimization step (parameter update)
-                self.optimizers.step()
+                self.optimizer.step()
                     
                 self.update_labels_with_model_predictions(batch, probs_chosen)
                 print(batch["labels"])
