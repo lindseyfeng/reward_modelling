@@ -225,7 +225,7 @@ class IterativeRewardTrainer(Trainer):
             )
         print(inputs["input_ids_chosen"].shape)
         print(inputs["attention_mask_chosen"].shape)
-        print(input_ids=inputs["input_ids_rejected"].shape)
+        print(inputs["input_ids_rejected"].shape)
         print(inputs["attention_mask_rejected"].shape)
         rewards_chosen = model(
             input_ids=inputs["input_ids_chosen"],
