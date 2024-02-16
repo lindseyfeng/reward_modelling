@@ -253,14 +253,17 @@ class IterativeRewardTrainer(Trainer):
         print(rewards_chosen.shape)
         print(rewards_rejected.shape)
         exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
-        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
+         
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
         loss_chosen = -labels * torch.log(probs_chosen)
+        print("loss_chosen", loss_chosen)
         loss_rejected = -(1 - labels) * torch.log(probs_rejected)
+        print("loss_rejected", loss_rejected)
         loss = (loss_chosen + loss_rejected).mean()
+        print("loss", loss)
 
         # if "margin" in inputs:
         #     loss = -nn.functional.logsigmoid(rewards_chosen - rewards_rejected - inputs["margin"]).mean()
@@ -346,10 +349,11 @@ class IterativeRewardTrainer(Trainer):
                 
                 # Normalize loss to account for accumulation
                 loss = loss / gradient_accumulation_steps
-                
+                print("before", batch['labels'])
                 # Backward pass: compute gradient of the loss with respect to model parameters
                 loss.backward()
-                
+                self.update_labels_with_model_predictions(batch, probs_chosen)
+                print("after", batch['labels'])
                 # Accumulate gradients
                 if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
                     # Perform a single optimization step (parameter update)
@@ -360,7 +364,6 @@ class IterativeRewardTrainer(Trainer):
                     
                     # Update the counter and labels after performing an optimizer step
                     accumulation_counter += 1
-                    self.update_labels_with_model_predictions(batch, probs_chosen)
                     print(batch['labels'].shape)
 
                     print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
