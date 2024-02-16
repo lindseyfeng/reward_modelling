@@ -211,37 +211,6 @@ class IterativeRewardTrainer(Trainer):
             preprocess_logits_for_metrics,
         )
     
-    def get_dataloader(self) -> DataLoader:
-        
-        """
-        Returns the training [`~torch.utils.data.DataLoader`].
-
-        Will use no sampler if `train_dataset` does not implement `__len__`, a random sampler (adapted to distributed
-        training if necessary) otherwise.
-
-        Subclass and override this method if you want to inject some custom behavior.
-        """
-        if self.train_dataset is None:
-            raise ValueError("Trainer: training requires a train_dataset.")
-        print(self.train_dataset)
-        train_dataset = self.train_dataset
-        data_collator = self.data_collator
-
-        dataloader_params = {
-            "batch_size": self._train_batch_size,
-            "collate_fn": data_collator,
-            "num_workers": self.args.dataloader_num_workers,
-            "pin_memory": self.args.dataloader_pin_memory,
-            # "persistent_workers": self.args.dataloader_persistent_workers,
-        }
-
-        if not isinstance(train_dataset, torch.utils.data.IterableDataset):
-            dataloader_params["sampler"] = self._get_train_sampler()
-            dataloader_params["drop_last"] = self.args.dataloader_drop_last
-
-        return self.accelerator.prepare(DataLoader(train_dataset, **dataloader_params))
-
-
     def compute_loss(
         self,
         model: Union[PreTrainedModel, nn.Module],
@@ -333,10 +302,25 @@ class IterativeRewardTrainer(Trainer):
         inputs["labels"] = (1-BETA)*inputs["labels"] + BETA * probs_chosen
 
 
+    def append_labels_to_batches(data_loader):
+        # Iterate over all batches in the DataLoader
+        for batch in data_loader:
+            # Create a tensor of ones with size equal to the batch size
+            # Since the batch size is 4, we create a tensor of shape (4,)
+            labels = torch.ones((4,), dtype=torch.long)
+            
+            # If your DataLoader yields dictionaries, you might want to add labels to the batch directly
+            # Ensure you're not overwriting anything important if you choose to do this
+            batch['labels'] = labels
+            
+            yield batch
+
+
 
     def custom_train_loop(self):
         # step = 0
-        train_loader = self.get_dataloader()
+        train_loader = self.get_train_dataloader()
+        train_loader = append_labels_to_batches(train_loader)
         print(train_loader)
         # while not self.check_convergence(step):
         self.model.train()  # Set model to training mode
