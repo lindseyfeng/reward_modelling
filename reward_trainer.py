@@ -245,7 +245,6 @@ class IterativeRewardTrainer(Trainer):
         exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
-        print(inputs)
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
@@ -307,7 +306,7 @@ class IterativeRewardTrainer(Trainer):
         for batch in data_loader:
             # Create a tensor of ones with size equal to the batch size
             # Since the batch size is 4, we create a tensor of shape (4,)
-            labels = torch.ones((4,), dtype=torch.long)
+            labels = torch.ones((4,3200), dtype=torch.long)
             
             # If your DataLoader yields dictionaries, you might want to add labels to the batch directly
             # Ensure you're not overwriting anything important if you choose to do this
