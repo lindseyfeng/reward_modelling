@@ -306,7 +306,7 @@ class IterativeRewardTrainer(Trainer):
         for batch in data_loader:
             # Create a tensor of ones with size equal to the batch size
             # Since the batch size is 4, we create a tensor of shape (4,)
-            labels = torch.ones((4,32000), dtype=torch.long)
+            labels = torch.ones((4, 512, 32000), dtype=torch.long)
             
             # If your DataLoader yields dictionaries, you might want to add labels to the batch directly
             # Ensure you're not overwriting anything important if you choose to do this
