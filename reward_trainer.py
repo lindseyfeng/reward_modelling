@@ -325,6 +325,7 @@ class IterativeRewardTrainer(Trainer):
 
 
     def custom_train_loop(self):
+        pass
         
         # self.model.train()  # Set model to training mode
         # train_loader = self.get_train_dataloader()
