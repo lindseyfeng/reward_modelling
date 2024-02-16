@@ -338,8 +338,7 @@ class IterativeRewardTrainer(Trainer):
     def custom_train_loop(self):
         # step = 0
         train_loader = self.get_dataloader()
-        train_loader.append(self.train_dataset["labels"])
-        print()
+        print(train_loader)
         # while not self.check_convergence(step):
         self.model.train()  # Set model to training mode
     
