@@ -25,16 +25,17 @@ reward_config = RewardConfig(
     max_length = 512, 
     learning_rate=1e-5,
     report_to="wandb",
-    optim="adamw_torch"
+    optim="adamw_torch",
+    remove_unused_columns = False
 )
 
 def preprocess_function(examples):
     new_examples = {
+            "labels": [],
             "input_ids_chosen": [],
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
-            "labels": [],
     }
     for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
         tokenized_chosen = tokenizer(chosen, padding='max_length', max_length = 512)
