@@ -223,7 +223,7 @@ class IterativeRewardTrainer(Trainer):
         """
         if self.train_dataset is None:
             raise ValueError("Trainer: training requires a train_dataset.")
-
+        print(train_dataset)
         train_dataset = self.train_dataset
         data_collator = self.data_collator
 
