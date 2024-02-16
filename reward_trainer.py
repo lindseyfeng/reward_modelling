@@ -258,12 +258,11 @@ class IterativeRewardTrainer(Trainer):
         # else:
         #     loss = -nn.functional.logsigmoid(rewards_chosen - rewards_rejected).mean()
 
-        if return_outputs:
-            return loss, probs_chosen, {
+        return loss, probs_chosen, {
                 "rewards_chosen": rewards_chosen,
                 "rewards_rejected": rewards_rejected,
             }
-        return loss, probs_chosen
+        # return loss, probs_chosen
 
 
     def prediction_step(
