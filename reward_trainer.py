@@ -343,30 +343,39 @@ class IterativeRewardTrainer(Trainer):
         accumulation_counter = 0  # Counter to keep track of steps take
 
         for epoch in range(EPOCH):
-            for step, batch in enumerate(train_loader):
+            # for step, 
+            for batch in enumerate(train_loader):
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
                 loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
                 
                 # Normalize loss to account for accumulation
-                loss = loss / gradient_accumulation_steps
+                # loss = loss / gradient_accumulation_steps
                 print("before", batch['labels'])
                 # Backward pass: compute gradient of the loss with respect to model parameters
                 loss.backward()
                 self.update_labels_with_model_predictions(batch, probs_chosen)
                 print("after", batch['labels'])
-                # Accumulate gradients
-                if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
-                    # Perform a single optimization step (parameter update)
-                    self.optimizer.step()
+                self.optimizer.step()
                     
-                    # Clear the gradients of all optimized tensors
-                    self.optimizer.zero_grad()
-                    
-                    # Update the counter and labels after performing an optimizer step
-                    accumulation_counter += 1
-                    print(batch['labels'].shape)
+                #     # Clear the gradients of all optimized tensors
+                self.optimizer.zero_grad()
 
-                    print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
+
+
+
+                # Accumulate gradients
+                # if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
+                #     # Perform a single optimization step (parameter update)
+                #     self.optimizer.step()
+                    
+                #     # Clear the gradients of all optimized tensors
+                #     self.optimizer.zero_grad()
+                    
+                #     # Update the counter and labels after performing an optimizer step
+                #     accumulation_counter += 1
+                #     print(batch['labels'].shape)
+
+                #     print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
                     
                 # Optional: Add any logging or metric computation here
                 wandb.log({'loss': loss.item(), 'step': accumulation_counter})
