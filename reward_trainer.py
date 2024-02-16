@@ -328,8 +328,9 @@ class IterativeRewardTrainer(Trainer):
         
         self.model.train()  # Set model to training mode
         train_loader = self.get_train_dataloader()
+        print(type(train_loader))
         train_loader = self.append_labels_to_batches(train_loader)
-        wandb.init(project='your_project_name', config={
+        wandb.init(project='rm_ALPHA{}_BETA{}_EPOCH{}_TEMP{}'.format(ALPHA, BETA, EPOCH, TEMPERATURE), config={
             'learning_rate': ALPHA,
             'epochs': EPOCH,
             'batch_size': self._train_batch_size,
@@ -337,7 +338,8 @@ class IterativeRewardTrainer(Trainer):
         })
         gradient_accumulation_steps = 4  # Set this to your desired accumulation steps
         accumulation_counter = 0  # Counter to keep track of steps taken
-        
+        print(type(train_loader))
+
         for epoch in range(EPOCH):
             for step, batch in enumerate(train_loader):
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
