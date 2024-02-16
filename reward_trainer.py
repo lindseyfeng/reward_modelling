@@ -245,6 +245,7 @@ class IterativeRewardTrainer(Trainer):
         exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
+        print(inputs)
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
@@ -322,7 +323,7 @@ class IterativeRewardTrainer(Trainer):
                 self.optimizers.step()
                     
                 self.update_labels_with_model_predictions(batch, probs_chosen)
-                print(inputs["labels"])
+                print(batch["labels"])
                     
 
 
