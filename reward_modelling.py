@@ -7,6 +7,10 @@ from tqdm import tqdm
 
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
+# Assuming `tokenizer` is your tokenizer instance
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = '[PAD]'
+
 
 raw_datasets = load_dataset("Anthropic/hh-rlhf")
     # Tokenize chosen/rejected pairs of inputs
