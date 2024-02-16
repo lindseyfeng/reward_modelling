@@ -33,6 +33,7 @@ import wandb
 
 wandb.login()
 
+
 if is_peft_available():
     from peft import PeftModel, get_peft_model, prepare_model_for_kbit_training
 
@@ -40,6 +41,7 @@ BETA = 0.7
 ALPHA = 1e-5
 TEMPERATURE = 1/1.2
 EPOCH = 2
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class IterativeRewardTrainer(Trainer):
@@ -313,7 +315,7 @@ class IterativeRewardTrainer(Trainer):
         for batch in data_loader:
             # Create a tensor of ones with size equal to the batch size
             # Since the batch size is 4, we create a tensor of shape (4,)
-            labels = torch.ones((4, 1, 1), dtype=torch.long).to(device)
+            labels = torch.ones((self._train_batch_size, 1, 1), dtype=torch.long).to(device)
             
             # If your DataLoader yields dictionaries, you might want to add labels to the batch directly
             # Ensure you're not overwriting anything important if you choose to do this
@@ -327,7 +329,12 @@ class IterativeRewardTrainer(Trainer):
         self.model.train()  # Set model to training mode
         train_loader = self.get_train_dataloader()
         train_loader = self.append_labels_to_batches(train_loader)
-        
+        wandb.init(project='your_project_name', config={
+            'learning_rate': 0.ALPHA,
+            'epochs': EPOCH,
+            'batch_size': self._train_batch_size,
+            'gradient_accumulation_steps': 4,
+        })
         gradient_accumulation_steps = 4  # Set this to your desired accumulation steps
         accumulation_counter = 0  # Counter to keep track of steps taken
         
