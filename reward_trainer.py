@@ -337,8 +337,7 @@ class IterativeRewardTrainer(Trainer):
             'gradient_accumulation_steps': 16,
         })
         gradient_accumulation_steps = 16  # Set this to your desired accumulation steps
-        accumulation_counter = 0  # Counter to keep track of steps taken
-        print(type(train_loader))
+        accumulation_counter = 0  # Counter to keep track of steps take
 
         for epoch in range(EPOCH):
             for step, batch in enumerate(train_loader):
@@ -362,12 +361,14 @@ class IterativeRewardTrainer(Trainer):
                     # Update the counter and labels after performing an optimizer step
                     accumulation_counter += 1
                     self.update_labels_with_model_predictions(batch, probs_chosen)
+                    print(batch['labels'].shape)
 
                     print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
                     
                 # Optional: Add any logging or metric computation here
                 wandb.log({'loss': loss.item(), 'step': accumulation_counter})
                 wandb.log({'custom_metric': logits_dict})
+                wandb.log({'epoch': epoch})
 
             
             # Update labels based on model prediction
