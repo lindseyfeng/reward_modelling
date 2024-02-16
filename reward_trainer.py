@@ -29,7 +29,9 @@ from transformers.trainer_utils import EvalPrediction
 from trl.import_utils import is_peft_available
 from trl.trainer.reward_config import RewardConfig
 from trl.trainer.utils import RewardDataCollatorWithPadding, compute_accuracy
+import wandb
 
+wandb.login()
 
 if is_peft_available():
     from peft import PeftModel, get_peft_model, prepare_model_for_kbit_training
@@ -320,40 +322,43 @@ class IterativeRewardTrainer(Trainer):
             yield batch
 
 
- def custom_train_loop(self):
-    self.model.train()  # Set model to training mode
-    train_loader = self.get_train_dataloader()
-    train_loader = self.append_labels_to_batches(train_loader)
-    
-    gradient_accumulation_steps = 4  # Set this to your desired accumulation steps
-    accumulation_counter = 0  # Counter to keep track of steps taken
-    
-    for epoch in range(EPOCH):
-        for step, batch in enumerate(train_loader):
-            # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
-            loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
-            
-            # Normalize loss to account for accumulation
-            loss = loss / gradient_accumulation_steps
-            
-            # Backward pass: compute gradient of the loss with respect to model parameters
-            loss.backward()
-            
-            # Accumulate gradients
-            if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len(train_loader):
-                # Perform a single optimization step (parameter update)
-                self.optimizer.step()
+    def custom_train_loop(self):
+        
+        self.model.train()  # Set model to training mode
+        train_loader = self.get_train_dataloader()
+        train_loader = self.append_labels_to_batches(train_loader)
+        
+        gradient_accumulation_steps = 4  # Set this to your desired accumulation steps
+        accumulation_counter = 0  # Counter to keep track of steps taken
+        
+        for epoch in range(EPOCH):
+            for step, batch in enumerate(train_loader):
+                # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
+                loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
                 
-                # Clear the gradients of all optimized tensors
-                self.optimizer.zero_grad()
+                # Normalize loss to account for accumulation
+                loss = loss / gradient_accumulation_steps
                 
-                # Update the counter and labels after performing an optimizer step
-                accumulation_counter += 1
-                self.update_labels_with_model_predictions(batch, probs_chosen)
+                # Backward pass: compute gradient of the loss with respect to model parameters
+                loss.backward()
+                
+                # Accumulate gradients
+                if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len(train_loader):
+                    # Perform a single optimization step (parameter update)
+                    self.optimizer.step()
+                    
+                    # Clear the gradients of all optimized tensors
+                    self.optimizer.zero_grad()
+                    
+                    # Update the counter and labels after performing an optimizer step
+                    accumulation_counter += 1
+                    self.update_labels_with_model_predictions(batch, probs_chosen)
 
-                print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
-                
-            # Optional: Add any logging or metric computation here
+                    print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
+                    
+                # Optional: Add any logging or metric computation here
+                wandb.log({'loss': loss.item(), 'step': accumulation_counter})
+                wandb.log({'custom_metric': logits_dict})
 
             
             # Update labels based on model prediction
