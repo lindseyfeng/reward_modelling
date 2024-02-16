@@ -245,8 +245,6 @@ class IterativeRewardTrainer(Trainer):
         exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
-    
-        # # calculate loss, optionally modulate with margin
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
@@ -260,7 +258,7 @@ class IterativeRewardTrainer(Trainer):
         #     loss = -nn.functional.logsigmoid(rewards_chosen - rewards_rejected).mean()
 
         if return_outputs:
-            return loss, {
+            return loss, probs_chosen, {
                 "rewards_chosen": rewards_chosen,
                 "rewards_rejected": rewards_rejected,
             }
@@ -314,7 +312,7 @@ class IterativeRewardTrainer(Trainer):
             for batch in train_loader:
                 print(self.model)
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
-                loss, probs_chosen = self.compute_loss(self.model, batch)  # Implement this method based on your loss calculation
+                loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch)  # Implement this method based on your loss calculation
                     
                 # Backward pass: compute gradient of the loss with respect to model parameters
                 self.optimizers.zero_grad()  # Clear the gradients of all optimized tensors
@@ -324,6 +322,7 @@ class IterativeRewardTrainer(Trainer):
                 self.optimizers.step()
                     
                 self.update_labels_with_model_predictions(batch, probs_chosen)
+                print(inputs["labels"])
                     
 
 

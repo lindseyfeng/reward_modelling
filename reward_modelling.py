@@ -5,7 +5,7 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 PAD_TOKEN = '[PAD]'
-tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b", padding=True)
+tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
@@ -37,8 +37,8 @@ def preprocess_function(examples):
             "labels": [],
     }
     for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
-        tokenized_chosen = tokenizer(chosen)
-        tokenized_rejected = tokenizer(rejected)
+        tokenized_chosen = tokenizer(chosen, padding=True)
+        tokenized_rejected = tokenizer(rejected, padding=True)
 
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
