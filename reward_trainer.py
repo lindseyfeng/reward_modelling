@@ -350,7 +350,7 @@ class IterativeRewardTrainer(Trainer):
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
                 print(type(batch)) 
                 loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
-                weights_before = {name: param.clone() for name, param in model.named_parameters()}
+                weights_before = {name: param.clone() for name, param in self.model.named_parameters()}
                 # Normalize loss to account for accumulation
                 # loss = loss / gradient_accumulation_steps
                 print("before", batch['labels'])
@@ -360,13 +360,13 @@ class IterativeRewardTrainer(Trainer):
                 print("after", batch['labels'])
                 self.optimizer.step()
 
-                weights_after = {name: param for name, param in model.named_parameters()}
+                weights_after = {name: param for name, param in self.model.named_parameters()}
                 for name, param in weights_before.items():
                     if not torch.equal(param, weights_after[name]):
                         print(f"Weights updated for {name}")
                     else:
                         print(f"No update for {name}")
-                for name, param in model.named_parameters():
+                for name, param in self.model.named_parameters():
                     if param.grad is not None:
                         print(f"{name} has gradient {param.grad.norm().item()}")  # or just check if it's not None
                     else:
