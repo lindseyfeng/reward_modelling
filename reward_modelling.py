@@ -5,8 +5,8 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 PAD_TOKEN = '[PAD]'
-tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
-model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
+tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-2.7B")
+model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-2.7B")
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
