@@ -443,7 +443,8 @@ class IterativeRewardTrainer(Trainer):
                     margin.append(feature["margin"])
             
                 if "labels" in feature:  # Collect labels if present
-                labels.append(feature["labels"])
+                    labels.append(feature["labels"])
+                    
             batch_chosen = self.tokenizer.pad(
                 features_chosen,
                 padding=self.padding,
