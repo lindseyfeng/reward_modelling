@@ -45,7 +45,7 @@ if is_peft_available():
 
 BETA = 0.7
 ALPHA = 1e-5
-TEMPERATURE = 1/1.2
+TEMPERATURE = 1
 EPOCH = 2
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -225,8 +225,8 @@ class IterativeRewardTrainer(Trainer):
             optimizers,
             preprocess_logits_for_metrics,
         )
-        if self.optimizer == None:
-            self.optimizer = AdamW(model.parameters(), lr=ALPHA, eps=1e-8)
+        # if self.optimizer == None:
+        #     self.optimizer = AdamW(model.parameters(), lr=ALPHA, eps=1e-8)
     
     def compute_loss(
         self,

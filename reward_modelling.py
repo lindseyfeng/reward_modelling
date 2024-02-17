@@ -18,7 +18,7 @@ import wandb
 
 BETA = 0.7
 ALPHA = 1e-5
-TEMPERATURE = 1/1.2
+TEMPERATURE = 1
 EPOCH = 2
 
 PAD_TOKEN = '[PAD]'
@@ -157,7 +157,7 @@ raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-train_dataset = raw_datasets["train"]
+train_dataset = raw_datasets["train"].shuffle(seed=42).select(range(40000)) ####validate code is fine
 eval_dataset = raw_datasets["test"]
 
 # peft_config = LoraConfig(
