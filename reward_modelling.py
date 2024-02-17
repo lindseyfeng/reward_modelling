@@ -143,7 +143,7 @@ def preprocess_function(examples):
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["label"].append(tensor([[1]]))
+        new_examples["label"].append(torch.tensor([[1]]))
 
     return new_examples
 
