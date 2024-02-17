@@ -3,6 +3,15 @@ from trl import RewardConfig
 from reward_trainer import IterativeRewardTrainer
 from datasets import load_dataset
 from tqdm import tqdm
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    HfArgumentParser,
+    PreTrainedTokenizerBase,
+    Trainer,
+    TrainerCallback,
+    TrainingArguments,
+)
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
