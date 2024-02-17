@@ -348,7 +348,7 @@ class IterativeRewardTrainer(Trainer):
         train_loader = self.get_train_dataloader()
         len_data = len(train_loader)
         train_loader = self.append_labels_to_batches(train_loader)
-        gradient_accumulation_steps = 20
+        gradient_accumulation_steps = 16
         wandb.init(project='rm_ALPHA{}_BETA{}_EPOCH{}_TEMP{}'.format(ALPHA, BETA, EPOCH, TEMPERATURE), config={
             'learning_rate': ALPHA,
             'epochs': EPOCH,
@@ -372,7 +372,8 @@ class IterativeRewardTrainer(Trainer):
                 if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
                     # scaler.step(self.optimizer)  # Perform optimizer step
                     # scaler.update()  # Update scaler
-                    self.optimizer.step()
+                    with torch.autograd.detect_anomaly():
+                        self.optimizer.step()
                     self.optimizer.zero_grad()  # Zero gradients
                     weights_after = {name: param for name, param in self.model.named_parameters()}
                     for name, param in weights_before.items():
