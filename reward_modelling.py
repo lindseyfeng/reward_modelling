@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from trl import RewardConfig
 from reward_trainer import IterativeRewardTrainer
 from datasets import load_dataset
@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("microsoft/deberta-v3-large")
-model = AutoModelForCausalLM.from_pretrained("microsoft/deberta-v3-large")
+model = AutoModelForSequenceClassification.from_pretrained("microsoft/deberta-v3-large")
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
