@@ -50,12 +50,6 @@ EPOCH = 2
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 epsilon = 1e-8
-wandb.init(project='BETA_{}_ALPHA_{}_TEMP_{}_EPOCH'.format(BETA, ALPHA, TEMPERATURE, EPOCH), config={
-    "learning_rate": ALPHA,
-    "epochs": EPOCH,
-    "batch_size": self._train_batch_size,
-    # Add other hyperparameters here,
-})
 
 class IterativeRewardTrainer(Trainer):
     r"""
@@ -128,6 +122,12 @@ class IterativeRewardTrainer(Trainer):
             peft_config (`Dict`, defaults to `None`):
                 The PEFT configuration to use for training. If you pass a PEFT configuration, the model will be wrapped in a PEFT model.
         """
+        wandb.init(project='BETA_{}_ALPHA_{}_TEMP_{}_EPOCH'.format(BETA, ALPHA, TEMPERATURE, EPOCH), config={
+            "learning_rate": ALPHA,
+            "epochs": EPOCH,
+            "batch_size": self._train_batch_size,
+            # Add other hyperparameters here,
+        })
         if type(args) == TrainingArguments:
             warnings.warn(
                 "Using `transformers.TrainingArguments` for `args` is deprecated and will be removed in a future version. Please use `RewardConfig` instead.",
