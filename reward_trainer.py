@@ -343,10 +343,6 @@ class IterativeRewardTrainer(Trainer):
         model.train()
         inputs = self._prepare_inputs(inputs)
 
-        # Forward pass to get logits
-        outputs = model(**inputs)
-        logits = outputs.get('logits')
-
         # Compute loss with updated labels
         loss, probs_chosen, outputs = self.compute_loss(model, inputs, return_outputs=True)
 
