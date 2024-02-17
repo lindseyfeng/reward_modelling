@@ -271,8 +271,8 @@ class IterativeRewardTrainer(Trainer):
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
-        loss_chosen = -labels * torch.log(probs_chosen+epsilon)
-        loss_rejected = -(1 - labels) * torch.log(probs_rejected + epsilon)
+        loss_chosen = -labels * torch.log(probs_chosen)
+        loss_rejected = -(1 - labels) * torch.log(probs_rejected)
         loss = (loss_chosen + loss_rejected).mean()
         print("loss", loss)
 
@@ -348,7 +348,7 @@ class IterativeRewardTrainer(Trainer):
         train_loader = self.get_train_dataloader()
         len_data = len(train_loader)
         train_loader = self.append_labels_to_batches(train_loader)
-        gradient_accumulation_steps = 32
+        gradient_accumulation_steps = 20
         wandb.init(project='rm_ALPHA{}_BETA{}_EPOCH{}_TEMP{}'.format(ALPHA, BETA, EPOCH, TEMPERATURE), config={
             'learning_rate': ALPHA,
             'epochs': EPOCH,
