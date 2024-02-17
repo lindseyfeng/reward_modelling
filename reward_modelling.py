@@ -14,6 +14,7 @@ from transformers import (
 )
 from typing import Any, Dict, List, Optional, Union
 import torch
+import wandb
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
@@ -164,6 +165,13 @@ eval_dataset = raw_datasets["test"]
 
 print(train_dataset)
 
+wandb.init(project='BETA_{}_ALPHA_{}_TEMP_{}_EPOCH'.format(BETA, ALPHA, TEMPERATURE, EPOCH), config={
+            "learning_rate": ALPHA,
+            "epochs": EPOCH,
+            "batch_size": reward_config.per_device_train_batch_size,
+            # Add other hyperparameters here,
+        })
+
 trainer = IterativeRewardTrainer(
         model=model,
         tokenizer=tokenizer,
@@ -172,5 +180,6 @@ trainer = IterativeRewardTrainer(
         eval_dataset=eval_dataset,
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
     )
+
 trainer.train()
 trainer.save_model(reward_config.output_dir)
