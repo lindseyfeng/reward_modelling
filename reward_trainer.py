@@ -365,7 +365,8 @@ class IterativeRewardTrainer(Trainer):
                 
                 loss = loss / gradient_accumulation_steps  # Adjust loss for accumulation
                 with torch.autograd.detect_anomaly():
-                    scaler.scale(loss).backward()  # Scale loss before backward
+                    # scaler.scale(loss).backward()  # Scale loss before backward
+                    loss.backward()
                 scaler.unscale_(self.optimizer)
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
