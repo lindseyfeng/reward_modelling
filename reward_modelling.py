@@ -162,7 +162,7 @@ trainer = IterativeRewardTrainer(
         args=reward_config,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length),
+        data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
     )
 trainer.train()
 trainer.save_model(reward_config.output_dir)
