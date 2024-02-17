@@ -324,57 +324,57 @@ class IterativeRewardTrainer(Trainer):
 
     from torch.cuda.amp import GradScaler, autocast
 
-def custom_train_loop(self):
-    scaler = GradScaler()  # Initialize outside the loop
-    
-    self.model.train()
-    train_loader = self.get_train_dataloader()
-    len_data = len(train_loader)
-    train_loader = self.append_labels_to_batches(train_loader)
-    
-    wandb.init(project='rm_ALPHA{}_BETA{}_EPOCH{}_TEMP{}'.format(ALPHA, BETA, EPOCH, TEMPERATURE), config={
-        'learning_rate': ALPHA,
-        'epochs': EPOCH,
-        'batch_size': self._train_batch_size,
-        'gradient_accumulation_steps': 16,
-    })
-    
-    for epoch in range(EPOCH):
-        for step, batch in enumerate(train_loader):
-            weights_before = {name: param.clone() for name, param in self.model.named_parameters()}
+    def custom_train_loop(self):
+        scaler = GradScaler()  # Initialize outside the loop
+        
+        self.model.train()
+        train_loader = self.get_train_dataloader()
+        len_data = len(train_loader)
+        train_loader = self.append_labels_to_batches(train_loader)
+        
+        wandb.init(project='rm_ALPHA{}_BETA{}_EPOCH{}_TEMP{}'.format(ALPHA, BETA, EPOCH, TEMPERATURE), config={
+            'learning_rate': ALPHA,
+            'epochs': EPOCH,
+            'batch_size': self._train_batch_size,
+            'gradient_accumulation_steps': 16,
+        })
+        
+        for epoch in range(EPOCH):
+            for step, batch in enumerate(train_loader):
+                weights_before = {name: param.clone() for name, param in self.model.named_parameters()}
 
-            with autocast(): 
-                loss, probs_chosen, logits_dict = self.compute_loss(self.model, batch, return_outputs=True)
-            
-            loss = loss / gradient_accumulation_steps  # Adjust loss for accumulation
-            
-            with torch.autograd.detect_anomaly():
-                scaler.scale(loss).backward()  # Scale loss before backward
-            
-            if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
-                scaler.step(self.optimizer)  # Perform optimizer step
-                scaler.update()  # Update scaler
-                self.optimizer.zero_grad()  # Zero gradients
-                weights_after = {name: param for name, param in self.model.named_parameters()}
-                for name, param in weights_before.items():
-                    if not torch.equal(param, weights_after[name]):
-                        print(f"Weights updated for {name}")
-                    else:
-                        print(f"No update for {name}")
-                for name, param in self.model.named_parameters():
-                    if param.grad is not None:
-                        print(f"{name} has gradient {param.grad.norm().item()}")  # or just check if it's not None
-                    else:
-                        print(f"{name} has no gradient")
-                # Log and update labels after optimizer step
-                accumulation_counter += 1
-                print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
+                with autocast(): 
+                    loss, probs_chosen, logits_dict = self.compute_loss(self.model, batch, return_outputs=True)
                 
-            wandb.log({'loss': loss.item(), 'step': accumulation_counter, 'epoch': epoch})
-            wandb.log({'custom_metric': logits_dict})
-            wandb.log({'epoch': epoch})
-            total_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
-            wandb.log({'norm': total_norm})
+                loss = loss / gradient_accumulation_steps  # Adjust loss for accumulation
+                
+                with torch.autograd.detect_anomaly():
+                    scaler.scale(loss).backward()  # Scale loss before backward
+                
+                if (step + 1) % gradient_accumulation_steps == 0 or (step + 1) == len_data:
+                    scaler.step(self.optimizer)  # Perform optimizer step
+                    scaler.update()  # Update scaler
+                    self.optimizer.zero_grad()  # Zero gradients
+                    weights_after = {name: param for name, param in self.model.named_parameters()}
+                    for name, param in weights_before.items():
+                        if not torch.equal(param, weights_after[name]):
+                            print(f"Weights updated for {name}")
+                        else:
+                            print(f"No update for {name}")
+                    for name, param in self.model.named_parameters():
+                        if param.grad is not None:
+                            print(f"{name} has gradient {param.grad.norm().item()}")  # or just check if it's not None
+                        else:
+                            print(f"{name} has no gradient")
+                    # Log and update labels after optimizer step
+                    accumulation_counter += 1
+                    print(f"Updated labels after accumulation step {accumulation_counter}: {batch['labels']}")
+                    
+                wandb.log({'loss': loss.item(), 'step': accumulation_counter, 'epoch': epoch})
+                wandb.log({'custom_metric': logits_dict})
+                wandb.log({'epoch': epoch})
+                total_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+                wandb.log({'norm': total_norm})
 
 
 
