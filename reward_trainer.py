@@ -247,18 +247,14 @@ class IterativeRewardTrainer(Trainer):
         )["logits"]
 
         # Compute the softmax probabilities for chosen over rejected items
-        exp_logits_chosen = torch.exp(rewards_chosen * TEMPERATURE)
-        exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
-        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
-        probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
+        log_probs_chosen = torch.nn.functional.log_softmax(rewards_chosen * TEMPERATURE, dim=-1)
+        log_probs_rejected = torch.nn.functional.log_softmax(rewards_rejected * TEMPERATURE, dim=-1)
+        probs_chosen = log_probs_chosen.exp()
+
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
-        loss_chosen = -labels * torch.log(probs_chosen)
-        print("loss_chosen", loss_chosen)
-        loss_rejected = -(1 - labels) * torch.log(probs_rejected)
-        print("loss_rejected", loss_rejected)
-        loss = (loss_chosen + loss_rejected).mean()
+        loss = -(labels*log_probs_chosen + (1-labels)*log_probs_rejected).mean()
         print("loss", loss)
 
         # if "margin" in inputs:
