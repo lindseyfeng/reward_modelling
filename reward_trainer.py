@@ -359,5 +359,25 @@ class IterativeRewardTrainer(Trainer):
         dataset.set_format(type=dataset.format["type"], columns=[col for col in dataset.column_names if col not in columns_to_remove])
         return dataset
     
+    def _get_collator_with_removed_columns(self, data_collator: Callable, description: Optional[str] = None) -> Callable:
+    """Wrap the data collator in a callable removing unused columns."""
+        if not self.args.remove_unused_columns:
+            return data_collator
+        self._set_signature_columns_if_needed()
+
+        # Ensure 'labels' is in the signature columns to prevent its removal
+        signature_columns = set(self._signature_columns)
+        signature_columns.add("labels")
+
+        remove_columns_collator = RemoveColumnsCollator(
+            data_collator=data_collator,
+            signature_columns=list(signature_columns),
+            logger=logger,
+            description=description,
+            model_name=self.model.__class__.__name__,
+        )
+        return remove_columns_collator
+
+    
 
   
