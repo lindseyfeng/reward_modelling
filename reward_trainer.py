@@ -345,7 +345,7 @@ class IterativeRewardTrainer(Trainer):
 
         # Update labels within inputs based on model predictions
         self.update_labels_with_model_predictions(inputs, probs_chosen)
-        print(inputs['label'])
+        print("label", inputs['label'])
 
         if self.args.gradient_accumulation_steps > 1:
             loss = loss / self.args.gradient_accumulation_steps
@@ -356,7 +356,7 @@ class IterativeRewardTrainer(Trainer):
         else:
             loss.backward()
         
-        wandb.log({"train_loss": loss.item()})
+        wandb.log({"train_loss": loss})
 
         return loss.detach()
     
