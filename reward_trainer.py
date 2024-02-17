@@ -50,6 +50,12 @@ EPOCH = 2
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 epsilon = 1e-8
+wandb.init(project='BETA_{}_ALPHA_{}_TEMP_{}_EPOCH'.format(BETA, ALPHA, TEMPERATURE, EPOCH), config={
+    "learning_rate": ALPHA,
+    "epochs": EPOCH,
+    "batch_size": self._train_batch_size,
+    # Add other hyperparameters here,
+})
 
 class IterativeRewardTrainer(Trainer):
     r"""
@@ -335,7 +341,7 @@ class IterativeRewardTrainer(Trainer):
         model.train()
         print(inputs)
         inputs = self._prepare_inputs(inputs)
-        print(inputs)
+        print(inputs['label'])
         # Compute loss with updated labels
 
         if 'label' not in inputs:
@@ -345,6 +351,7 @@ class IterativeRewardTrainer(Trainer):
 
         # Update labels within inputs based on model predictions
         self.update_labels_with_model_predictions(inputs, probs_chosen)
+        print(inputs['label'])
 
         if self.args.gradient_accumulation_steps > 1:
             loss = loss / self.args.gradient_accumulation_steps
@@ -354,11 +361,23 @@ class IterativeRewardTrainer(Trainer):
             self.scaler.scale(loss).backward()
         else:
             loss.backward()
+        
+        wandb.log({"train_loss": loss.item()})
 
         return loss.detach()
+    
+    def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
+    # Call the parent class's evaluate method
+    eval_result = super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+    
+    # Log evaluation results to WandB
+    wandb.log({f"{metric_key_prefix}_{k}": v for k, v in eval_result.items()})
+    
+    return eval_result
+
+    
 
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
-        print("yes1")
         return dataset
         # if not self.args.remove_unused_columns:
         #     return dataset
