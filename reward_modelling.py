@@ -27,6 +27,96 @@ reward_config = RewardConfig(
     optim="adamw_torch"
 )
 
+class RewardDataCollatorWithPadding:
+        r"""
+        Reward DataCollator class that pads the inputs to the maximum length of the batch.
+        Args:
+            tokenizer (`PreTrainedTokenizerBase`):
+                The tokenizer used for encoding the data.
+            padding (`Union[bool, str, `PaddingStrategy`]`, `optional`, defaults to `True`):
+                padding_strategy to pass to the tokenizer.
+            max_length (`Optional[int]`, `optional`, defaults to `None`):
+                The maximum length of the sequence to be processed.
+            pad_to_multiple_of (`Optional[int]`, `optional`, defaults to `None`):
+                If set will pad the sequence to a multiple of the provided value.
+            return_tensors (`str`, `optional`, defaults to `"pt"`):
+                The tensor type to use.
+        """
+
+    tokenizer: PreTrainedTokenizerBase
+    padding: Union[bool, str] = True
+    max_length: Optional[int] = None
+    pad_to_multiple_of: Optional[int] = None
+    return_tensors: str = "pt"
+
+    def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, Any]:
+        print("hello?its me")
+        features_chosen = []
+        features_rejected = []
+        margin = []
+        labels = [] 
+            # check if we have a margin. If we do, we need to batch it as well
+        has_margin = "margin" in features[0]
+        for feature in features:
+                # check if the keys are named as expected
+            if (
+                "input_ids_chosen" not in feature
+                or "input_ids_rejected" not in feature
+                or "attention_mask_chosen" not in feature
+                or "attention_mask_rejected" not in feature
+            ):
+                raise ValueError(
+                    "The features should include `input_ids_chosen`, `attention_mask_chosen`, `input_ids_rejected` and `attention_mask_rejected`"
+                )
+
+            features_chosen.append(
+                    {
+                        "input_ids": feature["input_ids_chosen"],
+                        "attention_mask": feature["attention_mask_chosen"],
+                    }
+                )
+            features_rejected.append(
+                    {
+                        "input_ids": feature["input_ids_rejected"],
+                        "attention_mask": feature["attention_mask_rejected"],
+                    }
+                )
+            if has_margin:
+                margin.append(feature["margin"])
+            
+            if "labels" in feature:  # Collect labels if present
+                    labels.append(feature["labels"])
+                    
+        batch_chosen = self.tokenizer.pad(
+                features_chosen,
+                padding=self.padding,
+                max_length=self.max_length,
+                pad_to_multiple_of=self.pad_to_multiple_of,
+                return_tensors=self.return_tensors,
+            )
+        batch_rejected = self.tokenizer.pad(
+                features_rejected,
+                padding=self.padding,
+                max_length=self.max_length,
+                pad_to_multiple_of=self.pad_to_multiple_of,
+                return_tensors=self.return_tensors,
+            )
+        batch = {
+                "input_ids_chosen": batch_chosen["input_ids"],
+                "attention_mask_chosen": batch_chosen["attention_mask"],
+                "input_ids_rejected": batch_rejected["input_ids"],
+                "attention_mask_rejected": batch_rejected["attention_mask"],
+                "return_loss": True,
+            }
+        if labels:  # Add labels to the batch if they were collected
+                batch["labels"] = torch.tensor(labels, dtype=torch.long)
+                print("yes2")
+        if has_margin:
+                margin = torch.tensor(margin, dtype=torch.float)
+                batch["margin"] = margin
+        return batch
+
+
 def preprocess_function(examples):
     new_examples = {
             "input_ids_chosen": [],
@@ -36,9 +126,8 @@ def preprocess_function(examples):
             "label": []
     }
     for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
-        tokenized_chosen = tokenizer(chosen, padding='max_length', max_length = 512)
-        tokenized_rejected = tokenizer(rejected, padding='max_length', max_length = 512)
-
+        tokenized_chosen = tokenizer(chosen)
+        tokenized_rejected = tokenizer(rejected)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
@@ -75,7 +164,8 @@ trainer = IterativeRewardTrainer(
         tokenizer=tokenizer,
         args=reward_config,
         train_dataset=train_dataset,
-        eval_dataset=eval_dataset
+        eval_dataset=eval_dataset,
+        data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length),
     )
 trainer.train()
 trainer.save_model(reward_config.output_dir)
