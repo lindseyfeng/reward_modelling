@@ -38,13 +38,20 @@ reward_config = RewardConfig(
 )
 
 class RewardDataCollatorWithPadding:
-
-
     tokenizer: PreTrainedTokenizerBase
     padding: Union[bool, str] = True
     max_length: Optional[int] = None
     pad_to_multiple_of: Optional[int] = None
     return_tensors: str = "pt"
+
+    def __init__(self, tokenizer: PreTrainedTokenizerBase, padding: Union[bool, str] = True, 
+                 max_length: Optional[int] = None, pad_to_multiple_of: Optional[int] = None, 
+                 return_tensors: str = "pt"):
+        self.tokenizer = tokenizer
+        self.padding = padding
+        self.max_length = max_length
+        self.pad_to_multiple_of = pad_to_multiple_of
+        self.return_tensors = return_tensors
 
     def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, Any]:
         print("hello?its me")
