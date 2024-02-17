@@ -12,6 +12,7 @@ from transformers import (
     TrainerCallback,
     TrainingArguments,
 )
+from typing import Any, Dict, List, Optional, Union
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
@@ -37,7 +38,7 @@ reward_config = RewardConfig(
 )
 
 class RewardDataCollatorWithPadding:
-    
+
 
     tokenizer: PreTrainedTokenizerBase
     padding: Union[bool, str] = True
