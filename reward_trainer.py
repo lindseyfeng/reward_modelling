@@ -338,7 +338,7 @@ class IterativeRewardTrainer(Trainer):
             'batch_size': self._train_batch_size,
             'gradient_accumulation_steps': gradient_accumulation_steps,
         })
-        
+        torch.autograd.set_detect_anomaly(True)
         for epoch in range(EPOCH):
             for step, batch in enumerate(train_loader):
                 weights_before = {name: param.clone() for name, param in self.model.named_parameters()}
