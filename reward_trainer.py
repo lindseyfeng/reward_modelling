@@ -30,6 +30,8 @@ from trl.import_utils import is_peft_available
 from trl.trainer.reward_config import RewardConfig
 from trl.trainer.utils import RewardDataCollatorWithPadding, compute_accuracy
 import wandb
+from torch.cuda.amp import GradScaler, autocast
+
 
 wandb.login()
 
@@ -233,10 +235,6 @@ class IterativeRewardTrainer(Trainer):
                 " if you are using a custom data collator make sure you know what you are doing or"
                 " implement your own compute_loss method."
             )
-        print(inputs["input_ids_chosen"])
-        print(inputs["attention_mask_chosen"])
-        print(inputs["input_ids_rejected"])
-        print(inputs["attention_mask_rejected"])
         rewards_chosen = model(
             input_ids=inputs["input_ids_chosen"],
             attention_mask=inputs["attention_mask_chosen"],
@@ -250,8 +248,6 @@ class IterativeRewardTrainer(Trainer):
 
         # Compute the softmax probabilities for chosen over rejected items
         exp_logits_chosen = torch.exp(rewards_chosen * TEMPERATURE)
-        print(rewards_chosen.shape)
-        print(rewards_rejected.shape)
         exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
@@ -348,17 +344,19 @@ class IterativeRewardTrainer(Trainer):
             # for batch in enumerate(train_loader):
             for batch in train_loader:
                 # Assuming 'batch' is a dict with 'input_ids', 'attention_mask', etc.
-                print(type(batch)) 
-                loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
+                with autocast(): 
+                    loss, probs_chosen, logits_dict= self.compute_loss(self.model, batch, return_outputs=True)
+                scaler = GradScaler()
+
                 weights_before = {name: param.clone() for name, param in self.model.named_parameters()}
                 # Normalize loss to account for accumulation
                 # loss = loss / gradient_accumulation_steps
                 print("before", batch['labels'])
                 # Backward pass: compute gradient of the loss with respect to model parameters
-                loss.backward()
+                scaler.scale(loss).backward()
                 self.update_labels_with_model_predictions(batch, probs_chosen)
                 print("after", batch['labels'])
-                self.optimizer.step()
+                scaler.step(self.optimizer)
 
                 weights_after = {name: param for name, param in self.model.named_parameters()}
                 for name, param in weights_before.items():
@@ -373,6 +371,7 @@ class IterativeRewardTrainer(Trainer):
                         print(f"{name} has no gradient")
    
                 #     # Clear the gradients of all optimized tensors
+                scaler.update()
                 self.optimizer.zero_grad()
 
 
