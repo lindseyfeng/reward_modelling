@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import RewardConfig
 from reward_trainer import IterativeRewardTrainer
 from datasets import load_dataset
