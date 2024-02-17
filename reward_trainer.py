@@ -360,7 +360,6 @@ class IterativeRewardTrainer(Trainer):
         return dataset
     
     def _get_collator_with_removed_columns(self, data_collator: Callable, description: Optional[str] = None) -> Callable:
-    """Wrap the data collator in a callable removing unused columns."""
         if not self.args.remove_unused_columns:
             return data_collator
         self._set_signature_columns_if_needed()
