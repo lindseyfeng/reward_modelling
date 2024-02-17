@@ -353,32 +353,34 @@ class IterativeRewardTrainer(Trainer):
             loss.backward()
 
         return loss.detach()
-    
-    def _remove_unused_columns(self, dataset, description="training"):
+
+    def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
         print("yes1")
-        
-        columns_to_remove = [col for col in dataset.column_names if col not in ['input_ids_chosen', 'input_ids_rejected', 'attention_mask_chosen', 'attention_mask_rejected', 'labels']]
-        dataset.set_format(type=dataset.format["type"], columns=[col for col in dataset.column_names if col not in columns_to_remove])
-        return dataset
-    
-    def _get_collator_with_removed_columns(self, data_collator: Callable, description: Optional[str] = None) -> Callable:
-        print("yes")
         if not self.args.remove_unused_columns:
-            return data_collator
+            return dataset
         self._set_signature_columns_if_needed()
+        signature_columns = self._signature_columns
+        signature_columns.add("label")
 
-        # Ensure 'labels' is in the signature columns to prevent its removal
-        signature_columns = set(self._signature_columns)
-        signature_columns.add("labels")
+        ignored_columns = list(set(dataset.column_names) - set(signature_columns))
+        if len(ignored_columns) > 0:
+            dset_description = "" if description is None else f"in the {description} set"
+            logger.info(
+                f"The following columns {dset_description} don't have a corresponding argument in "
+                f"`{self.model.__class__.__name__}.forward` and have been ignored: {', '.join(ignored_columns)}."
+                f" If {', '.join(ignored_columns)} are not expected by `{self.model.__class__.__name__}.forward`, "
+                " you can safely ignore this message."
+            )
 
-        remove_columns_collator = RemoveColumnsCollator(
-            data_collator=data_collator,
-            signature_columns=list(signature_columns),
-            logger=logger,
-            description=description,
-            model_name=self.model.__class__.__name__,
-        )
-        return remove_columns_collator
+        columns = [k for k in signature_columns if k in dataset.column_names]
+
+        if version.parse(datasets.__version__) < version.parse("1.4.0"):
+            dataset.set_format(
+                type=dataset.format["type"], columns=columns, format_kwargs=dataset.format["format_kwargs"]
+            )
+            return dataset
+        else:
+            return dataset.remove_columns(ignored_columns)
 
     
 
