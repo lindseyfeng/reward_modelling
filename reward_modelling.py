@@ -37,20 +37,7 @@ reward_config = RewardConfig(
 )
 
 class RewardDataCollatorWithPadding:
-        r"""
-        Reward DataCollator class that pads the inputs to the maximum length of the batch.
-        Args:
-            tokenizer (`PreTrainedTokenizerBase`):
-                The tokenizer used for encoding the data.
-            padding (`Union[bool, str, `PaddingStrategy`]`, `optional`, defaults to `True`):
-                padding_strategy to pass to the tokenizer.
-            max_length (`Optional[int]`, `optional`, defaults to `None`):
-                The maximum length of the sequence to be processed.
-            pad_to_multiple_of (`Optional[int]`, `optional`, defaults to `None`):
-                If set will pad the sequence to a multiple of the provided value.
-            return_tensors (`str`, `optional`, defaults to `"pt"`):
-                The tensor type to use.
-        """
+    
 
     tokenizer: PreTrainedTokenizerBase
     padding: Union[bool, str] = True
