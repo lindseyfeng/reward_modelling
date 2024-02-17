@@ -385,43 +385,95 @@ class IterativeRewardTrainer(Trainer):
         # else:
         #     return dataset.remove_columns(ignored_columns)
     
-    def get_train_dataloader(self) -> DataLoader:
+    class RewardDataCollatorWithPadding:
+        r"""
+        Reward DataCollator class that pads the inputs to the maximum length of the batch.
+        Args:
+            tokenizer (`PreTrainedTokenizerBase`):
+                The tokenizer used for encoding the data.
+            padding (`Union[bool, str, `PaddingStrategy`]`, `optional`, defaults to `True`):
+                padding_strategy to pass to the tokenizer.
+            max_length (`Optional[int]`, `optional`, defaults to `None`):
+                The maximum length of the sequence to be processed.
+            pad_to_multiple_of (`Optional[int]`, `optional`, defaults to `None`):
+                If set will pad the sequence to a multiple of the provided value.
+            return_tensors (`str`, `optional`, defaults to `"pt"`):
+                The tensor type to use.
         """
-        Returns the training [`~torch.utils.data.DataLoader`].
 
-        Will use no sampler if `train_dataset` does not implement `__len__`, a random sampler (adapted to distributed
-        training if necessary) otherwise.
+        tokenizer: PreTrainedTokenizerBase
+        padding: Union[bool, str] = True
+        max_length: Optional[int] = None
+        pad_to_multiple_of: Optional[int] = None
+        return_tensors: str = "pt"
 
-        Subclass and override this method if you want to inject some custom behavior.
-        """
-        if self.train_dataset is None:
-            raise ValueError("Trainer: training requires a train_dataset.")
+        def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, Any]:
+            print("hello?its me")
+            features_chosen = []
+            features_rejected = []
+            margin = []
+            labels = [] 
+            # check if we have a margin. If we do, we need to batch it as well
+            has_margin = "margin" in features[0]
+            for feature in features:
+                # check if the keys are named as expected
+                if (
+                    "input_ids_chosen" not in feature
+                    or "input_ids_rejected" not in feature
+                    or "attention_mask_chosen" not in feature
+                    or "attention_mask_rejected" not in feature
+                ):
+                    raise ValueError(
+                        "The features should include `input_ids_chosen`, `attention_mask_chosen`, `input_ids_rejected` and `attention_mask_rejected`"
+                    )
 
-        train_dataset = self.train_dataset
-        data_collator = self.data_collator
-        print(train_dataset)
-        if is_datasets_available() and isinstance(train_dataset, datasets.Dataset):
-            train_dataset = self._remove_unused_columns(train_dataset, description="training")
-        else:
-            data_collator = self._get_collator_with_removed_columns(data_collator, description="training")
+                features_chosen.append(
+                    {
+                        "input_ids": feature["input_ids_chosen"],
+                        "attention_mask": feature["attention_mask_chosen"],
+                    }
+                )
+                features_rejected.append(
+                    {
+                        "input_ids": feature["input_ids_rejected"],
+                        "attention_mask": feature["attention_mask_rejected"],
+                    }
+                )
+                if has_margin:
+                    margin.append(feature["margin"])
+            
+                if "labels" in feature:  # Collect labels if present
+                labels.append(feature["labels"])
+            batch_chosen = self.tokenizer.pad(
+                features_chosen,
+                padding=self.padding,
+                max_length=self.max_length,
+                pad_to_multiple_of=self.pad_to_multiple_of,
+                return_tensors=self.return_tensors,
+            )
+            batch_rejected = self.tokenizer.pad(
+                features_rejected,
+                padding=self.padding,
+                max_length=self.max_length,
+                pad_to_multiple_of=self.pad_to_multiple_of,
+                return_tensors=self.return_tensors,
+            )
+            batch = {
+                "input_ids_chosen": batch_chosen["input_ids"],
+                "attention_mask_chosen": batch_chosen["attention_mask"],
+                "input_ids_rejected": batch_rejected["input_ids"],
+                "attention_mask_rejected": batch_rejected["attention_mask"],
+                "return_loss": True,
+            }
+            if labels:  # Add labels to the batch if they were collected
+                batch["labels"] = torch.tensor(labels, dtype=torch.long)
+                print("yes2")
+            if has_margin:
+                margin = torch.tensor(margin, dtype=torch.float)
+                batch["margin"] = margin
+            return batch
 
-        dataloader_params = {
-            "batch_size": self._train_batch_size,
-            "collate_fn": data_collator,
-            "num_workers": self.args.dataloader_num_workers,
-            "pin_memory": self.args.dataloader_pin_memory,
-            "persistent_workers": self.args.dataloader_persistent_workers,
-        }
 
-        if not isinstance(train_dataset, torch.utils.data.IterableDataset):
-            dataloader_params["sampler"] = self._get_train_sampler()
-            dataloader_params["drop_last"] = self.args.dataloader_drop_last
-            dataloader_params["worker_init_fn"] = seed_worker
-            dataloader_params["prefetch_factor"] = self.args.dataloader_prefetch_factor
-
-        return self.accelerator.prepare(DataLoader(train_dataset, **dataloader_params))
-
+        
 
     
-
-  
