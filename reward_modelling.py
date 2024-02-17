@@ -16,6 +16,11 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 import wandb
 
+BETA = 0.7
+ALPHA = 1e-5
+TEMPERATURE = 1/1.2
+EPOCH = 2
+
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
