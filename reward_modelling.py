@@ -75,5 +75,5 @@ trainer = IterativeRewardTrainer(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset
     )
-trainer.custom_train_loop()
+trainer.train()
 trainer.save_model(reward_config.output_dir)
