@@ -265,7 +265,7 @@ class IterativeRewardTrainer(Trainer):
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
         print(inputs)
         labels = inputs["label"]  # Assuming labels are provided in inputs
-    
+        labels = labels.unsqueeze(-1)
         # Compute the loss based on the labels and probabilities
         loss_chosen = -labels * torch.log(probs_chosen)
         loss_rejected = -(1 - labels) * torch.log(probs_rejected)
