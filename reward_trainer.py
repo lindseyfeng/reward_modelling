@@ -355,11 +355,14 @@ class IterativeRewardTrainer(Trainer):
         return loss.detach()
     
     def _remove_unused_columns(self, dataset, description="training"):
+        print("yes1")
+        
         columns_to_remove = [col for col in dataset.column_names if col not in ['input_ids_chosen', 'input_ids_rejected', 'attention_mask_chosen', 'attention_mask_rejected', 'labels']]
         dataset.set_format(type=dataset.format["type"], columns=[col for col in dataset.column_names if col not in columns_to_remove])
         return dataset
     
     def _get_collator_with_removed_columns(self, data_collator: Callable, description: Optional[str] = None) -> Callable:
+        print("yes")
         if not self.args.remove_unused_columns:
             return data_collator
         self._set_signature_columns_if_needed()
