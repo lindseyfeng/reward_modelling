@@ -321,18 +321,9 @@ class IterativeRewardTrainer(Trainer):
         inputs["labels"] = (1-BETA)*inputs["labels"] + BETA * probs_chosen
 
 
-    def append_labels_to_batches(self, data_loader):
-        # Iterate over all batches in the DataLoader
-        for batch in data_loader:
-            # Create a tensor of ones with size equal to the batch size
-            # Since the batch size is 4, we create a tensor of shape (4,)
-            labels = torch.ones((self._train_batch_size, ), dtype=torch.long).to(device)
-            
-            # If your DataLoader yields dictionaries, you might want to add labels to the batch directly
-            # Ensure you're not overwriting anything important if you choose to do this
-            batch['labels'] = labels
-            
-            yield batch
+    def append_labels_to_batches(self):
+        labels = torch.ones((self._train_batch_size, ), dtype=torch.long).to(device)
+        return labels
 
     from torch.cuda.amp import GradScaler, autocast
 
@@ -344,6 +335,9 @@ class IterativeRewardTrainer(Trainer):
         inputs = self._prepare_inputs(inputs)
 
         # Compute loss with updated labels
+        if 'labels' not in inputs:
+            inputs['labels'] = fetch_labels_for_inputs()
+            print("labels not found")
         loss, probs_chosen, outputs = self.compute_loss(model, inputs, return_outputs=True)
 
         # Update labels within inputs based on model predictions
@@ -359,6 +353,11 @@ class IterativeRewardTrainer(Trainer):
             loss.backward()
 
         return loss.detach()
+    
+    def _remove_unused_columns(self, dataset, description=""):
+        columns_to_remove = [col for col in dataset.column_names if col not in ['input_ids_chosen', 'input_ids_rejected', 'attention_mask_chosen', 'attention_mask_rejected', 'labels']]
+        dataset.set_format(type=dataset.format["type"], columns=[col for col in dataset.column_names if col not in columns_to_remove])
+        return dataset
     
 
   
