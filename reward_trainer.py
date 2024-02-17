@@ -343,7 +343,7 @@ class IterativeRewardTrainer(Trainer):
 
     def custom_train_loop(self):
         scaler = GradScaler()  # Initialize outside the loop
-        
+        accumulation_counter = 0
         self.model.train()
         train_loader = self.get_train_dataloader()
         len_data = len(train_loader)
