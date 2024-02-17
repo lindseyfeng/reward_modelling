@@ -34,6 +34,9 @@ from torch.cuda.amp import GradScaler, autocast
 
 
 wandb.login()
+def contains_nan(tensor):
+    return torch.isnan(tensor).any().item()
+
 
 
 if is_peft_available():
@@ -235,6 +238,13 @@ class IterativeRewardTrainer(Trainer):
                 " if you are using a custom data collator make sure you know what you are doing or"
                 " implement your own compute_loss method."
             )
+        # Before forward pass
+        if contains_nan(inputs["input_ids_chosen"]) or contains_nan(inputs["attention_mask_chosen"]):
+            print("NaN detected in inputs")
+
+        if contains_nan(inputs["input_ids_rejected"]) or contains_nan(inputs["attention_mask_chosen"]):
+            print("NaN detected in inputs")
+
         rewards_chosen = model(
             input_ids=inputs["input_ids_chosen"],
             attention_mask=inputs["attention_mask_chosen"],
@@ -246,10 +256,14 @@ class IterativeRewardTrainer(Trainer):
             return_dict=True,
         )["logits"]
 
+        if contains_nan(rewards_chosen) or contains_nan(rewards_rejected):
+            print("NaN detected in model output")
+
         # Compute the softmax probabilities for chosen over rejected items
         log_probs_chosen = torch.nn.functional.log_softmax(rewards_chosen * TEMPERATURE, dim=-1)
         log_probs_rejected = torch.nn.functional.log_softmax(rewards_rejected * TEMPERATURE, dim=-1)
         probs_chosen = log_probs_chosen.exp()
+        print(log_probs_chosen, log_probs_rejected)
 
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
@@ -285,6 +299,7 @@ class IterativeRewardTrainer(Trainer):
 
         with torch.no_grad():
             loss, logits_dict = self.compute_loss(model, inputs, return_outputs=True)
+            # After forward pass, before backward
 
         if prediction_loss_only:
             return (loss, None, None)
@@ -319,6 +334,7 @@ class IterativeRewardTrainer(Trainer):
             yield batch
 
     from torch.cuda.amp import GradScaler, autocast
+    
 
     def custom_train_loop(self):
         scaler = GradScaler()  # Initialize outside the loop
