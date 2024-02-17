@@ -88,8 +88,8 @@ class RewardDataCollatorWithPadding:
             if has_margin:
                 margin.append(feature["margin"])
             
-            if "labels" in feature:  # Collect labels if present
-                    labels.append(feature["labels"])
+            if "label" in feature:  # Collect labels if present
+                    labels.append(feature["label"])
                     
         batch_chosen = self.tokenizer.pad(
                 features_chosen,
@@ -113,7 +113,7 @@ class RewardDataCollatorWithPadding:
                 "return_loss": True,
             }
         if labels:  # Add labels to the batch if they were collected
-                batch["labels"] = torch.tensor(labels, dtype=torch.long)
+                batch["label"] = torch.tensor(labels, dtype=torch.long)
                 print("yes2")
         if has_margin:
                 margin = torch.tensor(margin, dtype=torch.float)
