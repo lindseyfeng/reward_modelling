@@ -263,7 +263,7 @@ class IterativeRewardTrainer(Trainer):
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
         print(inputs)
-        labels = inputs["labels"]  # Assuming labels are provided in inputs
+        labels = inputs["label"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
         loss_chosen = -labels * torch.log(probs_chosen)
@@ -318,7 +318,7 @@ class IterativeRewardTrainer(Trainer):
         return loss, logits, labels
 
     def update_labels_with_model_predictions(self, inputs, probs_chosen):
-        inputs["labels"] = (1-BETA)*inputs["labels"] + BETA * probs_chosen
+        inputs["label"] = (1-BETA)*inputs["label"] + BETA * probs_chosen
 
 
     def append_labels_to_batches(self):
@@ -335,8 +335,8 @@ class IterativeRewardTrainer(Trainer):
         inputs = self._prepare_inputs(inputs)
 
         # Compute loss with updated labels
-        if 'labels' not in inputs:
-            inputs['labels'] = fetch_labels_for_inputs()
+        if 'label' not in inputs:
+            inputs['label'] = fetch_labels_for_inputs()
             print("labels not found")
         loss, probs_chosen, outputs = self.compute_loss(model, inputs, return_outputs=True)
 
