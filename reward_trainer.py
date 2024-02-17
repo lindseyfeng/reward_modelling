@@ -331,7 +331,7 @@ class IterativeRewardTrainer(Trainer):
         train_loader = self.get_train_dataloader()
         len_data = len(train_loader)
         train_loader = self.append_labels_to_batches(train_loader)
-        gradient_accumulation_steps = 16
+        gradient_accumulation_steps = 32
         wandb.init(project='rm_ALPHA{}_BETA{}_EPOCH{}_TEMP{}'.format(ALPHA, BETA, EPOCH, TEMPERATURE), config={
             'learning_rate': ALPHA,
             'epochs': EPOCH,
@@ -347,7 +347,8 @@ class IterativeRewardTrainer(Trainer):
                     loss, probs_chosen, logits_dict = self.compute_loss(self.model, batch, return_outputs=True)
                 
                 loss = loss / gradient_accumulation_steps  # Adjust loss for accumulation
-                
+                scaler.unscale_(self.optimizer)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 with torch.autograd.detect_anomaly():
                     scaler.scale(loss).backward()  # Scale loss before backward
                 
