@@ -48,6 +48,7 @@ TEMPERATURE = 1/1.2
 EPOCH = 2
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+epsilon = 1e-8
 
 class IterativeRewardTrainer(Trainer):
     r"""
@@ -224,7 +225,7 @@ class IterativeRewardTrainer(Trainer):
             preprocess_logits_for_metrics,
         )
         if self.optimizer == None:
-            self.optimizer = AdamW(model.parameters(), lr=ALPHA)
+            self.optimizer = AdamW(model.parameters(), lr=ALPHA, eps=1e-8)
     
     def compute_loss(
         self,
@@ -260,15 +261,19 @@ class IterativeRewardTrainer(Trainer):
             print("NaN detected in model output")
 
         # Compute the softmax probabilities for chosen over rejected items
-        log_probs_chosen = torch.nn.functional.log_softmax(rewards_chosen * TEMPERATURE, dim=-1)
-        log_probs_rejected = torch.nn.functional.log_softmax(rewards_rejected * TEMPERATURE, dim=-1)
-        probs_chosen = log_probs_chosen.exp()
-        print(log_probs_chosen, log_probs_rejected)
-
+        exp_logits_chosen = torch.exp(rewards_chosen * TEMPERATURE)
+        print(rewards_chosen.shape)
+        print(rewards_rejected.shape)
+        exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
+        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
+        probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
+        print(inputs)
         labels = inputs["labels"]  # Assuming labels are provided in inputs
     
         # Compute the loss based on the labels and probabilities
-        loss = -(labels*log_probs_chosen + (1-labels)*log_probs_rejected).mean()
+        loss_chosen = -labels * torch.log(probs_chosen+epsilon)
+        loss_rejected = -(1 - labels) * torch.log(probs_rejected + epsilon)
+        loss = (loss_chosen + loss_rejected).mean()
         print("loss", loss)
 
         # if "margin" in inputs:
