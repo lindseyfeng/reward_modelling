@@ -51,17 +51,13 @@ def set_temperature(valid_loader, model, temperature):
         for inputs in valid_loader:
             # Stack and move to the correct device
             input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
-            print(input_ids_chosen_tensor.shape)
-            print(input_ids_chosen_tensor)
             attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
-            print(input_ids_chosen_tensor.shape)
             input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
-            print(input_ids_rejected_tensor.shape)
             attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
-            print(attention_mask_rejected_tensor.shape)
 
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
+            print(rewards_chosen)
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
             print(rewards_chosen.shape)
 
