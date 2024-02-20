@@ -16,7 +16,6 @@ import warnings
 from dataclasses import FrozenInstanceError, replace
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from torch.utils.data import DataLoader
-
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
@@ -318,13 +317,22 @@ class IterativeRewardTrainer(Trainer):
 
         return loss, logits, labels
 
-    def update_labels_with_model_predictions(self, inputs, probs_chosen):
+    def update_labels(self, inputs, model):
+        rewards_chosen = model(
+            input_ids=inputs["input_ids_chosen"],
+            attention_mask=inputs["attention_mask_chosen"],
+            return_dict=True,
+        )["logits"]
+        rewards_rejected = model(
+            input_ids=inputs["input_ids_rejected"],
+            attention_mask=inputs["attention_mask_rejected"],
+            return_dict=True,
+        )["logits"]
+        # Compute the softmax probabilities for chosen over rejected items
+        exp_logits_chosen = torch.exp(rewards_chosen * TEMPERATURE)
+        exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
+        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         inputs["label"] = (1-BETA)*inputs["label"] + BETA * probs_chosen
-
-
-    def append_labels_to_batches(self):
-        labels = torch.ones((self._train_batch_size, ), dtype=torch.long).to(device)
-        return labels
 
     from torch.cuda.amp import GradScaler, autocast
 
@@ -343,10 +351,6 @@ class IterativeRewardTrainer(Trainer):
             print("labels not found")
         loss, probs_chosen, outputs = self.compute_loss(model, inputs, return_outputs=True)
 
-        # Update labels within inputs based on model predictions
-        self.update_labels_with_model_predictions(inputs, probs_chosen)
-        print("label", inputs['label'])
-
         if self.args.gradient_accumulation_steps > 1:
             loss = loss / self.args.gradient_accumulation_steps
 
@@ -356,7 +360,6 @@ class IterativeRewardTrainer(Trainer):
         else:
             loss.backward()
         
-        wandb.log({"train_loss": loss})
 
         return loss.detach()
     
@@ -369,8 +372,12 @@ class IterativeRewardTrainer(Trainer):
         
         return eval_result
 
-    
+    def _call_callback(self, event_name, **kwargs):
+        kwargs['trainer'] = self  # Pass the trainer instance to callbacks
+        print("callling callback")
+        super()._call_callback(event_name, **kwargs)
 
+    
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
         return dataset
         # if not self.args.remove_unused_columns:
@@ -399,6 +406,17 @@ class IterativeRewardTrainer(Trainer):
         # else:
         #     return dataset.remove_columns(ignored_columns)
 
-        
+class labelCallback(TrainerCallback):
+    def on_epoch_end(self, args, state, control, **kwargs):
+        if 'trainer' in kwargs:
+            trainer = kwargs['trainer']
+            train_dataloader = trainer.get_train_dataloader()
+            for batch in train_dataloader:
+                inputs = trainer._prepare_inputs(batch)
+                print("label before: ", inputs["label"])
+                trainer.update_labels(inputs, trainer.model)
+                print("label after: ", inputs["label"])
+
+
 
     

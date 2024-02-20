@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import RewardConfig
-from reward_trainer import IterativeRewardTrainer
+from reward_trainer import IterativeRewardTrainer, labelCallback
 from datasets import load_dataset
 from tqdm import tqdm
 from transformers import (
@@ -16,6 +16,8 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 import wandb
 
+rm = AutoModelForCausalLM.from_pretrained("Dahoas/gptj-rm-static")
+rm_tokenizer = AutoTokenizer.from_pretrained("Dahoas/gptj-rm-static")
 BETA = 0.7
 ALPHA = 1e-5
 TEMPERATURE = 1
@@ -34,6 +36,7 @@ raw_datasets = load_dataset("Anthropic/hh-rlhf")
     # Adapt this section to your needs for custom datasets
 
 reward_config = RewardConfig(
+
     output_dir="hh_openllama3b_temp1.2",
     per_device_train_batch_size= 4,
     per_device_eval_batch_size = 4,
@@ -183,6 +186,7 @@ trainer = IterativeRewardTrainer(
         args=reward_config,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
+        callbacks=[labelCallback()]
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
     )
 
