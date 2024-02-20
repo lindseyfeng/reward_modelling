@@ -75,8 +75,8 @@ def set_temperature(valid_loader, model, temperature):
             # Accumulate logits and labels
             logits_list.append(prob_chosen)
             logits_list.append(prob_reject)
-            labels_list += [1] * 32  # Assuming binary labels, adjust as necessary
-            labels_list += [0] * 32
+            labels_list += [1] * bsz # Assuming binary labels, adjust as necessary
+            labels_list += [0] * bsz
 
             # Convert logits list to tensor and labels list to tensor
             logits = torch.cat(logits_list).cuda().squeeze(1)
@@ -110,6 +110,7 @@ tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
+bsz = 2
 model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(2000))
 raw_datasets = raw_datasets.map(
@@ -123,7 +124,7 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
-valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=2, collate_fn=custom_collate_fn)
+valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 print(valid_loader)
 set_temperature(valid_loader, model, temperature)
     
