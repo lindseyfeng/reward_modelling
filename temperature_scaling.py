@@ -43,60 +43,50 @@ def temperature_scale(logits, temperature):
     return logits / temperature
 
 def set_temperature(valid_loader, model, temperature):
-    nll_criterion = nn.CrossEntropyLoss()
-    # ece_criterion = _ECELoss().cuda()
+    nll_criterion = nn.CrossEntropyLoss().cuda()
 
-        # First: collect all the logits and labels for the validation set
     logits_list = []
     labels_list = []
     with torch.no_grad():
         for inputs in valid_loader:
-            
+            # Stack and move to the correct device
             input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device)
-            print(input_ids_chosen_tensor)
             attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device)
 
             input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device)
             attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device)
-            rewards_chosen = model(
-                input_ids=input_ids_chosen_tensor,
-                attention_mask=attention_mask_chosen_tensor,
-                return_dict=True,
-            )["logits"]
+
+            # Note: Corrected model input to use tensors instead of lists
+            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
+            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
+
+            # Accumulate logits and labels
             logits_list.append(rewards_chosen)
-            labels_list.append(1)
-            rewards_rejected = model(
-                input_ids=input_ids_rejected_tensor,
-                attention_mask=attention_mask_rejected_tensor,
-                return_dict=True,
-            )["logits"]
             logits_list.append(rewards_rejected)
-            labels_list.append(0)
+            labels_list += [1] * len(inputs["input_ids_chosen"])  # Assuming binary labels, adjust as necessary
+            labels_list += [0] * len(inputs["input_ids_rejected"])
 
+            # Convert logits list to tensor and labels list to tensor
             logits = torch.cat(logits_list).cuda()
-            labels = torch.cat(labels_list).cuda()
+            labels = torch.tensor(labels_list).cuda()
 
-                # Calculate NLL and ECE before temperature scaling
+            # Calculate NLL and ECE before temperature scaling
             before_temperature_nll = nll_criterion(logits, labels).item()
-            before_temperature_ece = 1
-                # ece_criterion(logits, labels).item()
-            print('Before temperature - NLL: %.3f, ECE: %.3f' % (before_temperature_nll, before_temperature_ece))
+            print('Before temperature - NLL: %.3f' % (before_temperature_nll))
 
-                # Next: optimize the temperature w.r.t. NLL
-            optimizer = optim.LBFGS(temperature, lr=0.01, max_iter=50)
+            # Optimize the temperature
+            optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=50)
             def eval():
                 optimizer.zero_grad()
-                loss = nll_criterion(temperature_scale(logits), labels)
+                loss = nll_criterion(temperature_scale(logits, temperature), labels)
                 loss.backward()
                 return loss
             optimizer.step(eval)
 
-                # Calculate NLL and ECE after temperature scaling
-            after_temperature_nll = nll_criterion(temperature_scale(logits), labels).item()
+            # Calculate NLL after temperature scaling
+            after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
             print('Optimal temperature: %.3f' % temperature.item())
-            print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, 1))
-
-
+            print('After temperature - NLL: %.3f' % (after_temperature_nll))
 
 
 tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
