@@ -59,6 +59,7 @@ def set_temperature(valid_loader, model, temperature):
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
+            print(rewards_chosen.shape)
 
             # Accumulate logits and labels
             logits_list.append(rewards_chosen)
