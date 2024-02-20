@@ -3,6 +3,7 @@ from torch import optim, nn
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
+import torch.nn.functional as F
 
 temperature = nn.Parameter(torch.ones(1) * 1.5)
 
@@ -56,9 +57,13 @@ def set_temperature(valid_loader, model, temperature):
             attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
 
             # Note: Corrected model input to use tensors instead of lists
-            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)
+            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
             print(rewards_chosen)
-            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)
+            prob_pos_class = torch.sigmoid(rewards_chosen)
+            prob_neg_class = 1 - prob_pos_class
+            probabilities = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
+            print(probabilities)
+            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
             print(rewards_chosen.shape)
 
             # Accumulate logits and labels
