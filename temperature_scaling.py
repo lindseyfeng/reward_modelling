@@ -88,7 +88,7 @@ raw_datasets = raw_datasets.map(
         batched=True,
         num_proc=4,
     )
-print(raw_dataset)
+print(raw_datasets)
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=32)
 print(valid_loader)
 set_temperature(valid_loader, model, temperature)
