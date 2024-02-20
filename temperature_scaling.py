@@ -36,7 +36,7 @@ def set_temperature(valid_loader):
         We're going to set it to optimize NLL.
         valid_loader (DataLoader): validation set loader
         """
-    nll_criterion = nn.CrossEntropyLoss().cuda()
+    nll_criterion = nn.CrossEntropyLoss()
     # ece_criterion = _ECELoss().cuda()
 
         # First: collect all the logits and labels for the validation set
