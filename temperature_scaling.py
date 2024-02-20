@@ -52,43 +52,43 @@ def set_temperature(valid_loader, model, temperature):
     with torch.no_grad():
         for inputs in valid_loader:
             for i in inputs:
-            rewards_chosen = model(
-                input_ids=inputs["input_ids_chosen"][i],
-                attention_mask=inputs["attention_mask_chosen"][i],
-                return_dict=True,
-            )["logits"]
-            logits_list.append(rewards_chosen)
-            labels_list.append(1)
-            rewards_rejected = model(
-                input_ids=inputs["input_ids_rejected"][i],
-                attention_mask=inputs["attention_mask_rejected"][i],
-                return_dict=True,
-            )["logits"]
-            logits_list.append(rewards_rejected)
-            labels_list.append(0)
+                rewards_chosen = model(
+                    input_ids=inputs["input_ids_chosen"][i],
+                    attention_mask=inputs["attention_mask_chosen"][i],
+                    return_dict=True,
+                )["logits"]
+                logits_list.append(rewards_chosen)
+                labels_list.append(1)
+                rewards_rejected = model(
+                    input_ids=inputs["input_ids_rejected"][i],
+                    attention_mask=inputs["attention_mask_rejected"][i],
+                    return_dict=True,
+                )["logits"]
+                logits_list.append(rewards_rejected)
+                labels_list.append(0)
 
-        logits = torch.cat(logits_list).cuda()
-        labels = torch.cat(labels_list).cuda()
+            logits = torch.cat(logits_list).cuda()
+            labels = torch.cat(labels_list).cuda()
 
-            # Calculate NLL and ECE before temperature scaling
-        before_temperature_nll = nll_criterion(logits, labels).item()
-        before_temperature_ece = 1
-            # ece_criterion(logits, labels).item()
-        print('Before temperature - NLL: %.3f, ECE: %.3f' % (before_temperature_nll, before_temperature_ece))
+                # Calculate NLL and ECE before temperature scaling
+            before_temperature_nll = nll_criterion(logits, labels).item()
+            before_temperature_ece = 1
+                # ece_criterion(logits, labels).item()
+            print('Before temperature - NLL: %.3f, ECE: %.3f' % (before_temperature_nll, before_temperature_ece))
 
-            # Next: optimize the temperature w.r.t. NLL
-        optimizer = optim.LBFGS(temperature, lr=0.01, max_iter=50)
-        def eval():
-            optimizer.zero_grad()
-            loss = nll_criterion(temperature_scale(logits), labels)
-            loss.backward()
-            return loss
-        optimizer.step(eval)
+                # Next: optimize the temperature w.r.t. NLL
+            optimizer = optim.LBFGS(temperature, lr=0.01, max_iter=50)
+            def eval():
+                optimizer.zero_grad()
+                loss = nll_criterion(temperature_scale(logits), labels)
+                loss.backward()
+                return loss
+            optimizer.step(eval)
 
-            # Calculate NLL and ECE after temperature scaling
-        after_temperature_nll = nll_criterion(temperature_scale(logits), labels).item()
-        print('Optimal temperature: %.3f' % temperature.item())
-        print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, 1))
+                # Calculate NLL and ECE after temperature scaling
+            after_temperature_nll = nll_criterion(temperature_scale(logits), labels).item()
+            print('Optimal temperature: %.3f' % temperature.item())
+            print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, 1))
 
 
 
