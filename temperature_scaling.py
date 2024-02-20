@@ -50,7 +50,7 @@ def set_temperature(valid_loader, model, temperature):
     logits_list = []
     labels_list = []
     with torch.no_grad():
-        for input in valid_loader:
+        for inputs in valid_loader:
             rewards_chosen = model(
                 input_ids=inputs["input_ids_chosen"],
                 attention_mask=inputs["attention_mask_chosen"],
