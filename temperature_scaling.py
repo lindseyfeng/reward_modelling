@@ -60,16 +60,13 @@ def set_temperature(valid_loader, model, temperature):
 
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
-            print(rewards_chosen)
             prob_pos_class = torch.sigmoid(rewards_chosen)
             prob_neg_class = 1 - prob_pos_class
             prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
-            print(prob_chosen)
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
             prob_pos_class = torch.sigmoid(rewards_rejected)
             prob_neg_class = 1 - prob_pos_class
             prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
-            print(prob_reject)
 
             # Accumulate logits and labels
             logits_list.append(prob_chosen)
@@ -79,19 +76,14 @@ def set_temperature(valid_loader, model, temperature):
 
             # Convert logits list to tensor and labels list to tensor
             logits = torch.cat(logits_list).cuda().squeeze(1)
-            print(logits.shape)
-            print(logits)
             labels = torch.tensor(labels_list).cuda()
-            print(labels.shape)
-            print(labels)
-
             # Calculate NLL and ECE before temperature scaling
             before_temperature_nll = nll_criterion(logits, labels).item()
             print('Before temperature - NLL: %.3f' % (before_temperature_nll))
 
             # Optimize the temperature
             print(temperature.is_leaf) 
-            optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=50)
+            optimizer = optim.LBFGS([temperature], lr=0.001, max_iter=50)
             def eval():
                 optimizer.zero_grad()
                 loss = nll_criterion(temperature_scale(logits, temperature), labels)
