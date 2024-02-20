@@ -7,6 +7,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
+temperature = nn.Parameter(torch.ones(1) * 1.5)
 
 def preprocess_function(examples):
     new_examples = {
@@ -25,6 +26,13 @@ def preprocess_function(examples):
 
     return new_examples
 
+def temperature_scale(logits, temperature):
+        """
+        Perform temperature scaling on logits
+        """
+        # Expand temperature to match the size of logits
+    temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1))
+    return logits / temperature
 
 def set_temperature(valid_loader):
         """
@@ -33,7 +41,6 @@ def set_temperature(valid_loader):
         valid_loader (DataLoader): validation set loader
         """
     nll_criterion = nn.CrossEntropyLoss().cuda()
-    temperature = 
     # ece_criterion = _ECELoss().cuda()
 
         # First: collect all the logits and labels for the validation set
@@ -66,17 +73,17 @@ def set_temperature(valid_loader):
     print('Before temperature - NLL: %.3f, ECE: %.3f' % (before_temperature_nll, before_temperature_ece))
 
         # Next: optimize the temperature w.r.t. NLL
-    optimizer = optim.LBFGS(nn.Parameter(torch.ones(1) * 1.5), lr=0.01, max_iter=50)
+    optimizer = optim.LBFGS(temperature, lr=0.01, max_iter=50)
     def eval():
         optimizer.zero_grad()
-        loss = nll_criterion(self.temperature_scale(logits), labels)
+        loss = nll_criterion(temperature_scale(logits), labels)
         loss.backward()
         return loss
     optimizer.step(eval)
 
         # Calculate NLL and ECE after temperature scaling
-    after_temperature_nll = nll_criterion(self.temperature_scale(logits), labels).item()
-    print('Optimal temperature: %.3f' % self.temperature.item())
+    after_temperature_nll = nll_criterion(temperature_scale(logits), labels).item()
+    print('Optimal temperature: %.3f' % temperature.item())
     print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, 1))
 
 
