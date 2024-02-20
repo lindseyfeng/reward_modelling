@@ -6,6 +6,21 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 temperature = nn.Parameter(torch.ones(1) * 1.5)
 
+from torch.utils.data.dataloader import default_collate
+
+def custom_collate_fn(batch):
+    # This function assumes that each element in `batch` is a dictionary
+    # with keys 'input_ids_chosen', 'attention_mask_chosen', 'input_ids_rejected', 'attention_mask_rejected'.
+    # Modify as necessary to match your dataset structure.
+
+    batched_data = {}
+    for key in batch[0].keys():
+        # Use default_collate to handle the usual collation logic, such as
+        # converting lists of tensors into a single tensor.
+        batched_data[key] = default_collate([d[key] for d in batch])
+    return batched_data
+
+
 def preprocess_function(examples):
     new_examples = {
             "input_ids_chosen": [],
@@ -87,9 +102,10 @@ raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
         num_proc=4,
+
     )
 print(raw_datasets)
-valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=32)
+valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=32, collate_fn=custom_collate_fn)
 print(valid_loader)
 set_temperature(valid_loader, model, temperature)
     
