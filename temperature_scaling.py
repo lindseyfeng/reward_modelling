@@ -61,14 +61,17 @@ def set_temperature(valid_loader, model, temperature):
             print(rewards_chosen)
             prob_pos_class = torch.sigmoid(rewards_chosen)
             prob_neg_class = 1 - prob_pos_class
-            probabilities = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
-            print(probabilities)
+            prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
+            print(prob_chosen)
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
-            print(rewards_chosen.shape)
+            prob_pos_class = torch.sigmoid(rewards_rejected)
+            prob_neg_class = 1 - prob_pos_class
+            prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
+            print(prob_reject)
 
             # Accumulate logits and labels
-            logits_list.append(rewards_chosen)
-            logits_list.append(rewards_rejected)
+            logits_list.append(prob_chosen)
+            logits_list.append(prob_reject)
             labels_list += [1] * 32  # Assuming binary labels, adjust as necessary
             labels_list += [0] * 32
 
