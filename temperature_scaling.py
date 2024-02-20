@@ -5,7 +5,8 @@ from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn.functional as F
 
-temperature = nn.Parameter(torch.ones(1) * 1.5)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
 
 from torch.utils.data.dataloader import default_collate
 
@@ -41,6 +42,8 @@ def preprocess_function(examples):
 
 def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1))
+    print(logits)
+    print(temperature)
     return logits / temperature
 
 def set_temperature(valid_loader, model, temperature):
