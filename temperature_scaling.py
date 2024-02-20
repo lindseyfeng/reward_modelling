@@ -40,7 +40,7 @@ def preprocess_function(examples):
     return new_examples
 
 def temperature_scale(logits, temperature):
-    temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1))
+    temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
     print(logits)
     print(temperature)
     return logits / temperature
@@ -123,7 +123,7 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
-temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
+temperature = nn.Parameter(torch.ones(1) * 1.5)
 print(temperature.is_leaf) 
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 print(valid_loader)
