@@ -4,9 +4,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
-PAD_TOKEN = '[PAD]'
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = PAD_TOKEN
 temperature = nn.Parameter(torch.ones(1) * 1.5)
 
 def preprocess_function(examples):
@@ -30,7 +27,7 @@ def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1))
     return logits / temperature
 
-def set_temperature(valid_loader, model):
+def set_temperature(valid_loader, model, temperature):
     nll_criterion = nn.CrossEntropyLoss()
     # ece_criterion = _ECELoss().cuda()
 
@@ -81,6 +78,9 @@ def set_temperature(valid_loader, model):
 
 
 tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
+PAD_TOKEN = '[PAD]'
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = PAD_TOKEN
 model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(2000))
 raw_datasets = raw_datasets.map(
@@ -91,7 +91,7 @@ raw_datasets = raw_datasets.map(
 print(raw_dataset)
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=32)
 print(valid_loader)
-set_temperature(valid_loader, model)
+set_temperature(valid_loader, model, temperature)
     
 
 
