@@ -50,9 +50,9 @@ def set_temperature(valid_loader, model, temperature):
     with torch.no_grad():
         for inputs in valid_loader:
             # Stack and move to the correct device
-            print(len(inputs["input_ids_chosen"]))
             input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device)
             print(input_ids_chosen_tensor.shape)
+            print(input_ids_chosen_tensor)
             attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device)
 
             input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device)
