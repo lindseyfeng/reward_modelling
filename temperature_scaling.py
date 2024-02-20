@@ -68,9 +68,9 @@ def set_temperature(valid_loader, model, temperature):
             labels_list += [0] * len(inputs["input_ids_rejected"])
 
             # Convert logits list to tensor and labels list to tensor
-            logits = torch.cat(logits_list).cuda()
+            logits = torch.stack(logits_list).cuda()
             print(logits.shape)
-            labels = torch.tensor(labels_list).cuda()
+            labels = torch.stack(labels_list).cuda()
             print(labels.shape)
             print(labels)
 
