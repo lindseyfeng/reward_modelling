@@ -6,7 +6,6 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn.functional as F
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
 
 from torch.utils.data.dataloader import default_collate
 
@@ -124,6 +123,8 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
+temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
+print(temperature.is_leaf) 
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 print(valid_loader)
 set_temperature(valid_loader, model, temperature)
