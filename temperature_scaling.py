@@ -105,8 +105,8 @@ raw_datasets = raw_datasets.map(
 
     )
 raw_datasets = raw_datasets.filter(
-        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
-        and len(x["input_ids_rejected"]) <= reward_config.max_length
+        lambda x: len(x["input_ids_chosen"]) <= 512
+        and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=32, collate_fn=custom_collate_fn)
