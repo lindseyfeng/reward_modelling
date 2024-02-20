@@ -76,8 +76,9 @@ def set_temperature(valid_loader, model, temperature):
             labels_list += [0] * 32
 
             # Convert logits list to tensor and labels list to tensor
-            logits = torch.cat(logits_list).cuda()
+            logits = torch.cat(logits_list).cuda().squeeze(1)
             print(logits.shape)
+            print(logits)
             labels = torch.tensor(labels_list).cuda()
             print(labels.shape)
             print(labels)
