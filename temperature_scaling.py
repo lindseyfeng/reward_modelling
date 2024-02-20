@@ -30,7 +30,7 @@ def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1))
     return logits / temperature
 
-def set_temperature(valid_loader):
+def set_temperature(valid_loader, model):
     nll_criterion = nn.CrossEntropyLoss()
     # ece_criterion = _ECELoss().cuda()
 
@@ -39,14 +39,14 @@ def set_temperature(valid_loader):
     labels_list = []
     with torch.no_grad():
         for input in valid_loader:
-            rewards_chosen = rm(ß
+            rewards_chosen = model(
                 input_ids=inputs["input_ids_chosen"],
                 attention_mask=inputs["attention_mask_chosen"],
                 return_dict=True,
             )["logits"]
             logits_list.append(rewards_chosen)
             labels_list.append(1)
-            rewards_rejected = rm(
+            rewards_rejected = model(
                 input_ids=inputs["input_ids_rejected"],
                 attention_mask=inputs["attention_mask_rejected"],
                 return_dict=True,
@@ -91,17 +91,7 @@ raw_datasets = raw_datasets.map(
 print(raw_dataset)
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=32)
 print(valid_loader)
-for inputs in valid_loader:
-    rewards_chosen = rm(
-            input_ids=inputs["input_ids_chosen"],
-            attention_mask=inputs["attention_mask_chosen"],
-            return_dict=True,
-        )["logits"]
-        rewards_rejected = rm(
-            input_ids=inputs["input_ids_rejected"],
-            attention_mask=inputs["attention_mask_rejected"],
-            return_dict=True,
-        )["logits"]
+set_temperature(valid_loader, model)
     
 
 
