@@ -88,8 +88,6 @@ def preprocess_function(examples):
 
 def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
-    print(logits)
-    print(temperature)
     return logits / temperature
 
 def set_temperature(valid_loader, model, temperature):
@@ -150,7 +148,7 @@ tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-bsz = 2
+bsz = 128
 model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(2000))
 raw_datasets = raw_datasets.map(
