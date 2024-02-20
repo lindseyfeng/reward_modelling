@@ -141,7 +141,7 @@ def set_temperature(valid_loader, model, temperature):
 
             # Calculate NLL after temperature scaling
             after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
-            after_temperature_ece = ece_criterion(self.temperature_scale(logits), labels).item()
+            after_temperature_ece = ece_criterion(temperature_scale(logits), labels).item()
             print('Optimal temperature: %.3f' % temperature.item())
             print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
@@ -150,7 +150,7 @@ tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-bsz = 128
+bsz = 2
 model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(2000))
 raw_datasets = raw_datasets.map(
