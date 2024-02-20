@@ -68,7 +68,10 @@ def set_temperature(valid_loader, model, temperature):
 
             # Convert logits list to tensor and labels list to tensor
             logits = torch.cat(logits_list).cuda()
+            print(logits.shape)
             labels = torch.tensor(labels_list).cuda()
+            print(labels.shape)
+            print(labels)
 
             # Calculate NLL and ECE before temperature scaling
             before_temperature_nll = nll_criterion(logits, labels).item()
