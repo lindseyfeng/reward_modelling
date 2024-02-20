@@ -27,10 +27,6 @@ def preprocess_function(examples):
     return new_examples
 
 def temperature_scale(logits, temperature):
-        """
-        Perform temperature scaling on logits
-        """
-        # Expand temperature to match the size of logits
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1))
     return logits / temperature
 
