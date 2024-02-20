@@ -91,6 +91,7 @@ def set_temperature(valid_loader, model, temperature):
             print('Before temperature - NLL: %.3f' % (before_temperature_nll))
 
             # Optimize the temperature
+            print(temperature.is_leaf) 
             optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=50)
             def eval():
                 optimizer.zero_grad()
@@ -122,7 +123,7 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
-valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=32, collate_fn=custom_collate_fn)
+valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=2, collate_fn=custom_collate_fn)
 print(valid_loader)
 set_temperature(valid_loader, model, temperature)
     
