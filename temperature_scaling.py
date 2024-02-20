@@ -59,15 +59,15 @@ def set_temperature(valid_loader, model, temperature):
             input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device)
             attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device)
             rewards_chosen = model(
-                input_ids=inputs["input_ids_chosen"],
-                attention_mask=inputs["attention_mask_chosen"],
+                input_ids=input_ids_chosen_tensor,
+                attention_mask=attention_mask_chosen_tensor,
                 return_dict=True,
             )["logits"]
             logits_list.append(rewards_chosen)
             labels_list.append(1)
             rewards_rejected = model(
-                input_ids=inputs["input_ids_rejected"],
-                attention_mask=inputs["attention_mask_rejected"],
+                input_ids=input_ids_rejected_tensor,
+                attention_mask=attention_mask_rejected_tensor,
                 return_dict=True,
             )["logits"]
             logits_list.append(rewards_rejected)
