@@ -31,11 +31,6 @@ def temperature_scale(logits, temperature):
     return logits / temperature
 
 def set_temperature(valid_loader):
-        """
-        Tune the tempearature of the model (using the validation set).
-        We're going to set it to optimize NLL.
-        valid_loader (DataLoader): validation set loader
-        """
     nll_criterion = nn.CrossEntropyLoss()
     # ece_criterion = _ECELoss().cuda()
 
@@ -44,7 +39,7 @@ def set_temperature(valid_loader):
     labels_list = []
     with torch.no_grad():
         for input in valid_loader:
-            rewards_chosen = rm(
+            rewards_chosen = rm(ß
                 input_ids=inputs["input_ids_chosen"],
                 attention_mask=inputs["attention_mask_chosen"],
                 return_dict=True,
