@@ -18,6 +18,7 @@ import wandb
 
 rm = AutoModelForCausalLM.from_pretrained("Dahoas/gptj-rm-static")
 rm_tokenizer = AutoTokenizer.from_pretrained("Dahoas/gptj-rm-static")
+
 BETA = 0.7
 ALPHA = 1e-5
 TEMPERATURE = 1
@@ -146,6 +147,21 @@ def preprocess_function(examples):
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
+        rewards_chosen = rm(
+            input_ids=inputs["input_ids_chosen"],
+            attention_mask=inputs["attention_mask_chosen"],
+            return_dict=True,
+        )["logits"]
+        rewards_rejected = rm(
+            input_ids=inputs["input_ids_rejected"],
+            attention_mask=inputs["attention_mask_rejected"],
+            return_dict=True,
+        )["logits"]
+
+        # Compute the softmax probabilities for chosen over rejected items
+        exp_logits_chosen = torch.exp(rewards_chosen)
+        exp_logits_rejected = torch.exp(rewards_rejected)
+        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         new_examples["label"].append(torch.tensor([[1]]))
 
     return new_examples
@@ -155,6 +171,10 @@ raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
         num_proc=4,
+    )
+raw_datasets = raw_datasets.filter(
+        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
+        and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
