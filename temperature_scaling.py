@@ -141,7 +141,7 @@ def set_temperature(valid_loader, model, temperature):
 
             # Calculate NLL after temperature scaling
             after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
-            after_temperature_ece = ece_criterion(temperature_scale(logits), labels).item()
+            after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
             print('Optimal temperature: %.3f' % temperature.item())
             print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
