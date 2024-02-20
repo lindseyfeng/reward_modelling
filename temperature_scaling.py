@@ -51,6 +51,11 @@ def set_temperature(valid_loader, model, temperature):
     labels_list = []
     with torch.no_grad():
         for inputs in valid_loader:
+            input_ids_chosen_tensor = torch.tensor(inputs["input_ids_chosen"], dtype=torch.long).to(model.device)
+            attention_mask_chosen_tensor = torch.tensor(inputs["attention_mask_chosen"], dtype=torch.long).to(model.device)
+
+            input_ids_rejected_tensor = torch.tensor(inputs["input_ids_rejected"], dtype=torch.long).to(model.device)
+            attention_mask_rejected_tensor = torch.tensor(inputs["attention_mask_rejected"], dtype=torch.long).to(model.device)
             rewards_chosen = model(
                 input_ids=inputs["input_ids_chosen"],
                 attention_mask=inputs["attention_mask_chosen"],
