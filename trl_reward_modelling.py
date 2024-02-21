@@ -158,9 +158,9 @@ def preprocess_function(examples):
         "input_ids_rejected": [],
         "attention_mask_rejected": [],
     }
-    for response_j, response_k in zip(examples["chosen"], examples["response_k"]):
+    for response_j, response_k in zip(examples["chosen"], examples["rejected"]):
         tokenized_j = tokenizer(examples["chosen"])
-        tokenized_k = tokenizer(examples["response_k"])
+        tokenized_k = tokenizer(examples["rejected"])
 
         new_examples["input_ids_chosen"].append(tokenized_j["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_j["attention_mask"])
