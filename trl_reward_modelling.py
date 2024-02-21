@@ -145,7 +145,7 @@ model = AutoModelForSequenceClassification.from_pretrained(
 tokenizer.pad_token = tokenizer.eos_token
 model.config.pad_token_id = tokenizer.eos_token_id
 model.config.use_cache = not script_args.gradient_checkpointing
-num_proc = 24  # Can adjust to be higher if you have more processors.
+num_proc = 4  # Can adjust to be higher if you have more processors.
 original_columns = train_dataset.column_names
 
 
