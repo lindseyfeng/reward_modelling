@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
-
 import evaluate
 import numpy as np
 import torch
@@ -108,7 +107,7 @@ output_name = (
 )
 
 training_args = RewardConfig(
-    report_to="wandb"
+    report_to="wandb",
     output_dir=output_name,
     learning_rate=script_args.learning_rate,
     per_device_train_batch_size=script_args.per_device_train_batch_size,
