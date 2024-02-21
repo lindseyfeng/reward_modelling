@@ -96,8 +96,8 @@ script_args = parser.parse_args_into_dataclasses()[0]
 
 # Load the human stack-exchange-paired dataset for tuning the reward model.
 train_dataset = load_dataset("Anthropic/hh-rlhf",split="train")
-if script_args.train_subset > 0:
-    train_dataset = train_dataset.select(range(script_args.train_subset))
+# if script_args.train_subset > 0:
+#     train_dataset = train_dataset.select(range(script_args.train_subset))
 eval_dataset = load_dataset("Anthropic/hh-rlhf", split="test")
 if script_args.eval_subset > 0:
     eval_dataset = eval_dataset.select(range(script_args.eval_subset))
@@ -108,6 +108,7 @@ output_name = (
 )
 
 training_args = RewardConfig(
+    report_to="wandb"
     output_dir=output_name,
     learning_rate=script_args.learning_rate,
     per_device_train_batch_size=script_args.per_device_train_batch_size,
