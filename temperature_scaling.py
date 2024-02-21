@@ -105,17 +105,17 @@ def set_temperature(valid_loader, model, temperature):
 
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
-            prob_pos_class = torch.sigmoid(rewards_chosen)
-            prob_neg_class = 1 - prob_pos_class
-            prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
+            # prob_pos_class = torch.sigmoid(rewards_chosen)
+            # prob_neg_class = 1 - prob_pos_class
+            # prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
-            prob_pos_class = torch.sigmoid(rewards_rejected)
-            prob_neg_class = 1 - prob_pos_class
-            prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
+            # prob_pos_class = torch.sigmoid(rewards_rejected)
+            # prob_neg_class = 1 - prob_pos_class
+            # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
 
             # Accumulate logits and labels
-            logits_list.append(prob_chosen)
-            logits_list.append(prob_reject)
+            logits_list.append(rewards_chosen - rewards_rejected)
+            logits_list.append(rewards_rejected - rewards_chosen)
             labels_list += [1] * bsz # Assuming binary labels, adjust as necessary
             labels_list += [0] * bsz
 
@@ -153,7 +153,7 @@ model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_r
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(2000))
 raw_datasets = raw_datasets.map(
         preprocess_function,
-        batched=True,
+        batched=True,rrrrrrrrrrrrrrr
         num_proc=4,
 
     )
