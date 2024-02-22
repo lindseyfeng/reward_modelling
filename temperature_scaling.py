@@ -91,7 +91,7 @@ def temperature_scale(logits, temperature):
     return logits / temperature
 
 def set_temperature(valid_loader, model, temperature):
-    nll_criterion = nn.CrossEntropyLoss().cuda()
+    nll_criterion = nn.BCELoss().cuda()
     ece_criterion = _ECELoss().cuda()
     with torch.no_grad():
         for inputs in valid_loader:
@@ -115,12 +115,10 @@ def set_temperature(valid_loader, model, temperature):
 
             # Accumulate logits and labels
             logits_list.append(rewards_chosen - rewards_rejected)
-            logits_list.append(rewards_rejected - rewards_chosen)
             labels_list += [1] * bsz # Assuming binary labels, adjust as necessary
-            labels_list += [0] * bsz
 
             # Convert logits list to tensor and labels list to tensor
-            logits = torch.cat(logits_list).cuda().squeeze(1)
+            logits = torch.tensor(logits_list).cuda()
             labels = torch.tensor(labels_list).cuda()
             # Calculate NLL and ECE before temperature scaling
             before_temperature_nll = nll_criterion(logits, labels).item()
@@ -148,7 +146,7 @@ tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-bsz = 120
+bsz = 299
 model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(2000))
 raw_datasets = raw_datasets.map(
