@@ -93,11 +93,11 @@ class ScriptArguments:
 parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
-# Load the human stack-exchange-paired dataset for tuning the reward model.
-train_dataset = load_dataset("Anthropic/hh-rlhf",split="train")
-# if script_args.train_subset > 0:
-#     train_dataset = train_dataset.select(range(script_args.train_subset))
-eval_dataset = load_dataset("Anthropic/hh-rlhf", split="test")
+# # Load the human stack-exchange-paired dataset for tuning the reward model.
+raw_dataset = load_dataset("Anthropic/hh-rlhf",split="train")
+# # if script_args.train_subset > 0:
+# #     train_dataset = train_dataset.select(range(script_args.train_subset))
+# eval_dataset = load_dataset("Anthropic/hh-rlhf", split="test")
 if script_args.eval_subset > 0:
     eval_dataset = eval_dataset.select(range(script_args.eval_subset))
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
@@ -141,7 +141,6 @@ model = AutoModelForSequenceClassification.from_pretrained(
     script_args.model_name, num_labels=1, torch_dtype=torch.bfloat16
 )
 
-# Need to do this for gpt2, because it doesn't have an official pad token.
 tokenizer.pad_token = tokenizer.eos_token
 model.config.pad_token_id = tokenizer.eos_token_id
 model.config.use_cache = not script_args.gradient_checkpointing
@@ -149,47 +148,36 @@ num_proc = 4  # Can adjust to be higher if you have more processors.
 original_columns = train_dataset.column_names
 
 
-# Turn the dataset into pairs of post + summaries, where text_j is the preferred question + answer and text_k is the other.
-# Then tokenize the dataset.
 def preprocess_function(examples):
     new_examples = {
-        "input_ids_chosen": [],
-        "attention_mask_chosen": [],
-        "input_ids_rejected": [],
-        "attention_mask_rejected": [],
+            "input_ids_chosen": [],
+            "attention_mask_chosen": [],
+            "input_ids_rejected": [],
+            "attention_mask_rejected": []
     }
-    for response_j, response_k in zip(examples["chosen"], examples["rejected"]):
-        tokenized_j = tokenizer(examples["chosen"])
-        tokenized_k = tokenizer(examples["rejected"])
-
-        new_examples["input_ids_chosen"].append(tokenized_j["input_ids"])
-        new_examples["attention_mask_chosen"].append(tokenized_j["attention_mask"])
-        new_examples["input_ids_rejected"].append(tokenized_k["input_ids"])
-        new_examples["attention_mask_rejected"].append(tokenized_k["attention_mask"])
-
+    for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
+        tokenized_chosen = tokenizer(chosen)
+        tokenized_rejected = tokenizer(rejected)
+        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
+        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
+        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
+        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
+        
     return new_examples
 
+    # Preprocess the dataset and filter out examples that are longer than args.max_length
+raw_datasets = raw_datasets.map(
+        preprocess_function,
+        batched=True,
+        num_proc=4,
+    )
+raw_datasets = raw_datasets.filter(
+        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
+        and len(x["input_ids_rejected"]) <= reward_config.max_length
+    )
 
-# preprocess the dataset and filter out QAs that are longer than script_args.max_length
-train_dataset = train_dataset.map(
-    preprocess_function,
-    batched=True,
-    num_proc=num_proc,
-    remove_columns=original_columns,
-)
-train_dataset = train_dataset.filter(
-    lambda x: len(x["input_ids_j"]) <= script_args.max_length and len(x["input_ids_k"]) <= script_args.max_length
-)
-
-eval_dataset = eval_dataset.map(
-    preprocess_function,
-    batched=True,
-    num_proc=num_proc,
-    remove_columns=original_columns,
-)
-eval_dataset = eval_dataset.filter(
-    lambda x: len(x["input_ids_j"]) <= script_args.max_length and len(x["input_ids_k"]) <= script_args.max_length
-)
+train_dataset = raw_datasets["train"].shuffle(seed=42).select(range(40000)) ####validate code is fine
+eval_dataset = raw_datasets["test"]
 
 accuracy = evaluate.load("accuracy")
 
@@ -208,8 +196,7 @@ trainer = RewardTrainer(
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
-    compute_metrics=compute_metrics,
-    data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=script_args.max_length),
+    compute_metrics=compute_metrics,,
 )
 
 trainer.train(script_args.resume_from_checkpoint)
