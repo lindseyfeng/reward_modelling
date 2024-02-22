@@ -18,6 +18,7 @@ from transformers.utils import PaddingStrategy
 from trl import RewardTrainer, RewardConfig
 import wandb
 import os
+from datasets import load_metric
 
 wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
