@@ -112,11 +112,10 @@ def set_temperature(valid_loader, model, temperature):
             # prob_pos_class = torch.sigmoid(rewards_rejected)
             # prob_neg_class = 1 - prob_pos_class
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
-
             # Accumulate logits and labels
             logits_list.append(rewards_chosen - rewards_rejected)
             labels_list += [1] * bsz # Assuming binary labels, adjust as necessary
-
+            print(logits_list)
             # Convert logits list to tensor and labels list to tensor
             logits = torch.tensor(logits_list).cuda()
             labels = torch.tensor(labels_list).cuda()
