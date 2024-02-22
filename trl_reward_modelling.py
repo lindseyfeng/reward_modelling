@@ -105,6 +105,7 @@ output_name = (
 )
 
 training_args = RewardConfig(
+    do_eval = True,
     report_to="wandb",
     output_dir=output_name,
     learning_rate=script_args.learning_rate,
