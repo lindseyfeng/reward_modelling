@@ -94,7 +94,7 @@ parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
 # # Load the human stack-exchange-paired dataset for tuning the reward model.
-raw_datasets = load_dataset("Anthropic/hh-rlhf",split="train")
+raw_datasets = load_dataset("Anthropic/hh-rlhf")
 # # if script_args.train_subset > 0:
 # #     train_dataset = train_dataset.select(range(script_args.train_subset))
 # eval_dataset = load_dataset("Anthropic/hh-rlhf", split="test")
@@ -144,7 +144,6 @@ tokenizer.pad_token = tokenizer.eos_token
 model.config.pad_token_id = tokenizer.eos_token_id
 model.config.use_cache = not script_args.gradient_checkpointing
 num_proc = 1 # Can adjust to be higher if you have more processors.
-original_columns = raw_datasets.column_names
 
 
 def preprocess_function(examples):
@@ -175,7 +174,7 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= training_args.max_length
     )
 
-train_dataset = raw_datasets["train"].shuffle(seed=42).select(range(40000)) ####validate code is fine
+train_dataset = raw_datasets["train"]
 eval_dataset = raw_datasets["test"]
 if script_args.eval_subset > 0:
     eval_dataset = eval_dataset.select(range(script_args.eval_subset))
