@@ -170,8 +170,8 @@ raw_datasets = raw_datasets.map(
         num_proc=4,
     )
 raw_datasets = raw_datasets.filter(
-        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
-        and len(x["input_ids_rejected"]) <= reward_config.max_length
+        lambda x: len(x["input_ids_chosen"]) <= training_args.max_length
+        and len(x["input_ids_rejected"]) <= training_args.max_length
     )
 
 train_dataset = raw_datasets["train"].shuffle(seed=42).select(range(40000)) ####validate code is fine
