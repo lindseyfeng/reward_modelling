@@ -127,6 +127,7 @@ training_args = RewardConfig(
     logging_steps=10,
     optim=script_args.optim,
     lr_scheduler_type=script_args.lr_scheduler_type,
+    max_length = script_args.max_length
 )
 # Load the value-head model and tokenizer.
 tokenizer_name = script_args.tokenizer_name if script_args.tokenizer_name is not None else script_args.model_name
