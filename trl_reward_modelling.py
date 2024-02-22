@@ -16,6 +16,9 @@ from transformers import (
 )
 from transformers.utils import PaddingStrategy
 from trl import RewardTrainer, RewardConfig
+import wandb
+
+wandb.login()
 
 
 # Define and parse arguments.
