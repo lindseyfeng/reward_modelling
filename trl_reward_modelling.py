@@ -190,7 +190,7 @@ if script_args.eval_subset > 0:
 
 accuracy_metric = load_metric("accuracy")
 
-def compute_metrics(pred: EvalPrediction):
+def compute_metrics(pred):
     print(pred)
     labels = pred.label_ids
     preds = pred.predictions.argmax(-1)
