@@ -193,6 +193,7 @@ def compute_metrics(eval_pred):
 # Train the model, woohoo.
 trainer = RewardTrainer(
     model=model,
+    tokenizer=tokenizer,
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
