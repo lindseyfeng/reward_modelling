@@ -98,8 +98,6 @@ raw_dataset = load_dataset("Anthropic/hh-rlhf",split="train")
 # # if script_args.train_subset > 0:
 # #     train_dataset = train_dataset.select(range(script_args.train_subset))
 # eval_dataset = load_dataset("Anthropic/hh-rlhf", split="test")
-if script_args.eval_subset > 0:
-    eval_dataset = eval_dataset.select(range(script_args.eval_subset))
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
@@ -178,6 +176,8 @@ raw_datasets = raw_datasets.filter(
 
 train_dataset = raw_datasets["train"].shuffle(seed=42).select(range(40000)) ####validate code is fine
 eval_dataset = raw_datasets["test"]
+if script_args.eval_subset > 0:
+    eval_dataset = eval_dataset.select(range(script_args.eval_subset))
 
 accuracy = evaluate.load("accuracy")
 
