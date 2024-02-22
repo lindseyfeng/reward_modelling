@@ -146,7 +146,7 @@ tokenizer.pad_token = tokenizer.eos_token
 
 
 model = AutoModelForSequenceClassification.from_pretrained(
-    script_args.model_name, num_labels=1, torch_dtype=torch.bfloat16, , trust_remote_code=True
+    script_args.model_name, num_labels=1, torch_dtype=torch.bfloat16, trust_remote_code=True
 )
 
 tokenizer.pad_token = tokenizer.eos_token
