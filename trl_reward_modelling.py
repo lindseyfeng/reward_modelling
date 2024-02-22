@@ -196,7 +196,7 @@ trainer = RewardTrainer(
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
-    compute_metrics=compute_metrics,,
+    compute_metrics=compute_metrics,
 )
 
 trainer.train(script_args.resume_from_checkpoint)
