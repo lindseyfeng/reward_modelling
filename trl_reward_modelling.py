@@ -17,7 +17,7 @@ from transformers import (
 from transformers.utils import PaddingStrategy
 from trl import RewardTrainer, RewardConfig
 import wandb
-immport os
+import os
 
 wandb.init(
     settings=wandb.Settings(init_timeout=600,),
