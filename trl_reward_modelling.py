@@ -112,6 +112,7 @@ output_name = (
 
 training_args = RewardConfig(
     do_eval = True,
+    do_train=False, 
     report_to="wandb",
     output_dir=output_name,
     learning_rate=script_args.learning_rate,
@@ -186,16 +187,15 @@ eval_dataset = raw_datasets["test"]
 if script_args.eval_subset > 0:
     eval_dataset = eval_dataset.select(range(script_args.eval_subset))
 
-accuracy = evaluate.load("accuracy")
+accuracy_metric = load_metric("accuracy")
 
+def compute_metrics(pred: EvalPrediction):
+    print(pred)
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    acc = accuracy_metric.compute(predictions=preds, references=labels)
+    return acc
 
-def compute_metrics(eval_pred):
-    predictions, _ = eval_pred
-    # Here, predictions is rewards_j and rewards_k.
-    # We want to see how much of the time rewards_j > rewards_k.
-    predictions = np.argmax(predictions, axis=0)
-    labels = np.zeros(predictions.shape)
-    return accuracy.compute(predictions=predictions, references=labels)
 
 # Train the model, woohoo.
 trainer = RewardTrainer(
@@ -204,7 +204,7 @@ trainer = RewardTrainer(
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
-    compute_metrics=compute_metrics,
+    compute_metrics=compute_metrics, 
 )
 
 trainer.train(script_args.resume_from_checkpoint)
