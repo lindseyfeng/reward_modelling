@@ -49,13 +49,13 @@ class ScriptArguments:
     learning_rate: Optional[float] = field(default=2e-5)
     weight_decay: Optional[float] = field(default=0.001)
     model_name: Optional[str] = field(
-        default="EleutherAI/gpt-neo-2.7B",
+        default="microsoft/phi-2",
         metadata={
             "help": "The model that you want to train from the Hugging Face hub. E.g. gpt2, gpt2-xl, bert, etc."
         },
     )
     tokenizer_name: Optional[str] = field(
-        default="EleutherAI/gpt-neo-2.7B",
+        default="microsoft/phi-2",
         metadata={
             "help": "The tokenizer for your model, if left empty will use the default for your model",
         },
