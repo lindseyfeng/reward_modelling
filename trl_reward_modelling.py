@@ -13,6 +13,7 @@ from transformers import (
     Trainer,
     TrainerCallback,
     TrainingArguments,
+    AutoConfig
 )
 from transformers.utils import PaddingStrategy
 from trl import RewardTrainer, RewardConfig
