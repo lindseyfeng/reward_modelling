@@ -147,7 +147,7 @@ tokenizer.pad_token = tokenizer.eos_token
 config = AutoConfig.from_pretrained(script_args.model_name, num_labels=2, trust_remote_code=True)
 
 model = PhiForSequenceClassification.from_pretrained(
-    script_args.model_name, num_labels=2, torch_dtype=torch.bfloat16, trust_remote_code=True, config=config
+    script_args.model_name, torch_dtype=torch.bfloat16, trust_remote_code=True, config=config
 )
 
 tokenizer.pad_token = tokenizer.eos_token
