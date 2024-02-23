@@ -143,9 +143,7 @@ training_args = RewardConfig(
 tokenizer_name = script_args.tokenizer_name if script_args.tokenizer_name is not None else script_args.model_name
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_auth_token=True)
 tokenizer.pad_token = tokenizer.eos_token
-config = AutoConfig.from_pretrained(script_args.model_name, num_labels=2)
-
-
+config = AutoConfig.from_pretrained(script_args.model_name, num_labels=2, trust_remote_code=True)
 
 model = AutoModelForSequenceClassification.from_pretrained(
     script_args.model_name, num_labels=2, torch_dtype=torch.bfloat16, trust_remote_code=True, config=config
