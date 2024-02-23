@@ -13,7 +13,7 @@ from transformers import (
     Trainer,
     TrainerCallback,
     TrainingArguments,
-    AutoConfig,
+    AutoConfig
     PhiForSequenceClassification
 )
 from transformers.utils import PaddingStrategy
@@ -146,7 +146,8 @@ tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_auth_token=True)
 tokenizer.pad_token = tokenizer.eos_token
 config = AutoConfig.from_pretrained(script_args.model_name, num_labels=2, trust_remote_code=True)
 
-model = PhiForSequenceClassification.from_pretrained(config=config
+model = PhiForSequenceClassification.from_pretrained(
+    script_args.model_name, num_labels=2, torch_dtype=torch.bfloat16, trust_remote_code=True, config=config
 )
 
 tokenizer.pad_token = tokenizer.eos_token
