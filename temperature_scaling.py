@@ -152,7 +152,7 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
 model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device)
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"] #.shuffle(seed=42).select(range(2000))
-bsz = 3000
+bsz = 1000
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
@@ -163,7 +163,7 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
-temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
+temperature = nn.Parameter(torch.ones(1) * 1.5)
 print(temperature.is_leaf) 
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 print(valid_loader)
