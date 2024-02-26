@@ -34,8 +34,8 @@ class _ECELoss(nn.Module):
         """
         super(_ECELoss, self).__init__()
         bin_boundaries = torch.linspace(0, 1, n_bins + 1)
-        self.bin_lowers = bin_boundaries[:-1]
-        self.bin_uppers = bin_boundaries[1:]
+        self.bin_lowers = bin_boundaries[:-1].to(device)
+        self.bin_uppers = bin_boundaries[1:].to(device)
 
     def forward(self, logits, labels):
         confidences = torch.sigmoid(logits)
@@ -150,9 +150,9 @@ tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-bsz = 299
-model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(2000))
+model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device)
+raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"] #.shuffle(seed=42).select(range(2000))
+bsz = 3000
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
@@ -163,7 +163,7 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
-temperature = nn.Parameter(torch.ones(1) * 1.5)
+temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
 print(temperature.is_leaf) 
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 print(valid_loader)
