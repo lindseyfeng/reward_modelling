@@ -150,7 +150,7 @@ tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device)
+model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device).to(torch.bfloat16)
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"] #.shuffle(seed=42).select(range(2000))
 bsz = 1000
 raw_datasets = raw_datasets.map(
