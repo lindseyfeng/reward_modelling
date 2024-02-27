@@ -80,7 +80,7 @@ for batch in valid_loader:
         # Forward pass through the temperature scaled model
         with torch.no_grad():
             logits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
-            score = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
+            score = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
             print("logits", logits)
             print(logits.shape)
             print("score", score)
