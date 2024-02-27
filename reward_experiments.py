@@ -103,7 +103,7 @@ for batch in valid_loader:
 
 data_to_save = {
     "after": logits,
-    "before": score
+    "before": score,
     "prompts": promtps
 }
 
