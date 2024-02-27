@@ -98,7 +98,7 @@ for batch in valid_loader:
         prompts.extend(batch["chosen"])
     print(logits)
     print(score)
-    print(batch)
+    print(batch["chosen"])
 
 
 data_to_save = {
