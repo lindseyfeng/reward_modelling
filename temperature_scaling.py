@@ -119,7 +119,7 @@ def set_temperature(valid_loader, model, temperature):
             # prob_neg_class = 1 - prob_pos_class
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             # Accumulate logits and labels
-            logits_list.append(rewards_chosen - rewards_rejected)
+            logits_list.append(torch.sigmoid(rewards_chosen - rewards_rejected))
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
         logits = torch.cat(logits_list, dim=0)  # This is your tensor from logits_list
