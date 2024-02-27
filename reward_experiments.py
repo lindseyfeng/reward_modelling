@@ -85,14 +85,14 @@ valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_
 logits = []
 score = []
 for batch in valid_loader:
-        input_ids_chosen_tensor = torch.stack(batch["input_ids_chosen"]).to(model.device).transpose(0, 1)
-        attention_mask_chosen_tensor = torch.stack(batch["attention_mask_chosen"]).to(model.device).transpose(0, 1)
+    input_ids_chosen_tensor = torch.stack(batch["input_ids_chosen"]).to(model.device).transpose(0, 1)
+    attention_mask_chosen_tensor = torch.stack(batch["attention_mask_chosen"]).to(model.device).transpose(0, 1)
         # Forward pass through the temperature scaled model
-        with torch.no_grad():
-            blogits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
-            logits.extend(logits_to_list(blogits))
-            bscore = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
-            score.extend(logits_to_list(bscore))
+    with torch.no_grad():
+        blogits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
+        logits.extend(logits_to_list(blogits))
+        bscore = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
+        core.extend(logits_to_list(bscore))
     print(logits)
     print(score)
 
