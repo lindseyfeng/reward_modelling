@@ -50,7 +50,7 @@ class TemperatureScaledModel(torch.nn.Module):
         return logits
 
 # Example usage
-pretrained_model_name_or_path = '"weqweasdas/hh_rlhf_rm_open_llama_3b'  # Example model
+pretrained_model_name_or_path = 'weqweasdas/hh_rlhf_rm_open_llama_3b'  # Example model
 tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
