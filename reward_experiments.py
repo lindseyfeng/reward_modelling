@@ -92,7 +92,7 @@ for batch in valid_loader:
         blogits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
         logits.extend(logits_to_list(blogits))
         bscore = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
-        core.extend(logits_to_list(bscore))
+        score.extend(logits_to_list(bscore))
     print(logits)
     print(score)
 
