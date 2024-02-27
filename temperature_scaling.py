@@ -38,12 +38,11 @@ class _ECELoss(nn.Module):
         self.bin_uppers = bin_boundaries[1:].to(device)
 
     def forward(self, logits, labels):
-        # Determine predictions based on a threshold (e.g., 0.5)
-        predictions = (logits > 0.5).long()  # Convert boolean to long for comparison
-        # Calculate accuracy
+        softmaxes = F.softmax(logits, dim=1)
+        confidences, predictions = torch.max(softmaxes, 1)
         accuracies = predictions.eq(labels)
+
         ece = torch.zeros(1, device=logits.device)
-        confidences = logits
         for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
             # Calculated |confidence - accuracy| in each bin
             in_bin = confidences.gt(bin_lower.item()) * confidences.le(bin_upper.item())
@@ -115,14 +114,14 @@ def set_temperature(valid_loader, model, temperature):
             # prob_neg_class = 1 - prob_pos_class
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             # Accumulate logits and labels
-            pos_logits = torch.sigmoid(rewards_chosen - rewards_rejected)
-            neg_logits = 1 - pos_logits
+            pos_logits = rewards_chosen - rewards_rejected
+            neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
         logits = torch.cat(logits_list, dim=0)  # This is your tensor from logits_list
         N, _ = logits.shape
-        labels_list += [1] * N # Assuming binary labels, adjust as necessary
+        labels_list += [0] * N # Assuming binary labels, adjust as necessary
         labels = torch.tensor(labels_list).float() .unsqueeze(-1).cuda()
 
         print(logits)
