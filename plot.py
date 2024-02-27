@@ -11,8 +11,8 @@ after = data['after']
 
 # Step 2: Sort 'before' and reorder 'after' accordingly
 sorted_indices = sorted(range(len(before)), key=lambda k: before[k])
-sorted_before = [before[i] for i in sorted_indices]
-sorted_after = [after[i] for i in sorted_indices]
+sorted_before = [torch.sigmoid(before[i]) for i in sorted_indices]
+sorted_after = [torch.sigmoid(after[i]) for i in sorted_indices]
 
 # Step 3: Plot the sorted pairs
 plt.figure(figsize=(10, 5))
