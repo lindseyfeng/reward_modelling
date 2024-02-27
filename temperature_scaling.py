@@ -1,6 +1,6 @@
 import torch
 from torch import optim, nn
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, PhiForSequenceClassification
 from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn.functional as F
@@ -121,7 +121,7 @@ def set_temperature(valid_loader, model, temperature):
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
         # llama3b
-        # logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
+        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
         # print(logits.shape)
 
         N, _ = logits.shape
@@ -159,7 +159,7 @@ PAD_TOKEN = tokenizer.eos_token
 # '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-model = AutoModelForSequenceClassification.from_pretrained("./phi-2_rlhf_rm__2e-05__last_checkpoint").to(device)
+model = PhiForSequenceClassification.from_pretrained("./phi-2_rlhf_rm__2e-05__last_checkpoint").to(device)
 raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(1))
 bsz = 10
 raw_datasets = raw_datasets.map(
