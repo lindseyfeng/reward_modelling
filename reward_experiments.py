@@ -6,6 +6,12 @@ from torch.utils.data.sampler import SubsetRandomSampler
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from torch.utils.data.dataloader import default_collate
 
+def logits_to_list(logits_tensor):
+    logits_list = logits_tensor.detach().cpu().tolist()
+    # Flatten the list since the original tensor has a shape of [10, 1]
+    logits_list = [item for sublist in logits_list for item in sublist]
+    return logits_list
+
 def custom_collate_fn(batch):
     # This function assumes that each element in `batch` is a dictionary
     # with keys 'input_ids_chosen', 'attention_mask_chosen', 'input_ids_rejected', 'attention_mask_rejected'.
@@ -25,6 +31,7 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
+            "chosen":[]
     }
     for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
         tokenized_chosen = tokenizer(chosen, padding = "max_length", max_length = 512)
@@ -33,6 +40,7 @@ def preprocess_function(examples):
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
+        new_examples["chosen"].append(examples["chosen"])
 
     return new_examples
 
@@ -74,16 +82,18 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
+logits = []
+score = []
 for batch in valid_loader:
         input_ids_chosen_tensor = torch.stack(batch["input_ids_chosen"]).to(model.device).transpose(0, 1)
         attention_mask_chosen_tensor = torch.stack(batch["attention_mask_chosen"]).to(model.device).transpose(0, 1)
         # Forward pass through the temperature scaled model
         with torch.no_grad():
-            logits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
-            score = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
-            print("logits", logits)
-            print(logits.shape)
-            print("score", score)
-            print(score.shape)
+            blogits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
+            logits.extend(logits_to_list(blogits))
+            bscore = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
+            score.extend(logits_to_list(bscore))
+    print(logits)
+    print(score)
 
     # Apply softmax to convert logits to probabilities
