@@ -21,6 +21,7 @@ from trl import RewardTrainer, RewardConfig
 import wandb
 import os
 from datasets import load_metric
+from transformers import PreTrainedModel
 
 wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
