@@ -22,6 +22,7 @@ import wandb
 import os
 from datasets import load_metric
 from transformers import PreTrainedModel
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
@@ -85,7 +86,7 @@ class ScriptArguments:
             "help": "Path to deepspeed config if using deepspeed. You may need this if the model that you want to train doesn't fit on a single GPU."
         },
     )
-    per_device_train_batch_size: Optional[int] = field(default=4)
+    per_device_train_batch_size: Optional[int] = field(default=2)
     per_device_eval_batch_size: Optional[int] = field(default=4)
     gradient_accumulation_steps: Optional[int] = field(default=4)
     learning_rate: Optional[float] = field(default=2e-5)
