@@ -151,8 +151,9 @@ def set_temperature(valid_loader, model, temperature):
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-tokenizer = AutoTokenizer.from_pretrained("./phi-2_rlhf_rm__2e-05__last_checkpoint")
-PAD_TOKEN = '[PAD]'
+tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2)
+PAD_TOKEN = tokenizer.eos_token
+# '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
 model = AutoModelForSequenceClassification.from_pretrained("./phi-2_rlhf_rm__2e-05__last_checkpoint").to(device)
