@@ -40,10 +40,8 @@ class _ECELoss(nn.Module):
     def forward(self, logits, labels):
         # Determine predictions based on a threshold (e.g., 0.5)
         predictions = (logits > 0.5).long()  # Convert boolean to long for comparison
-        print("predictions:", predictions)
         # Calculate accuracy
         accuracies = predictions.eq(labels)
-        print("accuracy: ", accuracies)
         ece = torch.zeros(1, device=logits.device)
         confidences = logits
         for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
@@ -94,7 +92,7 @@ def temperature_scale(logits, temperature):
     return logits / temperature
 
 def set_temperature(valid_loader, model, temperature):
-    nll_criterion = nn.BCELoss().cuda()
+    nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
     with torch.no_grad():
         logits_list = []
@@ -117,7 +115,9 @@ def set_temperature(valid_loader, model, temperature):
             # prob_neg_class = 1 - prob_pos_class
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             # Accumulate logits and labels
-            logits_list.append(torch.sigmoid(rewards_chosen - rewards_rejected))
+            pos_logits = torch.sigmoid(rewards_chosen - rewards_rejected)
+            neg_logits = 1 - pos_logits
+            logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
         logits = torch.cat(logits_list, dim=0)  # This is your tensor from logits_list
