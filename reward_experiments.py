@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
+import json
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from torch.utils.data.dataloader import default_collate
 
@@ -84,6 +85,7 @@ raw_datasets = raw_datasets.filter(
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 logits = []
 score = []
+promtps = []
 for batch in valid_loader:
     input_ids_chosen_tensor = torch.stack(batch["input_ids_chosen"]).to(model.device).transpose(0, 1)
     attention_mask_chosen_tensor = torch.stack(batch["attention_mask_chosen"]).to(model.device).transpose(0, 1)
@@ -93,7 +95,25 @@ for batch in valid_loader:
         logits.extend(logits_to_list(blogits))
         bscore = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
         score.extend(logits_to_list(bscore))
+        prompts.extend(batch["chosen"])
     print(logits)
     print(score)
+    print(batch)
+
+
+data_to_save = {
+    "after": logits,
+    "before": score
+    "prompts": promtps
+}
+
+# Specify the file path where you want to save the JSON file.
+file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path, 3000)
+
+# Writing the data to a JSON file.
+with open(file_path, 'w') as json_file:
+    json.dump(data_to_save, json_file)
+
+print(f"Data saved to {file_path}")
 
     # Apply softmax to convert logits to probabilities
