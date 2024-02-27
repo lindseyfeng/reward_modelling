@@ -136,7 +136,7 @@ def set_temperature(valid_loader, model, temperature):
 
             # Optimize the temperature
         print(temperature.is_leaf) 
-        optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=50)
+        optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
         def eval():
             optimizer.zero_grad()
             loss = nll_criterion(temperature_scale(logits, temperature), labels)
@@ -156,7 +156,7 @@ PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
 model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device)
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(30))
+raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(3000))
 bsz = 10
 raw_datasets = raw_datasets.map(
         preprocess_function,
