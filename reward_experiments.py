@@ -75,8 +75,8 @@ raw_datasets = raw_datasets.filter(
     )
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 for batch in valid_loader:
-    input_ids = batch['input_ids_chosen'].to(device)
-    attention_mask = batch['attention_mask_chosen'].to(device)
+    input_ids = batch['input_ids_chosen']
+    attention_mask = batch['attention_mask_chosen']
 
     # Forward pass through the temperature scaled model
     with torch.no_grad():
