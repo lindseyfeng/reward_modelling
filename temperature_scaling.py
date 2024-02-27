@@ -38,7 +38,6 @@ class _ECELoss(nn.Module):
         self.bin_uppers = bin_boundaries[1:].to(device)
 
     def forward(self, logits, labels):
-
         # Determine predictions based on a threshold (e.g., 0.5)
         predictions = (logits > 0.5).long()  # Convert boolean to long for comparison
         print("predictions:", predictions)
@@ -46,6 +45,7 @@ class _ECELoss(nn.Module):
         accuracies = predictions.eq(labels)
         print("accuracy: ", accuracies)
         ece = torch.zeros(1, device=logits.device)
+        confidences = logits
         for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
             # Calculated |confidence - accuracy| in each bin
             in_bin = confidences.gt(bin_lower.item()) * confidences.le(bin_upper.item())
