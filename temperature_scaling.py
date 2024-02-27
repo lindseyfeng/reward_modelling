@@ -121,7 +121,7 @@ def set_temperature(valid_loader, model, temperature):
             # Convert logits list to tensor and labels list to tensor
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
         print(logits.shape)
-        N, _ , _= logits.shape
+        N, _ = logits.shape
         labels_list += [0] * N # Assuming binary labels, adjust as necessary
         labels = torch.tensor(labels_list).float() .unsqueeze(-1).cuda()
 
