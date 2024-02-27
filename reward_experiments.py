@@ -1,6 +1,7 @@
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import torch
 import torch.nn.functional as F
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 def custom_collate_fn(batch):
     # This function assumes that each element in `batch` is a dictionary
