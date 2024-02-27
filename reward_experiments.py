@@ -75,13 +75,12 @@ raw_datasets = raw_datasets.filter(
     )
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 for batch in valid_loader:
-    input_ids = batch['input_ids_chosen']
-    attention_mask = batch['attention_mask_chosen']
-
-    # Forward pass through the temperature scaled model
-    with torch.no_grad():
-        logits = temperature_scaled_model(input_ids=input_ids, attention_mask=attention_mask)
-        score = model(input_ids=input_ids, attention_mask=attention_mask)
-        print(logits, score)
+        input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
+        attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
+        # Forward pass through the temperature scaled model
+        with torch.no_grad():
+            logits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
+            score = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
+            print(logits, score)
 
     # Apply softmax to convert logits to probabilities
