@@ -163,7 +163,7 @@ PAD_TOKEN = tokenizer.eos_token
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
 model = PhiForSequenceClassification.from_pretrained("./phi-2_rlhf_rm__2e-05__last_checkpoint").to(device)
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(1))
+raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(3000))
 bsz = 10
 raw_datasets = raw_datasets.map(
         preprocess_function,
