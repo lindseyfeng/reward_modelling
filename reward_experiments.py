@@ -81,6 +81,9 @@ for batch in valid_loader:
         with torch.no_grad():
             logits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
             score = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
-            print(logits, score)
+            print("logits", logits)
+            print(logits.shape)
+            print("score", score)
+            print(score.shape)
 
     # Apply softmax to convert logits to probabilities
