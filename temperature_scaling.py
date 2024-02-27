@@ -122,10 +122,10 @@ def set_temperature(valid_loader, model, temperature):
             logits_list.append(rewards_chosen - rewards_rejected)
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
-        logits = logits_list[0]  # This is your tensor from logits_list
+        logits = torch.cat(logits_list, dim=0)  # This is your tensor from logits_list
         N, _ = logits.shape
         labels_list += [1] * N # Assuming binary labels, adjust as necessary
-        labels = torch.tensor(labels_list).cuda()
+        labels = torch.tensor(labels_list).unsqueeze(-1).cuda()
 
         print(logits)
         print(logits.shape)
