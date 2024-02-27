@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 device = "cuda" if torch.cuda.is_available() else "cpu"
+from torch.utils.data.dataloader import default_collate
 
 def custom_collate_fn(batch):
     # This function assumes that each element in `batch` is a dictionary
