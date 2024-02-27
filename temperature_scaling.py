@@ -151,7 +151,7 @@ def set_temperature(valid_loader, model, temperature):
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2)
+tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2")
 PAD_TOKEN = tokenizer.eos_token
 # '[PAD]'
 if tokenizer.pad_token is None:
