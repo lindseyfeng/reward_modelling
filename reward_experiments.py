@@ -71,7 +71,7 @@ if tokenizer.pad_token is None:
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
 temperature_scaled_model = TemperatureScaledModel(pretrained_model_name_or_path=pretrained_model_name_or_path, temperature=2.524).to(device)
 
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(3000))
+raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(1))
 bsz = 10
 raw_datasets = raw_datasets.map(
         preprocess_function,
@@ -108,7 +108,7 @@ data_to_save = {
 }
 
 # Specify the file path where you want to save the JSON file.
-file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path, 3000)
+file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), 3000)
 
 # Writing the data to a JSON file.
 with open(file_path, 'w') as json_file:
