@@ -115,12 +115,15 @@ def set_temperature(valid_loader, model, temperature):
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             # Accumulate logits and labels
             pos_logits = rewards_chosen - rewards_rejected
+            print(pos_logits)
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
-        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
-        print(logits.shape)
+        # llama3b
+        # logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
+        # print(logits.shape)
+
         N, _ = logits.shape
         labels_list += [0] * N # Assuming binary labels, adjust as necessary
         labels = torch.tensor(labels_list).cuda()
@@ -157,7 +160,7 @@ PAD_TOKEN = tokenizer.eos_token
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
 model = AutoModelForSequenceClassification.from_pretrained("./phi-2_rlhf_rm__2e-05__last_checkpoint").to(device)
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(20))
+raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(1))
 bsz = 10
 raw_datasets = raw_datasets.map(
         preprocess_function,
