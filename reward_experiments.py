@@ -71,7 +71,7 @@ if tokenizer.pad_token is None:
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
 temperature_scaled_model = TemperatureScaledModel(pretrained_model_name_or_path=pretrained_model_name_or_path, temperature=2.524).to(device)
 
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(1))
+raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(3000))
 bsz = 10
 raw_datasets = raw_datasets.map(
         preprocess_function,
