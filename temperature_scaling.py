@@ -133,7 +133,7 @@ def set_temperature(valid_loader, model, temperature):
 
         print(logits)
         print(logits.shape)
-        print(labels)
+        # print(labels)
         print(labels.shape)
             # Calculate NLL and ECE before temperature scaling
         before_temperature_nll = nll_criterion(logits, labels).item()
