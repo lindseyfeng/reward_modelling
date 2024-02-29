@@ -28,6 +28,45 @@ wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
 
 os.environ["WANDB__SERVICE_WAIT"] = "600"
+temperature = 2
+
+class TemperatureRewardTrainer(RewardTrainer):
+    def compute_loss(
+        self,
+        model: Union[PreTrainedModel, nn.Module],
+        inputs: Dict[str, Union[torch.Tensor, Any]],
+        return_outputs=False,
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
+        if not self.use_reward_data_collator:
+            warnings.warn(
+                "The current compute_loss is implemented for RewardDataCollatorWithPadding,"
+                " if you are using a custom data collator make sure you know what you are doing or"
+                " implement your own compute_loss method."
+            )
+        rewards_chosen = model(
+            input_ids=inputs["input_ids_chosen"],
+            attention_mask=inputs["attention_mask_chosen"],
+            return_dict=True,
+        )["logits"]
+        rewards_rejected = model(
+            input_ids=inputs["input_ids_rejected"],
+            attention_mask=inputs["attention_mask_rejected"],
+            return_dict=True,
+        )["logits"]
+        # calculate loss, optionally modulate with margin
+        if "margin" in inputs:
+            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*temperature).mean()
+        else:
+            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected)*temperature).mean()
+
+        if return_outputs:
+            return loss, {
+                "rewards_chosen": rewards_chosen,
+                "rewards_rejected": rewards_rejected,
+            }
+        return loss
+
+
 
 # Define and parse arguments.
 @dataclass
@@ -168,8 +207,8 @@ def preprocess_function(examples):
     for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
         chosen_str = prompt + " " + chosen
         rejected_str = prompt + " " + rejected
-        tokenized_chosen = tokenizer(chosen_str)
-        tokenized_rejected = tokenizer(rejected_str)
+        tokenized_chosen = tokenizer(chosen)
+        tokenized_rejected = tokenizer(rejected)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
@@ -193,7 +232,6 @@ print(train_dataset)
 eval_dataset = raw_datasets["test"]
 if script_args.eval_subset > 0:
     eval_dataset = eval_dataset.select(range(script_args.eval_subset))
-print(eval_dataset)
 
 accuracy_metric = load_metric("accuracy")
 
@@ -206,7 +244,7 @@ def compute_metrics(pred):
 
 
 # Train the model, woohoo.
-trainer = RewardTrainer(
+trainer = TemperatureRewardTrainer(
     model=model,
     tokenizer=tokenizer,
     args=training_args,
@@ -218,4 +256,4 @@ trainer = RewardTrainer(
 trainer.train(script_args.resume_from_checkpoint)
 
 print("Saving last checkpoint of the model")
-model.save_pretrained(output_name + "__last_checkpoint")
+model.save_pretrained(output_name + "__temperature_last_checkpoint")
