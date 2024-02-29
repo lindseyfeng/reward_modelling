@@ -28,7 +28,6 @@ wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
 
 os.environ["WANDB__SERVICE_WAIT"] = "600"
-temperature = 2
 
 class TemperatureRewardTrainer(RewardTrainer):
     def compute_loss(
@@ -37,6 +36,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         inputs: Dict[str, Union[torch.Tensor, Any]],
         return_outputs=False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
+        temperature = 2.524
         if not self.use_reward_data_collator:
             warnings.warn(
                 "The current compute_loss is implemented for RewardDataCollatorWithPadding,"
@@ -187,7 +187,7 @@ tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_auth_token=True)
 tokenizer.pad_token = tokenizer.eos_token
 config = AutoConfig.from_pretrained(script_args.model_name, num_labels=2, trust_remote_code=True)
 
-model = PhiForSequenceClassification.from_pretrained(
+model = AutoModelForSequenceClassification.from_pretrained(
     script_args.model_name, torch_dtype=torch.bfloat16, trust_remote_code=True, config=config
 )
 
