@@ -142,7 +142,7 @@ def set_temperature(valid_loader, model, temperature):
 
             # Optimize the temperature
         print(temperature.is_leaf) 
-        optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
+        optimizer = optim.LBFGS([temperature], lr=0.001, max_iter=100)
         def eval():
             optimizer.zero_grad()
             loss = nll_criterion(temperature_scale(logits, temperature), labels)
