@@ -120,9 +120,7 @@ def set_temperature(valid_loader, model, temperature):
             # Accumulate logits and labels
             pos_logits = rewards_chosen - rewards_rejected
             # print(pos_logits)
-            neg_logits = -pos_logits
-            logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
-            # logits_list.append(pos_logits) phi2
+            logits_list.append(pos_logits) 
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
         # llama3b
