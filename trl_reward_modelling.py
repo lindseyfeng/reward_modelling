@@ -47,7 +47,7 @@ class ScriptArguments:
             "help": "Path to deepspeed config if using deepspeed. You may need this if the model that you want to train doesn't fit on a single GPU."
         },
     )
-    per_device_train_batch_size: Optional[int] = field(default=1)
+    per_device_train_batch_size: Optional[int] = field(default=2)
     per_device_eval_batch_size: Optional[int] = field(default=4)
     gradient_accumulation_steps: Optional[int] = field(default=4)
     learning_rate: Optional[float] = field(default=2e-5)
@@ -71,7 +71,7 @@ class ScriptArguments:
         },
     )
     num_train_epochs: Optional[int] = field(
-        default=1,
+        default=2,
         metadata={"help": "The number of training epochs for the reward model."},
     )
     # train_subset: Optional[int] = field(
@@ -218,4 +218,4 @@ trainer = RewardTrainer(
 trainer.train(script_args.resume_from_checkpoint)
 
 print("Saving last checkpoint of the model")
-model.save_pretrained(output_name + "__last_checkpoint")
+model.save_pretrained(output_name + "__2last_checkpoint")
