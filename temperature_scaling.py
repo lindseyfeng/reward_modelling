@@ -76,9 +76,11 @@ def preprocess_function(examples):
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
     }
-    for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
-        tokenized_chosen = tokenizer(chosen, padding = "max_length", max_length = 512)
-        tokenized_rejected = tokenizer(rejected, padding = "max_length", max_length = 512)
+    for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
+        chosen_str = prompt + " " + chosen
+        rejected_str = prompt + " " + rejected
+        tokenized_chosen = tokenizer(chosen_str, padding = "max_length", max_length = 512)
+        tokenized_rejected = tokenizer(rejected_str, padding = "max_length", max_length = 512)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
@@ -157,14 +159,14 @@ def set_temperature(valid_loader, model, temperature):
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2")
+tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 PAD_TOKEN = tokenizer.eos_token
 # '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-model = PhiForSequenceClassification.from_pretrained("./phi-2_rlhf_rm__2e-05__last_checkpoint").to(device)
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(3000))
-bsz = 10
+model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm__2e-05__last_checkpoint").to(device)
+raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+bsz = 30
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
