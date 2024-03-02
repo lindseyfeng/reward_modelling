@@ -71,7 +71,7 @@ class ScriptArguments:
         },
     )
     num_train_epochs: Optional[int] = field(
-        default=2,
+        default=1,
         metadata={"help": "The number of training epochs for the reward model."},
     )
     # train_subset: Optional[int] = field(
@@ -215,4 +215,4 @@ trainer = RewardTrainer(
 trainer.train(script_args.resume_from_checkpoint)
 
 print("Saving last checkpoint of the model")
-model.save_pretrained(output_name + "__2last_checkpoint")
+model.save_pretrained(output_name + "__last_checkpoint")
