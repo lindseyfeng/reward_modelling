@@ -109,11 +109,18 @@ def set_temperature(valid_loader, model, temperature):
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
             print(rewards_chosen)
+            # prob_pos_class = torch.sigmoid(rewards_chosen)
+            # prob_neg_class = 1 - prob_pos_class
+            # prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True)["logits"]
             print(rewards_rejected)
+            # prob_pos_class = torch.sigmoid(rewards_rejected)
+            # prob_neg_class = 1 - prob_pos_class
+            # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             # Accumulate logits and labels
+            pos_logits = rewards_chosen - rewards_rejected
             # print(pos_logits)
-            logits_list.append(rewards_chosen - rewards_rejected) 
+            logits_list.append(pos_logits) 
             print(logits_list)
             # Convert logits list to tensor and labels list to tensor
         # llama3b
@@ -135,7 +142,7 @@ def set_temperature(valid_loader, model, temperature):
 
             # Optimize the temperature
         print(temperature.is_leaf) 
-        optimizer = optim.LBFGS([temperature], lr=0.1, max_iter=100)
+        optimizer = optim.LBFGS([temperature], lr=0.001, max_iter=100)
         def eval():
             optimizer.zero_grad()
             loss = nll_criterion(temperature_scale(logits, temperature), labels)
@@ -150,13 +157,12 @@ def set_temperature(valid_loader, model, temperature):
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
-PAD_TOKEN = tokenizer.eos_token
-# '[PAD]'
+tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
+PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device) #./open_llama_3b_rlhf_rm__2e-05__last_checkpoint
-raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(100))
+model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm__2e-05__last_checkpoint").to(device)
+raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
 bsz = 30
 raw_datasets = raw_datasets.map(
         preprocess_function,
@@ -168,7 +174,7 @@ raw_datasets = raw_datasets.filter(
         and len(x["input_ids_rejected"]) <= 512
     )
 print(raw_datasets)
-temperature = nn.Parameter((torch.ones(1)*2).to(device))
+temperature = nn.Parameter((torch.ones(1)*1.5).to(device))
 print(temperature.is_leaf) 
 valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 print(valid_loader)
