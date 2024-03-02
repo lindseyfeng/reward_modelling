@@ -117,7 +117,6 @@ output_name = (
 
 training_args = RewardConfig(
     do_eval = True,
-    do_train=False, 
     report_to="wandb",
     output_dir=output_name,
     learning_rate=script_args.learning_rate,
@@ -146,7 +145,7 @@ training_args = RewardConfig(
 tokenizer_name = script_args.tokenizer_name if script_args.tokenizer_name is not None else script_args.model_name
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_auth_token=True)
 model = AutoModelForSequenceClassification.from_pretrained(
-    script_args.model_name, torch_dtype=torch.bfloat16
+    script_args.model_name, torch_dtype=torch.bfloat16, num_labels=1,
 )
 
 tokenizer.pad_token = tokenizer.eos_token
