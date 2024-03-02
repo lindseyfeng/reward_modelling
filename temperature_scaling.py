@@ -150,12 +150,12 @@ def set_temperature(valid_loader, model, temperature):
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
+tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b")
 PAD_TOKEN = tokenizer.eos_token
 # '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm__2e-05__last_checkpoint").to(device)
+model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device) #./open_llama_3b_rlhf_rm__2e-05__last_checkpoint
 raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(100))
 bsz = 30
 raw_datasets = raw_datasets.map(
