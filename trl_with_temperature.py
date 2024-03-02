@@ -183,12 +183,10 @@ training_args = RewardConfig(
 )
 # Load the value-head model and tokenizer.
 tokenizer_name = script_args.tokenizer_name if script_args.tokenizer_name is not None else script_args.model_name
-tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_auth_token=True)
-tokenizer.pad_token = tokenizer.eos_token
-config = AutoConfig.from_pretrained(script_args.model_name, num_labels=2, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
 model = AutoModelForSequenceClassification.from_pretrained(
-    script_args.model_name, torch_dtype=torch.bfloat16, trust_remote_code=True, config=config
+    script_args.model_name, torch_dtype=torch.bfloat16
 )
 
 tokenizer.pad_token = tokenizer.eos_token
