@@ -48,7 +48,7 @@ class ScriptArguments:
         },
     )
     per_device_train_batch_size: Optional[int] = field(default=2)
-    per_device_eval_batch_size: Optional[int] = field(default=4)
+    per_device_eval_batch_size: Optional[int] = field(default=2)
     gradient_accumulation_steps: Optional[int] = field(default=4)
     learning_rate: Optional[float] = field(default=2e-5)
     weight_decay: Optional[float] = field(default=0.001)
@@ -71,7 +71,7 @@ class ScriptArguments:
         },
     )
     num_train_epochs: Optional[int] = field(
-        default=1,
+        default=2,
         metadata={"help": "The number of training epochs for the reward model."},
     )
     # train_subset: Optional[int] = field(
@@ -112,7 +112,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
-    f"{model_name_split}_rlhf_rm_without_{script_args.learning_rate}"
+    f"{model_name_split}_rlhf_rm_without_{script_args.learning_rate}_{script_args.num_train_epochs}"
 )
 
 training_args = RewardConfig(
