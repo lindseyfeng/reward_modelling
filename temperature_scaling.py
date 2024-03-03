@@ -161,7 +161,7 @@ tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-2.7B")
 PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
-model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05 ").to(device)
+model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint").to(device)
 raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
 bsz = 30
 raw_datasets = raw_datasets.map(
