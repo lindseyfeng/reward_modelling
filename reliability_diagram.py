@@ -8,7 +8,7 @@ logits_tensor = torch.tensor(data['logits'])
 
 
 # Assuming `logits` are loaded from a file and `labels` are all zeros
-probabilities = torch.sigmoid(logits).squeeze()
+probabilities = torch.sigmoid(logits_tensor).squeeze()
 labels = torch.ones_like(probabilities, dtype=torch.long) 
 
 # Define the bins for the confidence intervals
