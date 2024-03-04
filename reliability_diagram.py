@@ -7,7 +7,7 @@ with open('logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkp
 logits_tensor = torch.tensor(data['logits'])
 
 sigmoid_logits = torch.sigmoid(logits_tensor)
-correct_predictions = 1 == (probabilities[in_bin] >= 0.5).long()
+correct_predictions = 1 == (sigmoid_logits[in_bin] >= 0.5).long()
 print(correct_predictions.float().mean().item())
 sigmoid_neg_logits = torch.sigmoid(-logits_tensor)
 labels_for_logits = torch.ones_like(sigmoid_logits).long()  # Labels for sigmoid_logits
@@ -18,7 +18,7 @@ labels = torch.cat((labels_for_logits, labels_for_neg_logits), dim=0)
 
 
 # Define the bins for the confidence intervals
-num_bins = 10
+num_bins = 20
 bin_boundaries = torch.linspace(0, 1, steps=num_bins + 1)
 bin_lowers = bin_boundaries[:-1]
 bin_uppers = bin_boundaries[1:]
