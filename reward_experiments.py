@@ -77,7 +77,7 @@ for batch in valid_loader:
         rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
         rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
         logits.extend(logits_to_list(rewards_chosen-rewards_rejected))
-        prompts.extend(batch["prompt"] + " " + batch["chosen"])
+        prompts.extend([p + " " + c for p, c in zip(batch["prompt"], batch["chosen"])])
 
 
 data_to_save = {
