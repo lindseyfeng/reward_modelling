@@ -36,7 +36,7 @@ for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
     in_bin = (probabilities >= bin_lower) & (probabilities < bin_upper)
     if in_bin.any():
         # Calculate the accuracy for the bin
-        correct_predictions = labels[in_bin] == (probabilities[in_bin] >= 0.5).long()
+        correct_predictions = labels[in_bin] == 1
         accuracy = correct_predictions.float().mean().item()
         bin_accuracies.append(accuracy)
         
