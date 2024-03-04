@@ -60,10 +60,10 @@ plt.plot(valid_bin_centers, valid_bin_accuracies, marker='o', linestyle='-', col
 plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Perfect calibration')
 plt.xlabel('Confidence')
 plt.ylabel('Accuracy')
-plt.title('Reliability Diagram with Histogram for {}'.format(file))
+plt.title('Reliability Diagram for OpenLlama 3B with global temperature")
 plt.legend(loc='best')
 plt.grid(True)
 
 # Save the figure
-plt.savefig('reliability_diagram_for{}.png'.format(file))
+plt.savefig('reliability_diagram_temp.png')
 plt.close()
