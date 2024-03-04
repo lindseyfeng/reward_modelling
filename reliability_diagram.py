@@ -16,6 +16,8 @@ num_bins = 10
 bin_boundaries = torch.linspace(0, 1, steps=num_bins + 1)
 bin_lowers = bin_boundaries[:-1]
 bin_uppers = bin_boundaries[1:]
+print(bin_lowers)
+print(bin_uppers)
 bin_centers = (bin_lowers + bin_uppers) / 2
 
 # Initialize lists to store the accuracies and average confidences for each bin
@@ -40,7 +42,6 @@ for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
         bin_confidences.append((bin_lower + bin_upper) / 2)
 
 print(bin_accuracies)
-print(bin_confidences)
 # Remove bins with no samples from the plot
 valid_bins = [i for i, acc in enumerate(bin_accuracies) if acc > 0]
 valid_bin_centers = [bin_centers[i].item() for i in valid_bins]
