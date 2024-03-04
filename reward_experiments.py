@@ -52,8 +52,8 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
 
-raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
-bsz = 10
+raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+bsz = 50
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
@@ -77,7 +77,7 @@ for batch in valid_loader:
         rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
         rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
         logits.extend(logits_to_list(rewards_chosen-rewards_rejected))
-        prompts.extend(batch["chosen"])
+        prompts.extend(batch["prompt"] + " " + batch["chosen"])
 
 
 data_to_save = {
