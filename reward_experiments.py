@@ -34,7 +34,9 @@ def preprocess_function(examples):
             "attention_mask_rejected": [],
             "chosen":[]
     }
-    for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
+    for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
+        chosen_str = prompt + " " + chosen
+        rejected_str = prompt + " " + rejected
         tokenized_chosen = tokenizer(chosen, padding = "max_length", max_length = 512)
         tokenized_rejected = tokenizer(rejected, padding = "max_length", max_length = 512)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
