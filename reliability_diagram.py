@@ -57,7 +57,7 @@ valid_bin_accuracies = [bin_accuracies[i] for i in valid_bins]
 # Plotting the reliability diagram
 plt.figure(figsize=(8, 6))
 plt.plot(valid_bin_centers, valid_bin_accuracies, marker='o', linestyle='-', color='b', label='Model')
-plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Perfect calibration')
+plt.plot([0.5, 1], [0.5, 1], linestyle='--', color='gray', label='Perfect calibration')
 plt.xlabel('Confidence')
 plt.ylabel('Accuracy')
 plt.title("Reliability Diagram for OpenLlama 3B with temperature/training data")
