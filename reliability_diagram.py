@@ -2,7 +2,7 @@ import torch
 import json
 import matplotlib.pyplot as plt
 # Load logits from JSON
-file = 'logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_train.json'
+file = 'logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_test.json'
 with open(file, 'r') as file:
     data = json.load(file)
 logits_tensor = torch.tensor(data['logits'])
@@ -60,7 +60,7 @@ plt.plot(valid_bin_centers, valid_bin_accuracies, marker='o', linestyle='-', col
 plt.plot([0.5, 1], [0.5, 1], linestyle='--', color='gray', label='Perfect calibration')
 plt.xlabel('Confidence')
 plt.ylabel('Accuracy')
-plt.title("Reliability Diagram for OpenLlama 3B/training data")
+plt.title("Reliability Diagram for OpenLlama 3B/testing data")
 plt.legend(loc='best')
 plt.grid(True)
 
