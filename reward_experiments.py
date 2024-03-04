@@ -45,34 +45,16 @@ def preprocess_function(examples):
 
     return new_examples
 
-class TemperatureScaledModel(torch.nn.Module):
-    def __init__(self, pretrained_model_name_or_path, temperature=1.0):
-        super(TemperatureScaledModel, self).__init__()
-        self.model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path)
-        self.temperature = temperature
-
-    def forward(self, input_ids, attention_mask=None, labels=None):
-        # Forward pass through the original model
-        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-
-        # Apply temperature scaling to logits
-        logits = outputs.logits / self.temperature
-
-        # If you're working with a model that outputs a single score, you might adjust it here
-        # For classification models, you'd typically return the scaled logits for further processing (e.g., softmax)
-        return logits
-
 # Example usage
-pretrained_model_name_or_path = 'weqweasdas/hh_rlhf_rm_open_llama_3b'  # Example model
+pretrained_model_name_or_path = './open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint' 
 tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
-PAD_TOKEN = '[PAD]'
 if tokenizer.pad_token is None:
-    tokenizer.pad_token = PAD_TOKEN
+    tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
 temperature_scaled_model = TemperatureScaledModel(pretrained_model_name_or_path=pretrained_model_name_or_path, temperature=2.524).to(device)
 
-raw_datasets = load_dataset("Anthropic/hh-rlhf")["test"].shuffle(seed=42).select(range(3000))
-bsz = 10
+raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
+bsz = 50
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
@@ -87,28 +69,25 @@ logits = []
 score = []
 prompts = []
 for batch in valid_loader:
-    input_ids_chosen_tensor = torch.stack(batch["input_ids_chosen"]).to(model.device).transpose(0, 1)
-    attention_mask_chosen_tensor = torch.stack(batch["attention_mask_chosen"]).to(model.device).transpose(0, 1)
+    input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
+    attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
+    input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
+    attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
         # Forward pass through the temperature scaled model
     with torch.no_grad():
-        blogits = temperature_scaled_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor)
-        logits.extend(logits_to_list(blogits))
-        bscore = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True)["logits"]
-        score.extend(logits_to_list(bscore))
+        rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+        rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
+        logits.extend(logits_to_list(rewards_chosen-rewards_rejected))
         prompts.extend(batch["chosen"])
-    print(logits)
-    print(score)
-    print(batch["chosen"])
 
 
 data_to_save = {
-    "after": logits,
-    "before": score,
+    "logits": logits,
     "prompts": prompts
 }
 
 # Specify the file path where you want to save the JSON file.
-file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), 3000)
+file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
 
 # Writing the data to a JSON file.
 with open(file_path, 'w') as json_file:
