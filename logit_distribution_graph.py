@@ -12,7 +12,7 @@ probabilities = torch.sigmoid(logits_tensor)
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
 
 # Plotting the distribution of logits on the first subplot
-ax1.hist(logits.numpy(), bins=10, color='red', alpha=0.7)
+ax1.hist(logits_tensor.numpy(), bins=10, color='red', alpha=0.7)
 ax1.set_title('Distribution of Logits')
 ax1.set_xlabel('Logits')
 ax1.set_ylabel('Frequency')
