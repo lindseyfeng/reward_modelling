@@ -65,5 +65,5 @@ plt.legend(loc='best')
 plt.grid(True)
 
 # Save the figure
-plt.savefig('reliability_diagram_for{}.png').format(file)
+plt.savefig('reliability_diagram_for{}.png'.format(file))
 plt.close()
