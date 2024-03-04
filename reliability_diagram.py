@@ -39,6 +39,8 @@ for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
         bin_accuracies.append(0)  # No samples in the bin
         bin_confidences.append((bin_lower + bin_upper) / 2)
 
+print(bin_accuracies)
+print(bin_confidences)
 # Remove bins with no samples from the plot
 valid_bins = [i for i, acc in enumerate(bin_accuracies) if acc > 0]
 valid_bin_centers = [bin_centers[i].item() for i in valid_bins]
