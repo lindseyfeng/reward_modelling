@@ -19,8 +19,8 @@ labels = torch.cat((labels_for_logits, labels_for_neg_logits), dim=0)
 
 
 # Define the bins for the confidence intervals
-num_bins = 20
-bin_boundaries = torch.linspace(0, 1, steps=num_bins + 1)
+num_bins = 5
+bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
 bin_lowers = bin_boundaries[:-1]
 bin_uppers = bin_boundaries[1:]
 print(bin_lowers)
