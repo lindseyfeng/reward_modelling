@@ -2,7 +2,8 @@ import torch
 import json
 import matplotlib.pyplot as plt
 # Load logits from JSON
-with open('logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkpoint_test.json', 'r') as file:
+file = 'logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkpoint_test.json'
+with open(file, 'r') as file:
     data = json.load(file)
 logits_tensor = torch.tensor(data['logits'])
 
@@ -57,13 +58,12 @@ valid_bin_accuracies = [bin_accuracies[i] for i in valid_bins]
 plt.figure(figsize=(8, 6))
 plt.plot(valid_bin_centers, valid_bin_accuracies, marker='o', linestyle='-', color='b', label='Model')
 plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Perfect calibration')
-
 plt.xlabel('Confidence')
 plt.ylabel('Accuracy')
-plt.title('Reliability Diagram with Histogram')
+plt.title('Reliability Diagram with Histogram for {}'.format(file))
 plt.legend(loc='best')
 plt.grid(True)
 
 # Save the figure
-plt.savefig('reliability_diagram.png')
+plt.savefig('reliability_diagram_for{}.png').format(file)
 plt.close()
