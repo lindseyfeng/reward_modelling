@@ -2,7 +2,7 @@ import torch
 import json
 import matplotlib.pyplot as plt
 # Load logits from JSON
-file = 'logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkpoint_test.json'
+file = 'logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_test.json'
 with open(file, 'r') as file:
     data = json.load(file)
 logits_tensor = torch.tensor(data['logits'])
@@ -60,10 +60,10 @@ plt.plot(valid_bin_centers, valid_bin_accuracies, marker='o', linestyle='-', col
 plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Perfect calibration')
 plt.xlabel('Confidence')
 plt.ylabel('Accuracy')
-plt.title("Reliability Diagram for OpenLlama 3B with global temperature")
+plt.title("Reliability Diagram for OpenLlama 3B")
 plt.legend(loc='best')
 plt.grid(True)
 
 # Save the figure
-plt.savefig('reliability_diagram_temp.png')
+plt.savefig('reliability_diagram.png')
 plt.close()
