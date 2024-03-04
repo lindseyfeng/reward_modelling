@@ -6,6 +6,8 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import json
 device = "cuda" if torch.cuda.is_available() else "cpu"
 from torch.utils.data.dataloader import default_collate
+import numpy as np
+np.random.seed(42)
 
 def logits_to_list(logits_tensor):
     logits_list = logits_tensor.detach().cpu().tolist()
@@ -52,7 +54,7 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
 
-raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["train"].select(range(50000))
 bsz = 100
 raw_datasets = raw_datasets.map(
         preprocess_function,
@@ -60,6 +62,7 @@ raw_datasets = raw_datasets.map(
         num_proc=4,
     )
 raw_datasets = raw_datasets.filter(
+
         lambda x: len(x["input_ids_chosen"]) <= 512
         and len(x["input_ids_rejected"]) <= 512
     )
@@ -88,7 +91,7 @@ data_to_save = {
 }
 
 # Specify the file path where you want to save the JSON file.
-file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
+file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "train")
 
 # Writing the data to a JSON file.
 with open(file_path, 'w') as json_file:
