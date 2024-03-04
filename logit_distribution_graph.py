@@ -9,28 +9,22 @@ logits_tensor = torch.tensor(data['logits'])
 
 probabilities = torch.sigmoid(logits_tensor)
 
-# Plotting
-fig, ax1 = plt.subplots()
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
 
-# Histogram for logits
-color = 'tab:red'
-ax1.set_xlabel('Value')
-ax1.set_ylabel('Logits', color=color)
-ax1.hist(logits_tensor.numpy(), bins=10, alpha=0.6, color=color)
-ax1.tick_params(axis='y', labelcolor=color)
+# Plotting the distribution of logits on the first subplot
+ax1.hist(logits.numpy(), bins=10, color='red', alpha=0.7)
+ax1.set_title('Distribution of Logits')
+ax1.set_xlabel('Logits')
+ax1.set_ylabel('Frequency')
 
-# Create a second y-axis for the probabilities histogram
-ax2 = ax1.twinx()  
-color = 'tab:blue'
-ax2.set_ylabel('Probabilities', color=color)  # we already handled the x-label with ax1
-ax2.hist(probabilities.numpy(), bins=10, alpha=0.6, color=color)
-ax2.tick_params(axis='y', labelcolor=color)
+# Plotting the distribution of probabilities on the second subplot
+ax2.hist(probabilities.numpy(), bins=10, color='blue', alpha=0.7)
+ax2.set_title('Distribution of Probabilities')
+ax2.set_xlabel('Probabilities')
+ax2.set_ylabel('Frequency')
 
-# Title and show
-plt.title('Distribution of Logits and Corresponding Probabilities')
-fig.tight_layout()  # To ensure there's no overlap
-plt.grid(True)
+# Adjust layout to prevent overlap
+plt.tight_layout()
 
-# Save the figure
-plt.savefig('distribution_without.png')
-plt.close()
+# Show the plot
+plt.show()
