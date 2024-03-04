@@ -6,10 +6,14 @@ with open('logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkp
     data = json.load(file)
 logits_tensor = torch.tensor(data['logits'])
 
+sigmoid_logits = torch.sigmoid(logits_tensor)
+sigmoid_neg_logits = torch.sigmoid(-logits_tensor)
+labels_for_logits = torch.ones_like(sigmoid_logits).long()  # Labels for sigmoid_logits
+labels_for_neg_logits = torch.zeros_like(sigmoid_neg_logits).long()  # Labels for sigmoid_neg_logits
 
-# Assuming `logits` are loaded from a file and `labels` are all zeros
-probabilities = torch.sigmoid(logits_tensor).squeeze()
-labels = torch.ones_like(probabilities, dtype=torch.long) 
+probabilities = torch.cat((sigmoid_logits, sigmoid_neg_logits), dim=0)
+labels = torch.cat((labels_for_logits, labels_for_neg_logits), dim=0)
+
 
 # Define the bins for the confidence intervals
 num_bins = 10
@@ -52,10 +56,6 @@ plt.figure(figsize=(8, 6))
 plt.plot(valid_bin_centers, valid_bin_accuracies, marker='o', linestyle='-', color='b', label='Model')
 plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Perfect calibration')
 
-# Histogram for the distribution of predicted probabilities
-# Note: You need to normalize your histogram (via the density parameter) to properly visualize it alongside the reliability plot
-plt.hist(probabilities, bins=bin_boundaries, alpha=0.25, edgecolor='black', density=True, label='Histogram')
-
 plt.xlabel('Confidence')
 plt.ylabel('Accuracy')
 plt.title('Reliability Diagram with Histogram')
@@ -63,5 +63,5 @@ plt.legend(loc='best')
 plt.grid(True)
 
 # Save the figure
-plt.savefig('reliability_diagram_with_histogram.png')
+plt.savefig('reliability_diagram.png')
 plt.close()
