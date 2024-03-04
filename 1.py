@@ -1,12 +1,11 @@
-import torch
-import json
 import matplotlib.pyplot as plt
-# Load logits from JSON
-file = 'logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_test.json~'
-with open(file, 'r') as file:
-    data = json.load(file)
-logits_tensor = torch.tensor(data['logits'])
+import numpy as np
+import torch
 
+# Example logits
+logits = torch.tensor([0.7, -1.2, 0.3, -2.5, 1.0, 2.2, -0.4, 0.5, -1.5, 0.9])
+
+# Convert logits to probabilities using the sigmoid function
 probabilities = torch.sigmoid(logits)
 
 # Creating the figure and subplots
@@ -27,4 +26,5 @@ axs[1].set_ylabel('Frequency')
 # Adjust layout to prevent overlap
 plt.tight_layout()
 
-plt.savefig('without_logits_and_probabilities_histograms.png')
+# Show the plot
+plt.show()
