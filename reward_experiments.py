@@ -32,7 +32,6 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
-            "chosen":[]
     }
     for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
         chosen_str = prompt + " " + chosen
@@ -43,7 +42,6 @@ def preprocess_function(examples):
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["chosen"].append(examples["chosen"])
 
     return new_examples
 
@@ -70,10 +68,10 @@ logits = []
 score = []
 prompts = []
 for batch in valid_loader:
-    input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
-    attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
-    input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
-    attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
+    input_ids_chosen_tensor = torch.stack(batch["input_ids_chosen"]).to(model.device).transpose(0, 1)
+    attention_mask_chosen_tensor = torch.stack(batch["attention_mask_chosen"]).to(model.device).transpose(0, 1)
+    input_ids_rejected_tensor = torch.stack(batch["input_ids_rejected"]).to(model.device).transpose(0, 1)
+    attention_mask_rejected_tensor = torch.stack(batch["attention_mask_rejected"]).to(model.device).transpose(0, 1)
         # Forward pass through the temperature scaled model
     with torch.no_grad():
         rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
