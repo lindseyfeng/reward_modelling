@@ -75,7 +75,6 @@ for batch in valid_loader:
     attention_mask_chosen_tensor = torch.stack(batch["attention_mask_chosen"]).to(model.device).transpose(0, 1)
     input_ids_rejected_tensor = torch.stack(batch["input_ids_rejected"]).to(model.device).transpose(0, 1)
     attention_mask_rejected_tensor = torch.stack(batch["attention_mask_rejected"]).to(model.device).transpose(0, 1)
-        # Forward pass through the temperature scaled model
     with torch.no_grad():
         rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
         rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
