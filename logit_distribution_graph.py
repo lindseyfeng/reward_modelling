@@ -7,13 +7,13 @@ with open(file, 'r') as file:
     data = json.load(file)
 logits_tensor = torch.tensor(data['logits'])
 
-probabilities = torch.sigmoid(logits)
+probabilities = torch.sigmoid(logits_tensor)
 
 # Creating the figure and subplots
 fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
 # Plotting the distribution of logits on the first subplot
-axs[0].hist(logits.numpy(), bins=10, color='red', alpha=0.7)
+axs[0].hist(logits_tensor.numpy(), bins=10, color='red', alpha=0.7)
 axs[0].set_title('Distribution of Logits')
 axs[0].set_xlabel('Logits')
 axs[0].set_ylabel('Frequency')
