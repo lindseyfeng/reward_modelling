@@ -7,8 +7,8 @@ with open('logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkp
 logits_tensor = torch.tensor(data['logits'])
 
 sigmoid_logits = torch.sigmoid(logits_tensor)
-correct_predictions = 1 == (sigmoid_logits[in_bin] >= 0.5).long()
-print(correct_predictions.float().mean().item())
+# correct_predictions = 1 == (sigmoid_logits[in_bin] >= 0.5).long()
+# print(correct_predictions.float().mean().item())
 sigmoid_neg_logits = torch.sigmoid(-logits_tensor)
 labels_for_logits = torch.ones_like(sigmoid_logits).long()  # Labels for sigmoid_logits
 labels_for_neg_logits = torch.zeros_like(sigmoid_neg_logits).long()  # Labels for sigmoid_neg_logits
