@@ -51,7 +51,6 @@ tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
-temperature_scaled_model = TemperatureScaledModel(pretrained_model_name_or_path=pretrained_model_name_or_path, temperature=2.524).to(device)
 
 raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
 bsz = 50
