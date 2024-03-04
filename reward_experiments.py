@@ -48,7 +48,7 @@ def preprocess_function(examples):
     return new_examples
 
 # Example usage
-pretrained_model_name_or_path = './open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint' 
+pretrained_model_name_or_path = './open_llama_3b_rlhf_rm__2e-05__temperature_last_checkpoint' 
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
