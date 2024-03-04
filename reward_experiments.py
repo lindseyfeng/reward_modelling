@@ -55,7 +55,7 @@ if tokenizer.pad_token is None:
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
 
 raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["train"].select(range(50000))
-bsz = 100
+bsz = 30
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
