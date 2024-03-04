@@ -60,5 +60,5 @@ plt.legend(loc='best')
 plt.grid(True)
 
 # Save the figure
-plt.savefig('/mnt/data/reliability_diagram_with_histogram.png')
+plt.savefig('reliability_diagram_with_histogram.png')
 plt.close()
