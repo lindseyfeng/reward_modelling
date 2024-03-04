@@ -47,7 +47,7 @@ def preprocess_function(examples):
 
 # Example usage
 pretrained_model_name_or_path = './open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint' 
-tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
+tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path).to(device)
