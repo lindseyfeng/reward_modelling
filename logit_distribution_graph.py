@@ -16,7 +16,7 @@ fig, ax1 = plt.subplots()
 color = 'tab:red'
 ax1.set_xlabel('Value')
 ax1.set_ylabel('Logits', color=color)
-ax1.hist(logits.numpy(), bins=10, alpha=0.6, color=color)
+ax1.hist(logits_tensor.numpy(), bins=10, alpha=0.6, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 
 # Create a second y-axis for the probabilities histogram
