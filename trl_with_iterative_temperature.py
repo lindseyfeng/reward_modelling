@@ -23,7 +23,7 @@ import os
 from datasets import load_metric
 from transformers import PreTrainedModel
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from temperature_scaling import _ECELoss, temperature_scale, set_temperature, 
+from temperature_scaling import _ECELoss, temperature_scale, set_temperature
 
 wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
@@ -176,7 +176,7 @@ training_args = RewardConfig(
     num_train_epochs=script_args.num_train_epochs,
     weight_decay=script_args.weight_decay,
     evaluation_strategy="steps",
-    eval_steps=500,
+    eval_steps=10,
     save_strategy="steps",
     save_steps=500,
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
