@@ -9,7 +9,7 @@ def load_data_from_json(filename):
 
 # Load logits and prompts from both files
 logits1, prompts1 = load_data_from_json('logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_train.json')
-logits2, prompts2 = load_data_from_json('logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkpoint_train.json ')
+logits2, prompts2 = load_data_from_json('logits_scores_._open_llama_3b_rlhf_rm__2e-05__temperature_last_checkpoint_train.json')
 
 # Create mappings from prompts to logits for each file
 prompt_to_logits1 = {prompt: logit for prompt, logit in zip(prompts1, logits1)}
