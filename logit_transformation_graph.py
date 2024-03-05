@@ -25,8 +25,8 @@ for prompt in prompts1:
 
 # Plotting
 plt.scatter(matched_logits1, matched_logits2)
-plt.xlabel('Logits from file1')
-plt.ylabel('Logits from file2')
+plt.xlabel('Logits from OpenLlama3b')
+plt.ylabel('Logits from OpenLlama3b with Temperature')
 plt.title('Comparing Logits for Matching Prompts')
 plt.grid(True)
 plt.savefig('logit_transformation.png')
