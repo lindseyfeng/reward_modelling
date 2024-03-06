@@ -40,7 +40,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         
         # Your custom logic here
         # For example, change a hyperparameter based on some condition
-        eval_result["ece"] = set_temperature(eval_dataset, self.model, temperature)
+        eval_result["ece"] = set_temperature(eval_dataset, self.model, self.temperature)
 
         return eval_result
 
@@ -68,9 +68,9 @@ class TemperatureRewardTrainer(RewardTrainer):
         )["logits"]
         # calculate loss, optionally modulate with margin
         if "margin" in inputs:
-            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*temperature).mean()
+            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*self.temperature).mean()
         else:
-            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected)*temperature).mean()
+            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected)*self.temperature).mean()
 
         if return_outputs:
             return loss, {
