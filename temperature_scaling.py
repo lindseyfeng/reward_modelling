@@ -33,7 +33,7 @@ class _ECELoss(nn.Module):
         n_bins (int): number of confidence interval bins
         """
         super(_ECELoss, self).__init__()
-        bin_boundaries = torch.linspace(0.5, 1, n_bins + 1)
+        bin_boundaries = torch.linspace(0, 1, n_bins + 1)
         self.bin_lowers = bin_boundaries[:-1].to(device)
         self.bin_uppers = bin_boundaries[1:].to(device)
 
@@ -91,6 +91,73 @@ def preprocess_function(examples):
 def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
     return logits / temperature
+
+def set_temperature_trl(valid_loader, model, temperature):
+    nll_criterion = nn.CrossEntropyLoss().cuda()
+    ece_criterion = _ECELoss().cuda()
+    with torch.no_grad():
+        logits_list = []
+        labels_list = []
+        for inputs in valid_loader:
+            # Stack and move to the correct device
+            print("k1")
+            input_ids_chosen_tensor = inputs["input_ids_chosen"]
+            attention_mask_chosen_tensor = inputs["attention_mask_chosen"]
+            input_ids_rejected_tensor = inputs["input_ids_rejected"]
+            attention_mask_rejected_tensor = inputs["attention_mask_rejected"]
+
+            # Note: Corrected model input to use tensors instead of lists
+            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+            print(rewards_chosen)
+            # prob_pos_class = torch.sigmoid(rewards_chosen)
+            # prob_neg_class = 1 - prob_pos_class
+            # prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
+            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
+            print(rewards_rejected)
+            # prob_pos_class = torch.sigmoid(rewards_rejected)
+            # prob_neg_class = 1 - prob_pos_class
+            # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
+            # Accumulate logits and labels
+            pos_logits = rewards_chosen - rewards_rejected
+            neg_logits = -pos_logits
+            logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+            print(logits_list)
+            # Convert logits list to tensor and labels list to tensor
+        # llama3b
+        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
+        print(logits.shape)
+
+        N, _ = logits.shape
+        labels_list += [0] * N # Assuming binary labels, adjust as necessary
+        labels = torch.tensor(labels_list).cuda()
+
+        print(logits)
+        print(logits.shape)
+        # print(labels)
+        print(labels.shape)
+            # Calculate NLL and ECE before temperature scaling
+        before_temperature_nll = nll_criterion(logits, labels).item()
+        before_temperature_ece = ece_criterion(logits, labels).item()
+        print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
+
+            # Optimize the temperature
+        print(temperature.is_leaf) 
+        optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
+        def eval():
+            optimizer.zero_grad()
+            loss = nll_criterion(temperature_scale(logits, temperature), labels)
+            loss.backward()
+            return loss
+        optimizer.step(eval)
+
+            # Calculate NLL after temperature scaling
+        after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
+        after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
+        return before_temperature_ece
+        print('Optimal temperature: %.3f' % temperature.item())
+        print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
+
+
 
 def set_temperature(valid_loader, model, temperature):
     nll_criterion = nn.CrossEntropyLoss().cuda()
