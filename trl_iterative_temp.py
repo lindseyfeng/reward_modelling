@@ -27,6 +27,7 @@ from temperature_scaling import _ECELoss, temperature_scale, set_temperature
 
 wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 os.environ["WANDB__SERVICE_WAIT"] = "600"
 
