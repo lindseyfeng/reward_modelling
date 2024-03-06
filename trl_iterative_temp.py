@@ -24,6 +24,7 @@ from datasets import load_metric
 from transformers import PreTrainedModel
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from temperature_scaling import _ECELoss, temperature_scale, set_temperature_trl
+np.random.seed(42)
 
 wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
@@ -42,6 +43,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
         print(eval_dataloader)
         eval_result["ece"] = set_temperature_trl(eval_dataloader, self.model, self.temperature)
+        print(self.temperature)
 
         return eval_result
 
@@ -242,7 +244,7 @@ raw_datasets = raw_datasets.filter(
 
 train_dataset = raw_datasets["train"]
 print(train_dataset)
-eval_dataset = raw_datasets["test"]
+eval_dataset = raw_datasets["test"].select(range(50))
 if script_args.eval_subset > 0:
     eval_dataset = eval_dataset.select(range(script_args.eval_subset))
 
