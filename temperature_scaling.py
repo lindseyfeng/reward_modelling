@@ -167,7 +167,7 @@ bsz = 100
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
-        num_proc=4,
+        num_proc=1,
     )
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= 512
