@@ -158,25 +158,26 @@ def set_temperature(valid_loader, model, temperature):
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b") #openlm-research/open_llama_3b
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
-model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device)
-raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
-bsz = 100
-raw_datasets = raw_datasets.map(
-        preprocess_function,
-        batched=True,
-        num_proc=1,
-    )
-raw_datasets = raw_datasets.filter(
-        lambda x: len(x["input_ids_chosen"]) <= 512
-        and len(x["input_ids_rejected"]) <= 512
-    )
-print(raw_datasets)
-temperature = nn.Parameter((torch.ones(1)*1.5).to(device))
-print(temperature.is_leaf) 
-valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
-print(valid_loader)
-set_temperature(valid_loader, model, temperature)
+if __name__ == "__main__":
+    tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b") #openlm-research/open_llama_3b
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device)
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+    bsz = 100
+    raw_datasets = raw_datasets.map(
+            preprocess_function,
+            batched=True,
+            num_proc=1,
+        )
+    raw_datasets = raw_datasets.filter(
+            lambda x: len(x["input_ids_chosen"]) <= 512
+            and len(x["input_ids_rejected"]) <= 512
+        )
+    print(raw_datasets)
+    temperature = nn.Parameter((torch.ones(1)*1.5).to(device))
+    print(temperature.is_leaf) 
+    valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
+    print(valid_loader)
+    set_temperature(valid_loader, model, temperature)
     
