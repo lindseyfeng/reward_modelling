@@ -24,7 +24,6 @@ from datasets import load_metric
 from transformers import PreTrainedModel
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from temperature_scaling import _ECELoss, temperature_scale, set_temperature_trl
-np.random.seed(42)
 
 wandb.init(settings=wandb.Settings(init_timeout=600,
 _service_wait=600,))
@@ -43,7 +42,8 @@ class TemperatureRewardTrainer(RewardTrainer):
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
         print(eval_dataloader)
         eval_result["ece"] = set_temperature_trl(eval_dataloader, self.model, self.temperature)
-        print(self.temperature)
+        log_value = self.temperature.detach().cpu().item()
+        wandb.log({'temperature_trajectory': log_value})
 
         return eval_result
 
@@ -71,9 +71,9 @@ class TemperatureRewardTrainer(RewardTrainer):
         )["logits"]
         # calculate loss, optionally modulate with margin
         if "margin" in inputs:
-            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*self.temperature).mean()
+            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*self.temperature.item()).mean()
         else:
-            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected)*self.temperature).mean()
+            loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected)*self.temperature.item()).mean()
 
         if return_outputs:
             return loss, {

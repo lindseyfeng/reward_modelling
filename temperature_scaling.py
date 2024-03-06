@@ -23,10 +23,6 @@ class _ECELoss(nn.Module):
 
     We then return a weighted average of the gaps, based on the number
     of samples in each bin
-
-    See: Naeini, Mahdi Pakdaman, Gregory F. Cooper, and Milos Hauskrecht.
-    "Obtaining Well Calibrated Probabilities Using Bayesian Binning." AAAI.
-    2015.
     """  
     def __init__(self, n_bins=5):
         """
