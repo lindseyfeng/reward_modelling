@@ -134,7 +134,7 @@ class ScriptArguments:
     #     metadata={"help": "The size of the subset of the training data to use"},
     # )
     eval_subset: Optional[int] = field(
-        default=-1,
+        default=50,
         metadata={"help": "The size of the subset of the eval data to use"},
     )
     gradient_checkpointing: Optional[bool] = field(
@@ -180,7 +180,7 @@ training_args = RewardConfig(
     num_train_epochs=script_args.num_train_epochs,
     weight_decay=script_args.weight_decay,
     evaluation_strategy="steps",
-    eval_steps=6977,
+    eval_steps=10, #6977
     save_strategy="steps",
     save_steps=6977,
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
