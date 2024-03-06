@@ -229,7 +229,7 @@ def preprocess_function(examples):
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
-        num_proc=4,
+        num_proc=None,
     )
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= training_args.max_length
