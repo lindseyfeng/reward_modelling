@@ -28,7 +28,7 @@ class _ECELoss(nn.Module):
     "Obtaining Well Calibrated Probabilities Using Bayesian Binning." AAAI.
     2015.
     """  
-    def __init__(self, n_bins=20):
+    def __init__(self, n_bins=5):
         """
         n_bins (int): number of confidence interval bins
         """
@@ -220,9 +220,9 @@ def set_temperature(valid_loader, model, temperature):
             # Calculate NLL after temperature scaling
         after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
         after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
-        return before_temperature_ece
         print('Optimal temperature: %.3f' % temperature.item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
+        return before_temperature_ece
 
 
 if __name__ == "__main__":
