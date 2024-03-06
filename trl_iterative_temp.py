@@ -38,9 +38,10 @@ class TemperatureRewardTrainer(RewardTrainer):
         # Call the original evaluate method to get evaluation metrics
         eval_result = super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
         
-        # Your custom logic here
-        # For example, change a hyperparameter based on some condition
-        eval_result["ece"] = set_temperature(eval_dataset, self.model, self.temperature)
+ 
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+        print(eval_dataloader)
+        eval_result["ece"] = set_temperature(eval_dataloader, self.model, self.temperature)
 
         return eval_result
 
