@@ -180,9 +180,9 @@ training_args = RewardConfig(
     num_train_epochs=script_args.num_train_epochs,
     weight_decay=script_args.weight_decay,
     evaluation_strategy="steps",
-    eval_steps=10,
+    eval_steps=6977,
     save_strategy="steps",
-    save_steps=500,
+    save_steps=6977,
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
     gradient_checkpointing=script_args.gradient_checkpointing,
     deepspeed=script_args.deepspeed,
@@ -244,7 +244,7 @@ raw_datasets = raw_datasets.filter(
 
 train_dataset = raw_datasets["train"]
 print(train_dataset)
-eval_dataset = raw_datasets["test"].select(range(50))
+eval_dataset = raw_datasets["test"]
 if script_args.eval_subset > 0:
     eval_dataset = eval_dataset.select(range(script_args.eval_subset))
 
