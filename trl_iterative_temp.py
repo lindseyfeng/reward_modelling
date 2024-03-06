@@ -226,11 +226,13 @@ def preprocess_function(examples):
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
+print('Map start!')
 raw_datasets = raw_datasets.map(
         preprocess_function,
         batched=True,
-        # num_proc=num_proc,
+        num_proc=num_proc,
     )
+print('Map done')
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= training_args.max_length
         and len(x["input_ids_rejected"]) <= training_args.max_length
