@@ -91,12 +91,12 @@ def temperature_scale(logits, temperature):
 def set_temperature_trl(valid_loader, model, temperature):
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
+    model.eval()
     with torch.no_grad():
         logits_list = []
         labels_list = []
         for inputs in valid_loader:
             # Stack and move to the correct device
-            print("k1")
             input_ids_chosen_tensor = inputs["input_ids_chosen"]
             attention_mask_chosen_tensor = inputs["attention_mask_chosen"]
             input_ids_rejected_tensor = inputs["input_ids_rejected"]
@@ -104,12 +104,10 @@ def set_temperature_trl(valid_loader, model, temperature):
 
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-            print(rewards_chosen)
             # prob_pos_class = torch.sigmoid(rewards_chosen)
             # prob_neg_class = 1 - prob_pos_class
             # prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
-            print(rewards_rejected)
             # prob_pos_class = torch.sigmoid(rewards_rejected)
             # prob_neg_class = 1 - prob_pos_class
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
@@ -117,7 +115,6 @@ def set_temperature_trl(valid_loader, model, temperature):
             pos_logits = rewards_chosen - rewards_rejected
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
-            print(logits_list)
             # Convert logits list to tensor and labels list to tensor
         # llama3b
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
@@ -127,10 +124,8 @@ def set_temperature_trl(valid_loader, model, temperature):
         labels_list += [0] * N # Assuming binary labels, adjust as necessary
         labels = torch.tensor(labels_list).cuda()
 
-        print(logits)
-        print(logits.shape)
+
         # print(labels)
-        print(labels.shape)
             # Calculate NLL and ECE before temperature scaling
         before_temperature_nll = nll_criterion(logits, labels).item()
         before_temperature_ece = ece_criterion(logits, labels).item()
@@ -151,6 +146,7 @@ def set_temperature_trl(valid_loader, model, temperature):
         after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
         print('Optimal temperature: %.3f' % temperature.item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
+        model.train()
         return before_temperature_ece
 
 
@@ -213,7 +209,6 @@ def set_temperature(valid_loader, model, temperature):
         after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
         print('Optimal temperature: %.3f' % temperature.item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
-        model.train()
         return before_temperature_ece
 
 

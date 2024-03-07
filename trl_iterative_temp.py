@@ -167,7 +167,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
-    f"{model_name_split}_rlhf_rm_iterative_temperature_{script_args.learning_rate}"
+    f"{model_name_split}_rlhf_rm_iterative_temperature_0.5_epoch_{script_args.learning_rate}"
 )
 
 training_args = RewardConfig(
@@ -180,9 +180,9 @@ training_args = RewardConfig(
     num_train_epochs=script_args.num_train_epochs,
     weight_decay=script_args.weight_decay,
     evaluation_strategy="steps",
-    eval_steps=6977,
+    eval_steps=13955,
     save_strategy="steps",
-    save_steps=6977,
+    save_steps=13955,
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
     gradient_checkpointing=script_args.gradient_checkpointing,
     deepspeed=script_args.deepspeed,

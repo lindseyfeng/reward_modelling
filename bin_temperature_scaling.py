@@ -5,7 +5,7 @@ from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn.functional as F
 
-evice = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 from torch.utils.data.dataloader import default_collate
 
