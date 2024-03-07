@@ -155,7 +155,7 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForSequenceClassification.from_pretrained("openlm-research/open_llama_3b").to(device)
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(60))
-    bsz = 20
+    bsz = 5
     num_bins = 5
     bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
     raw_datasets = raw_datasets.map(
