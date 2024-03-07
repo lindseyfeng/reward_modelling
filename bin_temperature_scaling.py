@@ -99,7 +99,6 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     ece_criterion = _ECELoss().cuda()
     model.eval()
     logits_list = [[] for _ in range(len(bin_boundaries) - 1)]
-    labels_list = []
     print(logits_list)
     for inputs in valid_loader:
         print("k")
@@ -125,6 +124,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     
     ind = 0
     for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
+        labels_list = []
         print("range: ", bin_lower, bin_upper)
         logits = torch.cat(logits_list[ind], dim=0).squeeze(1)
         N, _ = logits.shape
