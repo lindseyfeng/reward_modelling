@@ -116,7 +116,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
             print(in_bin)
-            for i in range(in_bin)
+            for i in range(in_bin):
                 if in_bin[i].any():  # Checks if there is at least one True in the row
                     logits_list[idx].append(torch.cat((pos_logits[i].unsqueeze(-1), neg_logits[i].unsqueeze(-1)), dim=-1))
             print(logits_list)
