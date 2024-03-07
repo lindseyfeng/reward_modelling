@@ -99,6 +99,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     ece_criterion = _ECELoss().cuda()
     model.eval()
     logits_list = [[] for _ in range(len(bin_boundaries) - 1)]
+    labels_list = []
     print(logits_list)
     for inputs in valid_loader:
         print("k")
