@@ -125,7 +125,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         ind = 0
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             print("range: ", bin_lower, bin_upper)
-            logits = torch.cat(logits_list, dim=0).squeeze(1)
+            logits = torch.cat(logits_list[ind], dim=0).squeeze(1)
             N, _ = logits.shape
             labels_list += [0] * N # Assuming binary labels, adjust as necessary
             labels = torch.tensor(labels_list).cuda()
