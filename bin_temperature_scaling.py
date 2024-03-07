@@ -110,6 +110,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
         pos_logits = rewards_chosen - rewards_rejected
         neg_logits = -pos_logits
+        print(pos_logits)
         prob = torch.sigmoid(pos_logits)
         idx = 0
         print(prob)
