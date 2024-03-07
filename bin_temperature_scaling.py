@@ -100,21 +100,24 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     model.eval()
     logits_list = [[] for _ in range(len(bin_boundaries) - 1)]
     print(logits_list)
-        for inputs in valid_loader:
-            print("k")
-            input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
-            attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
-            input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
-            attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
-            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
-            pos_logits = rewards_chosen - rewards_rejected
-            neg_logits = -pos_logits
-            prob = torch.sigmoid(pos_logits)
-            idx = 0
-            for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
+    for inputs in valid_loader:
+        print("k")
+        input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
+        attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
+        input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
+        attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
+        rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+        rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
+        pos_logits = rewards_chosen - rewards_rejected
+        neg_logits = -pos_logits
+        prob = torch.sigmoid(pos_logits)
+        idx = 0
+        for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
                 in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
-                logits_list[idx].append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+                if in_bin:
+                    logits_list[idx].append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+                    break
+                idx += 1
         
         ind = 0
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
@@ -142,6 +145,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
             print('Optimal temperature: %.3f' % temperature.item())
             print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
             model.train()
+            ind += 1
 
 
 
