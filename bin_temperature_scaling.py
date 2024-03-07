@@ -170,5 +170,5 @@ if __name__ == "__main__":
     print(raw_datasets)
     temperature_list = [nn.Parameter((torch.ones(1) * 1.5).to(device)) for _ in range(num_bins)]
     valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
-    set_temperature_bin(valid_loader, model, temperature, bin_boundaries)
+    set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries)
     print(temperature_list)
