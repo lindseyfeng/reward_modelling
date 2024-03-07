@@ -146,7 +146,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
                 # Calculate NLL after temperature scaling
         after_temperature_nll = nll_criterion(temperature_scale(logits, temperature_list[ind]), labels).item()
         after_temperature_ece = ece_criterion(temperature_scale(logits, temperature_list[ind]), labels).item()
-        print('Optimal temperature: %.3f' % temperature.item())
+        print('Optimal temperature: %.3f' % temperature_list[ind].item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
         model.train()
         ind += 1
