@@ -112,7 +112,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         neg_logits = -pos_logits
         prob = torch.sigmoid(pos_logits)
         idx = 0
-        for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
+        for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
                 in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
                 if in_bin:
                     logits_list[idx].append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
@@ -120,6 +120,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
                 idx += 1
         
         ind = 0
+        print(logits_list)
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             print("range: ", bin_lower, bin_upper)
             logits = torch.cat(logits_list, dim=0).squeeze(1)
