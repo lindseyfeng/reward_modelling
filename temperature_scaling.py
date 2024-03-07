@@ -91,7 +91,6 @@ def temperature_scale(logits, temperature):
 def set_temperature_trl(valid_loader, model, temperature):
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
-    model.eval()
     with torch.no_grad():
         logits_list = []
         labels_list = []
@@ -146,7 +145,6 @@ def set_temperature_trl(valid_loader, model, temperature):
         after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
         print('Optimal temperature: %.3f' % temperature.item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
-        model.train()
         return before_temperature_ece
 
 
