@@ -91,7 +91,7 @@ data_to_save = {
 }
 
 # Specify the file path where you want to save the JSON file.
-file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "train")
+file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
 
 # Writing the data to a JSON file.
 with open(file_path, 'w') as json_file:
