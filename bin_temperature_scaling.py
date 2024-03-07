@@ -158,8 +158,6 @@ if __name__ == "__main__":
     bsz = 30
     num_bins = 5
     bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
-    print(bin_lowers)
-    print(bin_uppers)
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
