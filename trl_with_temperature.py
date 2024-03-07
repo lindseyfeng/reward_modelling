@@ -36,7 +36,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         inputs: Dict[str, Union[torch.Tensor, Any]],
         return_outputs=False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
-        temperature = 2.524
+        temperature = 1.374
         if not self.use_reward_data_collator:
             warnings.warn(
                 "The current compute_loss is implemented for RewardDataCollatorWithPadding,"
@@ -151,7 +151,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
-    f"{model_name_split}_rlhf_rm_temperature_{script_args.learning_rate}"
+    f"{model_name_split}_rlhf_rm_temperature1.374_{script_args.learning_rate}"
 )
 
 training_args = RewardConfig(

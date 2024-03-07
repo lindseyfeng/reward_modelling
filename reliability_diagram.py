@@ -51,7 +51,7 @@ for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
 print(bin_accuracies)
 # Remove bins with no samples from the plot
 valid_bins = [i for i, acc in enumerate(bin_accuracies) if acc > 0]
-valid_bin_centers = [bin_centers[i].item() for i in valid_bins]
+valid_bin_centers = [bin_confidences[i].item() for i in valid_bins]
 valid_bin_accuracies = [bin_accuracies[i] for i in valid_bins]
 
 # Plotting the reliability diagram
