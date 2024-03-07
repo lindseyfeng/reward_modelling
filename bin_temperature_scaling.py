@@ -120,36 +120,36 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
             for i, row in enumerate(in_bin):
                 if row.any():  # Checks if there is at least one True in the row
                     logits_list[idx].append(torch.cat((pos_logits[i].unsqueeze(-1), neg_logits[i].unsqueeze(-1)), dim=-1))
-            print(logits_list)
             idx += 1
-        
-        ind = 0
-        for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-            print("range: ", bin_lower, bin_upper)
-            logits = torch.cat(logits_list[ind], dim=0).squeeze(1)
-            N, _ = logits.shape
-            labels_list += [0] * N # Assuming binary labels, adjust as necessary
-            labels = torch.tensor(labels_list).cuda()
-            before_temperature_nll = nll_criterion(logits, labels).item()
-            before_temperature_ece = ece_criterion(logits, labels).item()
-            print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
+        print(logits_list)
+    
+    ind = 0
+    for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
+        print("range: ", bin_lower, bin_upper)
+        logits = torch.cat(logits_list[ind], dim=0).squeeze(1)
+        N, _ = logits.shape
+        labels_list += [0] * N # Assuming binary labels, adjust as necessary
+        labels = torch.tensor(labels_list).cuda()
+        before_temperature_nll = nll_criterion(logits, labels).item()
+        before_temperature_ece = ece_criterion(logits, labels).item()
+        print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
                 # Optimize the temperature
-            print(temperature_list[ind].is_leaf) 
-            optimizer = optim.LBFGS([temperature_list[ind]], lr=0.01, max_iter=100)
-            def eval():
-                optimizer.zero_grad()
-                loss = nll_criterion(temperature_scale(logits, temperature_list[ind]), labels)
-                loss.backward()
-                return loss
-            optimizer.step(eval)
+        print(temperature_list[ind].is_leaf) 
+        optimizer = optim.LBFGS([temperature_list[ind]], lr=0.01, max_iter=100)
+        def eval():
+            optimizer.zero_grad()
+            loss = nll_criterion(temperature_scale(logits, temperature_list[ind]), labels)
+            loss.backward()
+            return loss
+        optimizer.step(eval)
 
                 # Calculate NLL after temperature scaling
-            after_temperature_nll = nll_criterion(temperature_scale(logits, temperature_list[ind]), labels).item()
-            after_temperature_ece = ece_criterion(temperature_scale(logits, temperature_list[ind]), labels).item()
-            print('Optimal temperature: %.3f' % temperature.item())
-            print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
-            model.train()
-            ind += 1
+        after_temperature_nll = nll_criterion(temperature_scale(logits, temperature_list[ind]), labels).item()
+        after_temperature_ece = ece_criterion(temperature_scale(logits, temperature_list[ind]), labels).item()
+        print('Optimal temperature: %.3f' % temperature.item())
+        print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
+        model.train()
+        ind += 1
 
 
 
