@@ -211,10 +211,10 @@ def set_temperature(valid_loader, model, temperature):
 
 
 if __name__ == "__main__":
-    tokenizer = AutoTokenizer.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b") #openlm-research/open_llama_3b
+    tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b") #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForSequenceClassification.from_pretrained("weqweasdas/hh_rlhf_rm_open_llama_3b").to(device)
+    model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_iterative_temperature_2e-05_last_checkpoint").to(device)
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
     bsz = 30
     raw_datasets = raw_datasets.map(
