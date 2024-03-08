@@ -61,6 +61,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         temperature =1
         prob = torch.sigmoid(rewards_chosen - rewards_rejected)
         idx = 0
+        print("wtf?")
         print(prob)
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
