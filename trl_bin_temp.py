@@ -36,6 +36,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         inputs: Dict[str, Union[torch.Tensor, Any]],
         return_outputs=False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
+        num_bins = 5
         temperature_list = [1.5070, 1.7932, 1.7546, 1.8977, 1.9648] #5BIN
         bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
         bin_lowers = bin_boundaries[:-1]
