@@ -63,8 +63,6 @@ class TemperatureRewardTrainer(RewardTrainer):
         idx = 0
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
-            print(prob)
-            print(in_bin)
             if in_bin:
                 temperature = temperature_list[idx]
                 break
