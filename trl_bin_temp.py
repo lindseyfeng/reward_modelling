@@ -65,10 +65,13 @@ class TemperatureRewardTrainer(RewardTrainer):
 
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
+            print(prob)
+            print(in_bin)
             if in_bin:
                 temperature = temperature_list[idx]
                 break
             idx += 1
+
         if "margin" in inputs:
             loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*temperature).mean()
         else:
