@@ -37,7 +37,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         return_outputs=False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
         num_bins = 5
-        temperature_list = [1.5070, 1.7932, 1.7546, 1.8977, 1.9648] #5BIN
+        temperature_list = [1.504, 1.780, 1.796, 1.851, 1.938] #5BIN
         bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
         bin_lowers = bin_boundaries[:-1]
         bin_uppers = bin_boundaries[1:]
@@ -61,15 +61,14 @@ class TemperatureRewardTrainer(RewardTrainer):
         temperature =1
         prob = torch.sigmoid(rewards_chosen - rewards_rejected)
         idx = 0
-        print("wtf?")
-        print(prob)
+
+
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
             if in_bin:
                 temperature = temperature_list[idx]
                 break
             idx += 1
-        print(temperature)
         if "margin" in inputs:
             loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*temperature).mean()
         else:
@@ -102,8 +101,8 @@ class ScriptArguments:
             "help": "Path to deepspeed config if using deepspeed. You may need this if the model that you want to train doesn't fit on a single GPU."
         },
     )
-    per_device_train_batch_size: Optional[int] = field(default=1)
-    per_device_eval_batch_size: Optional[int] = field(default=1)
+    per_device_train_batch_size: Optional[int] = field(default=2)
+    per_device_eval_batch_size: Optional[int] = field(default=2)
     gradient_accumulation_steps: Optional[int] = field(default=4)
     learning_rate: Optional[float] = field(default=2e-5)
     weight_decay: Optional[float] = field(default=0.001)
@@ -167,7 +166,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
-    f"{model_name_split}_rlhf_rm_temperature1.374_{script_args.learning_rate}"
+    f"{model_name_split}_rlhf_rm_bin_temperature5_{script_args.learning_rate}"
 )
 
 training_args = RewardConfig(
