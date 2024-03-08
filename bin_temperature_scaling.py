@@ -100,8 +100,10 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     model.eval()
     logits_list = [[] for _ in range(len(bin_boundaries) - 1)]
     print(logits_list)
+    count = 0
     for inputs in valid_loader:
-        print("k")
+        count +=1
+        print(count)
         input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
         attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
         input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
@@ -110,13 +112,10 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
         pos_logits = rewards_chosen - rewards_rejected
         neg_logits = -pos_logits
-        print(pos_logits)
         prob = torch.sigmoid(pos_logits)
         idx = 0
-        print(prob)
         for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
             in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
-            print(in_bin)
             for i, row in enumerate(in_bin):
                 if row.any():  # Checks if there is at least one True in the row
                     logits_list[idx].append(torch.cat((pos_logits[i].unsqueeze(-1), neg_logits[i].unsqueeze(-1)), dim=-1).detach())
@@ -159,7 +158,7 @@ if __name__ == "__main__":
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint").to(device)
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(5000))
     bsz = 1
     num_bins = 5
     bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
