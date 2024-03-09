@@ -92,7 +92,7 @@ class ScriptArguments:
     learning_rate: Optional[float] = field(default=2e-5)
     weight_decay: Optional[float] = field(default=0.001)
     model_name: Optional[str] = field(
-        default="openlm-research/open_llama_3b",
+        default="./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint",
         metadata={
             "help": "The model that you want to train from the Hugging Face hub. E.g. gpt2, gpt2-xl, bert, etc."
         },
