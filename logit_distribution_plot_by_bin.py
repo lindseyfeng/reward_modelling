@@ -31,9 +31,12 @@ fig, ax = plt.subplots(figsize=(10, 6))  # This defines 'ax'
 for i, (bin_lower, bin_upper, color) in enumerate(zip(bin_lowers, bin_uppers, colors)):
     in_bin_indices = (sigmoid_logits >= bin_lower) & (sigmoid_logits < bin_upper)
     logits_in_bin = logits_tensor[in_bin_indices]
+    num_elements = logits_in_bin.shape[0]
+    bin_lower_rounded = round(bin_lower.item(), 2)
+    bin_upper_rounded = round(bin_upper.item(), 2)
 
     # Plotting
-    ax.hist(logits_in_bin.numpy(), bins=30, color=color, alpha=0.6, label=f'Bin {i+1}: [{bin_lower.item(), bin_upper.item()}]')
+    ax.hist(logits_in_bin.numpy(), bins=30, color=color, alpha=0.6, label=f'Bin {i+1}: [{bin_lower.item():.2f}, {bin_upper.item():.2f}] (n={num_elements})')
 
 ax.set_title('Corrected Distribution of Logits by Probability Bins/testing data')
 ax.set_xlabel('Logits')
