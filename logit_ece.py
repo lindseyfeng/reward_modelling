@@ -39,7 +39,7 @@ def main():
         data = json.load(file)
     logits_tensor = torch.tensor(data['logits'])
     print(logits_tensor.shape)
-    logits = torch.cat((logits_tensor, -logits_tensor), dim=1)
+    logits = torch.cat((logits_tensor.unsqueeze(1), -logits_tensor.unsqueeze(1)), dim=1)
     print(logits)
     labels = torch.zeros_like(logits).long() 
     ece_loss = _ECELossLogitBins(n_bins=5)
