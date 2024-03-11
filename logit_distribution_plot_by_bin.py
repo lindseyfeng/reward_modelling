@@ -46,4 +46,5 @@ ax.set_ylabel('Frequency')
 ax.legend()
 
 plt.tight_layout()
- &#8203;``【oaicite:0】``&#8203;
+plt.grid(True)
+plt.savefig('Corrected_Distribution_of_Logits_by_Probability_Bins.png')
