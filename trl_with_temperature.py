@@ -36,7 +36,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         inputs: Dict[str, Union[torch.Tensor, Any]],
         return_outputs=False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
-        temperature = 1.374
+        temperature = 1
         if not self.use_reward_data_collator:
             warnings.warn(
                 "The current compute_loss is implemented for RewardDataCollatorWithPadding,"
