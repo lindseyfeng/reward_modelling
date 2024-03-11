@@ -41,7 +41,7 @@ def main():
     print(logits_tensor.shape)
     logits = torch.cat((logits_tensor.unsqueeze(1), -logits_tensor.unsqueeze(1)), dim=1)
     print(logits)
-    labels = torch.zeros_like(logits).long() 
+    labels = torch.zeros_like(logits.size(0)).long() 
     ece_loss = _ECELossLogitBins(n_bins=5)
     ece = ece_loss(logits, labels)
     print(f"Expected Calibration Error (ECE): {ece.item()}")
