@@ -13,6 +13,7 @@ sigmoid_logits = torch.sigmoid(logits_tensor)
 sigmoid_neg_logits = torch.sigmoid(-logits_tensor)
 
 # Combine positive and negative sigmoid logits for a comprehensive probability distribution
+logits = torch.cat((logits_tensor, -logits_tensor), dim=0)
 probabilities = torch.cat((sigmoid_logits, sigmoid_neg_logits), dim=0)
 print(probabilities.shape)
 
@@ -31,7 +32,7 @@ fig, ax = plt.subplots(figsize=(10, 6))  # This defines 'ax'
 # Plot the distribution of logits by probability bins
 for i, (bin_lower, bin_upper, color) in enumerate(zip(bin_lowers, bin_uppers, colors)):
     in_bin_indices = (probabilities >= bin_lower) & (probabilities <= bin_upper)
-    logits_in_bin = logits_tensor[in_bin_indices]
+    logits_in_bin = logits[in_bin_indices]
     num_elements = logits_in_bin.shape[0]
     bin_lower_rounded = round(bin_lower.item(), 2)
     bin_upper_rounded = round(bin_upper.item(), 2)
