@@ -3,7 +3,7 @@ import json
 import matplotlib.pyplot as plt
 
 # Load logits from JSON
-file = 'logits_scores_._open_llama_3b_rlhf_rm_bin_temperature5_2e-05_checkpoint-14000_test.json '
+file = 'logits_scores_._open_llama_3b_rlhf_rm_bin_temperature5_2e-05_checkpoint-14000_test.json'
 with open(file, 'r') as file:
     data = json.load(file)
 logits_tensor = torch.tensor(data['logits'])
@@ -14,6 +14,7 @@ sigmoid_neg_logits = torch.sigmoid(-logits_tensor)
 
 # Combine positive and negative sigmoid logits for a comprehensive probability distribution
 probabilities = torch.cat((sigmoid_logits, sigmoid_neg_logits), dim=0)
+print(probabilities.shape)
 
 # Define the bins for the confidence intervals
 num_bins = 5
