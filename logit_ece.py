@@ -40,7 +40,7 @@ class _ECELossLogitBins(nn.Module):
 
 def main():
     num_bins = 5
-    file = 'logits_scores_._open_llama_3b_rlhf_rm_iterative_temperature_2e-05_last_checkpoint_test.json'
+    file = 'logits_scores_._open_llama_3b_rlhf_rm_bin_temperature5_2e-05_checkpoint-14000_test.json'
     with open(file, 'r') as file:
         data = json.load(file)
     logits_tensor = torch.tensor(data['logits'])
