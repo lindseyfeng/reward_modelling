@@ -68,9 +68,8 @@ def main():
         in_bin = (logits >= bin_lower) & (logits < bin_upper)
         if in_bin.any():
             in_bin_any = in_bin.any(dim=1)
-            correct_predictions = labels[in_bin_any] == True  # Assuming binary classification
-            accuracy = correct_predictions.float().mean().item()
-            bin_accuracies.append(accuracy)
+            accuracy_in_bin = accuracies[in_bin_any].float().mean()
+            bin_accuracies.append(accuracy_in_bin)
             avg_logit = confidences[in_bin_any].mean().item()
             bin_avg_logits.append(avg_logit)
         else:
