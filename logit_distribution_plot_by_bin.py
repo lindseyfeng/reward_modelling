@@ -30,7 +30,7 @@ fig, ax = plt.subplots(figsize=(10, 6))  # This defines 'ax'
 
 # Plot the distribution of logits by probability bins
 for i, (bin_lower, bin_upper, color) in enumerate(zip(bin_lowers, bin_uppers, colors)):
-    in_bin_indices = (sigmoid_logits >= bin_lower) & (sigmoid_logits < bin_upper)
+    in_bin_indices = (probabilities >= bin_lower) & (probabilities <= bin_upper)
     logits_in_bin = logits_tensor[in_bin_indices]
     num_elements = logits_in_bin.shape[0]
     bin_lower_rounded = round(bin_lower.item(), 2)
