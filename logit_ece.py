@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import json
+import matplotlib.pyplot as plt
 
 class _ECELossLogitBins(nn.Module):
     """
