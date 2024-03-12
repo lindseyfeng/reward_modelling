@@ -28,11 +28,15 @@ class _ECELossLogitBins(nn.Module):
         for bin_lower, bin_upper in self.bin_ranges:
             # Calculating |confidence - accuracy| in each bin based on logits
             in_bin = (logits > bin_lower) & (logits <= bin_upper)
+            in_bin_any = in_bin.any(dim=1)
             prop_in_bin = in_bin.float().mean()
             if prop_in_bin.item() > 0:
-                accuracy_in_bin = accuracies[in_bin].float().mean()
-                avg_confidence_in_bin = confidences[in_bin].mean()  # This step may need adjustment based on how you define confidence with logits
+                in_bin_any = in_bin.any(dim=1)
+                accuracy_in_bin = accuracies[in_bin_any].float().mean()
+                avg_confidence_in_bin = confidences[in_bin_any].mean()  # This step may need adjustment based on how you define confidence with logits
                 ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
+
+                
 
         return ece
 
