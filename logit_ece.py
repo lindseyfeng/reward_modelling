@@ -28,6 +28,7 @@ class _ECELossLogitBins(nn.Module):
         for bin_lower, bin_upper in self.bin_ranges:
             # Calculating |confidence - accuracy| in each bin based on logits
             in_bin = (logits > bin_lower) & (logits <= bin_upper)
+            print(in_bin)
             in_bin_any = in_bin.any(dim=1)
             prop_in_bin = in_bin.float().mean()
             if prop_in_bin.item() > 0:
