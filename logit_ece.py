@@ -45,7 +45,7 @@ def main():
     with open(file, 'r') as file:
         data = json.load(file)
     logits_tensor = torch.tensor(data['logits'])
-    print(logits_tensor.shape)
+    print(logits_tensor)
     logits = torch.cat((logits_tensor.unsqueeze(1), -logits_tensor.unsqueeze(1)), dim=1)
     print(logits)
     labels = torch.zeros(logits.size(0), dtype=torch.long) 
