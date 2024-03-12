@@ -34,7 +34,6 @@ class _ECELossLogitBins(nn.Module):
             prop_in_bin = in_bin.float().mean()
             if prop_in_bin.item() > 0:
                 accuracy_in_bin = accuracies[in_bin_any].float().mean()
-                print("acc", accuracy_in_bin)
                 avg_confidence_in_bin = confidences[in_bin_any].mean()  # This step may need adjustment based on how you define confidence with logits
                 ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
         return ece
@@ -52,10 +51,7 @@ def main():
     ece_loss = _ECELossLogitBins(n_bins=num_bins)
     ece = ece_loss(logits, labels)
     print(f"Expected Calibration Error (ECE): {ece.item()}")
-    bin_boundaries = torch.linspace(0, 5, steps=num_bins + 1)  # Adjust the range as needed
-    bin_lowers = bin_boundaries[:-1]
-    bin_uppers = bin_boundaries[1:]
-    bin_centers = (bin_lowers + bin_uppers) / 2
+
 
     bin_accuracies = []
     bin_avg_logits = []
@@ -64,12 +60,14 @@ def main():
     print(predictions)
     accuracies = predictions.eq(labels)
     print(accuracies)
-
-    for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-        in_bin = (logits >= bin_lower) & (logits < bin_upper)
+    bin_ranges = [(i, i+1) for i in range(num_bins)]
+    for bin_lower, bin_upper in bin_ranges:
+        in_bin = (logits > bin_lower) & (logits <= bin_upper)
+        in_bin_any = in_bin.any(dim=1)
         if in_bin.any():
-            in_bin_any = in_bin.any(dim=1)
+            print("hello?")
             accuracy_in_bin = accuracies[in_bin_any].float().mean()
+            print("acc", accuracy_in_bin)
             bin_accuracies.append(accuracy_in_bin)
             avg_logit = confidences[in_bin_any].mean().item()
             bin_avg_logits.append(avg_logit)
