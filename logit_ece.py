@@ -34,6 +34,7 @@ class _ECELossLogitBins(nn.Module):
             prop_in_bin = in_bin.float().mean()
             if prop_in_bin.item() > 0:
                 accuracy_in_bin = accuracies[in_bin_any].float().mean()
+                print("acc", accuracy_in_bin)
                 avg_confidence_in_bin = confidences[in_bin_any].mean()  # This step may need adjustment based on how you define confidence with logits
                 ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
         return ece
