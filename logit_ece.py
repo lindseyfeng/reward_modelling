@@ -28,8 +28,8 @@ class _ECELossLogitBins(nn.Module):
         for bin_lower, bin_upper in self.bin_ranges:
             # Calculating |confidence - accuracy| in each bin based on logits
             in_bin = (logits > bin_lower) & (logits <= bin_upper)
-            print(in_bin)
             in_bin_any = in_bin.any(dim=1)
+            print(in_bin_any)
             prop_in_bin = in_bin.float().mean()
             if prop_in_bin.item() > 0:
                 accuracy_in_bin = accuracies[in_bin_any].float().mean()
@@ -64,7 +64,7 @@ def main():
     print(accuracies)
 
     for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-        in_bin = (logits_tensor >= bin_lower) & (logits_tensor < bin_upper)
+        in_bin = (logits >= bin_lower) & (logits < bin_upper)
         if in_bin.any():
             in_bin_any = in_bin.any(dim=1)
             correct_predictions = labels[in_bin_any] == True  # Assuming binary classification
