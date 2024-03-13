@@ -340,9 +340,6 @@ class IterativeRewardTrainer(Trainer):
         # Call the parent class's evaluate method
         eval_result = super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
         
-        # Log evaluation results to WandB
-        wandb.log({f"{metric_key_prefix}_{k}": v for k, v in eval_result.items()})
-        
         return eval_result
 
     def _call_callback(self, event_name, **kwargs):
