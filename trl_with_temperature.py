@@ -249,6 +249,7 @@ trainer = TemperatureRewardTrainer(
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
     compute_metrics=compute_metrics, 
+    run_name="2epoch"
 )
 
 trainer.train(script_args.resume_from_checkpoint)
