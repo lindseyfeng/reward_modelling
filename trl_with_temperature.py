@@ -36,7 +36,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         inputs: Dict[str, Union[torch.Tensor, Any]],
         return_outputs=False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
-        temperature = 1
+        temperature = 1.374
         if not self.use_reward_data_collator:
             warnings.warn(
                 "The current compute_loss is implemented for RewardDataCollatorWithPadding,"
@@ -92,7 +92,7 @@ class ScriptArguments:
     learning_rate: Optional[float] = field(default=2e-5)
     weight_decay: Optional[float] = field(default=0.001)
     model_name: Optional[str] = field(
-        default="openlm-research/open_llama_3b", #"./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint"
+        default="./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint"
         metadata={
             "help": "The model that you want to train from the Hugging Face hub. E.g. gpt2, gpt2-xl, bert, etc."
         },
@@ -152,7 +152,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
     # f"{model_name_split}_rlhf_rm_second_train_temperature1.374_{script_args.learning_rate}"
-    f"{model_name_split}_rlhf_rm_temperature1_{script_args.learning_rate}"
+    f"{model_name_split}_rlhf_rm_temperature1.37_2epoch_{script_args.learning_rate}"
 )
 
 training_args = RewardConfig(

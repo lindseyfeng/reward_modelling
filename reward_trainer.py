@@ -38,7 +38,6 @@ def contains_nan(tensor):
     return torch.isnan(tensor).any().item()
 
 
-
 if is_peft_available():
     from peft import PeftModel, get_peft_model, prepare_model_for_kbit_training
 
@@ -335,33 +334,6 @@ class IterativeRewardTrainer(Trainer):
         inputs["label"] = (1-BETA)*inputs["label"] + BETA * probs_chosen
 
     from torch.cuda.amp import GradScaler, autocast
-
-    def training_step(self, model, inputs):
-        """
-        Perform a training step, including updating labels based on model predictions.
-        """
-        model.train()
-        print(inputs)
-        inputs = self._prepare_inputs(inputs)
-        print(inputs['label'])
-        # Compute loss with updated labels
-
-        if 'label' not in inputs:
-            inputs['label'] = fetch_labels_for_inputs()
-            print("labels not found")
-        loss, probs_chosen, outputs = self.compute_loss(model, inputs, return_outputs=True)
-
-        if self.args.gradient_accumulation_steps > 1:
-            loss = loss / self.args.gradient_accumulation_steps
-
-        # Backward pass
-        if self.do_grad_scaling:
-            self.scaler.scale(loss).backward()
-        else:
-            loss.backward()
-        
-
-        return loss.detach()
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Call the parent class's evaluate method
