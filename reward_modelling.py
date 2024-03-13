@@ -191,7 +191,7 @@ trainer = IterativeRewardTrainer(
         args=reward_config,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        callbacks=[labelCallback()]
+        callbacks=[labelCallback()],
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
         report_to="wandb"
 
