@@ -317,6 +317,7 @@ class IterativeRewardTrainer(Trainer):
         return loss, logits, labels
 
     def update_labels(self, inputs, model):
+        print("labels are being updated")
         rewards_chosen = model(
             input_ids=inputs["input_ids_chosen"],
             attention_mask=inputs["attention_mask_chosen"],

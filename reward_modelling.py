@@ -22,7 +22,7 @@ rm_tokenizer = AutoTokenizer.from_pretrained("Dahoas/gptj-rm-static")
 BETA = 0.7
 ALPHA = 1e-5
 TEMPERATURE = 1
-EPOCH = 2
+EPOCH = 4
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
@@ -193,6 +193,8 @@ trainer = IterativeRewardTrainer(
         eval_dataset=eval_dataset,
         callbacks=[labelCallback()]
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
+        report_to="wandb"
+
     )
 
 trainer.train()
