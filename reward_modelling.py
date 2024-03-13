@@ -16,9 +16,6 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 import wandb
 
-rm = AutoModelForCausalLM.from_pretrained("Dahoas/gptj-rm-static")
-rm_tokenizer = AutoTokenizer.from_pretrained("Dahoas/gptj-rm-static")
-
 BETA = 0.7
 ALPHA = 1e-5
 TEMPERATURE = 1
