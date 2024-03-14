@@ -120,16 +120,6 @@ class IterativeRewardTrainer(RewardTrainer):
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         inputs["label"] = (1-BETA)*inputs["label"] + BETA * probs_chosen
 
-    def _invoke_callbacks(self):
-        args = self.args
-        state = self.state
-        control = self.control
-
-        # Now, ensure that when callbacks are invoked, 'trainer=self' is included
-        for callback in self.callback_handler.callbacks:
-            print("hello?")
-            callback.on_epoch_end(args, state, control, trainer=self)
-
     
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
         return dataset
@@ -159,18 +149,19 @@ class IterativeRewardTrainer(RewardTrainer):
         # else:
         #     return dataset.remove_columns(ignored_columns)
 
-class labelCallback(TrainerCallback):
+class LabelCallback(TrainerCallback):
+    def __init__(self, trainer=None):
+        super().__init__()
+        self.trainer = trainer
+
     def on_epoch_end(self, args, state, control, **kwargs):
         print("hi!")
-        if 'trainer' in kwargs:
-            trainer = kwargs['trainer']
-            train_dataloader = trainer.get_train_dataloader()
+        if self.trainer:
+            print("yo!")
+            train_dataloader = self.trainer.get_train_dataloader()
             for batch in train_dataloader:
-                inputs = trainer._prepare_inputs(batch)
-                print("label before: ", inputs["label"])
-                trainer.update_labels(inputs, trainer.model)
-                print("label after: ", inputs["label"])
-
-
-
+                inputs = self.trainer._prepare_inputs(batch)
+                print("label before: ", inputs["labels"])
+                self.trainer.update_labels(inputs, self.trainer.model)
+                print("label after: ", inputs["labels"])
     

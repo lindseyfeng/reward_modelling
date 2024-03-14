@@ -184,9 +184,9 @@ trainer = IterativeRewardTrainer(
         args=reward_config,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        callbacks=[labelCallback()],
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
     )
-
+label_callback = LabelCallback(trainer=trainer)
+trainer.callbacks.append(label_callback)
 trainer.train()
 trainer.save_model(reward_config.output_dir + "__final_checkpoint")
