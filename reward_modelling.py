@@ -52,8 +52,6 @@ reward_config = RewardConfig(
     run_name = "iterative_baseline",
     num_train_epochs=EPOCH,
     remove_unused_columns=False,
-    logging_strategy="steps",
-    logging_steps=10,
 )
 
 class RewardDataCollatorWithPadding:
