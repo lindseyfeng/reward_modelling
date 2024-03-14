@@ -82,14 +82,12 @@ class IterativeRewardTrainer(RewardTrainer):
         exp_logits_rejected = torch.exp(rewards_rejected)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
-        print(inputs)
         labels = inputs["label"]  # Assuming labels are provided in inputs
         labels = labels.unsqueeze(-1)
         # Compute the loss based on the labels and probabilities
         loss_chosen = -labels * torch.log(probs_chosen)
         loss_rejected = -(1 - labels) * torch.log(probs_rejected)
         loss = (loss_chosen + loss_rejected).mean()
-        print("compute loss loss", loss)
 
         # if "margin" in inputs:
         #     loss = -nn.functional.logsigmoid(rewards_chosen - rewards_rejected - inputs["margin"]).mean()
