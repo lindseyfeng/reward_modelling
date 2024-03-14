@@ -161,7 +161,7 @@ class LabelCallback(TrainerCallback):
             train_dataloader = self.trainer.get_train_dataloader()
             for batch in train_dataloader:
                 inputs = self.trainer._prepare_inputs(batch)
-                print("label before: ", inputs["labels"])
+                print("label before: ", inputs["label"])
                 self.trainer.update_labels(inputs, self.trainer.model)
-                print("label after: ", inputs["labels"])
+                print("label after: ", inputs["label"])
     
