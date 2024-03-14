@@ -119,11 +119,16 @@ class IterativeRewardTrainer(RewardTrainer):
         exp_logits_rejected = torch.exp(rewards_rejected)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         inputs["label"] = (1-BETA)*inputs["label"] + BETA * probs_chosen
-    
-    def _call_callback(self, event_name, **kwargs):
-        kwargs['trainer'] = self  # Pass the trainer instance to callbacks
-        print("callling callback")
-        super()._call_callback(event_name, **kwargs)
+
+    def _invoke_callbacks(self):
+        args = self.args
+        state = self.state
+        control = self.control
+
+        # Now, ensure that when callbacks are invoked, 'trainer=self' is included
+        for callback in self.callback_handler.callbacks:
+            print("hello?")
+            callback.on_epoch_end(args, state, control, trainer=self)
 
     
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
@@ -156,6 +161,7 @@ class IterativeRewardTrainer(RewardTrainer):
 
 class labelCallback(TrainerCallback):
     def on_epoch_end(self, args, state, control, **kwargs):
+        print("hi!")
         if 'trainer' in kwargs:
             trainer = kwargs['trainer']
             train_dataloader = trainer.get_train_dataloader()
