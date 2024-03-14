@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import RewardConfig
-from reward_trainer import IterativeRewardTrainer, LabelCallback
+from reward_trainer import IterativeRewardTrainer #LabelCallback
 from datasets import load_dataset
 from tqdm import tqdm
 from transformers import (
