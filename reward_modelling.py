@@ -50,6 +50,10 @@ reward_config = RewardConfig(
     logging_strategy="steps",
     logging_steps=10,
     run_name = "iterative_baseline",
+    num_train_epochs=EPOCH,
+    remove_unused_columns=False,
+    logging_strategy="steps",
+    logging_steps=10,
 )
 
 class RewardDataCollatorWithPadding:
@@ -69,7 +73,6 @@ class RewardDataCollatorWithPadding:
         self.return_tensors = return_tensors
 
     def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, Any]:
-        print("hello?its me")
         features_chosen = []
         features_rejected = []
         margin = []
@@ -129,7 +132,6 @@ class RewardDataCollatorWithPadding:
             }
         if labels:  # Add labels to the batch if they were collected
                 batch["label"] = torch.tensor(labels, dtype=torch.long)
-                print("yes2")
         if has_margin:
                 margin = torch.tensor(margin, dtype=torch.float)
                 batch["margin"] = margin
@@ -165,11 +167,7 @@ raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-raw_datasets = raw_datasets.filter(
-        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
-        and len(x["input_ids_rejected"]) <= reward_config.max_length
-    )
-train_dataset = raw_datasets["train"].shuffle(seed=42).select(range(40000)) ####validate code is fine
+train_dataset = raw_datasets["train"] 
 eval_dataset = raw_datasets["test"]
 
 # peft_config = LoraConfig(
@@ -193,4 +191,4 @@ trainer = IterativeRewardTrainer(
     )
 
 trainer.train()
-trainer.save_model(reward_config.output_dir)
+trainer.save_model(reward_config.output_dir + "__final_checkpoint")
