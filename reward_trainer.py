@@ -77,16 +77,12 @@ class IterativeRewardTrainer(RewardTrainer):
             return_dict=True,
         )["logits"]
 
-        print("reward", rewards_chosen)
-
         # Compute the softmax probabilities for chosen over rejected items
         exp_logits_chosen = torch.exp(rewards_chosen)
         exp_logits_rejected = torch.exp(rewards_rejected)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
-        print("prob", probs_chosen)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
         labels = inputs["label"]  # Assuming labels are provided in inputs
-        print("label", labels)
         labels = labels.unsqueeze(-1)
         # Compute the loss based on the labels and probabilities
         loss_chosen = -labels * torch.log(probs_chosen)
