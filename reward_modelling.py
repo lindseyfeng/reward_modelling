@@ -17,7 +17,7 @@ import torch
 import wandb
 
 BETA = 0.7
-ALPHA = 1e-5
+ALPHA = 2e-5
 TEMPERATURE = 1
 EPOCH = 1
 
@@ -37,23 +37,29 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 
 reward_config = RewardConfig(
     do_eval = True,
+    report_to="wandb",
+    output_dir=output_name,
+    learning_rate= ALPHA,
+    per_device_train_batch_size=1,
+    per_device_eval_batch_size=1,
+    num_train_epochs=1,
+    weight_decay=0.001,
     evaluation_strategy="steps",
     eval_steps=500,
     save_strategy="steps",
     save_steps=500,
-    output_dir="hh_openllama3b_temp1",
-    per_device_train_batch_size= 2,
-    per_device_eval_batch_size = 2,
-    gradient_accumulation_steps = 4, 
-    max_length = 512, 
-    learning_rate=1e-5,
-    report_to="wandb",
-    optim="adamw_torch", 
+    gradient_accumulation_steps=4,
+    gradient_checkpointing=False,
+    deepspeed=None,
+    local_rank=-1,
+    remove_unused_columns=False,
+    label_names=[],
+    bf16= True,
     logging_strategy="steps",
     logging_steps=10,
-    run_name = "iterative_baseline",
-    num_train_epochs=EPOCH,
-    remove_unused_columns=False,
+    optim="adamw_hf",
+    lr_scheduler_type="linear",
+    max_length = 512
 )
 
 class RewardDataCollatorWithPadding:

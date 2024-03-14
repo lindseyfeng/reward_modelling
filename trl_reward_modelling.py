@@ -71,7 +71,7 @@ class ScriptArguments:
         },
     )
     num_train_epochs: Optional[int] = field(
-        default=2,
+        default=1,
         metadata={"help": "The number of training epochs for the reward model."},
     )
     # train_subset: Optional[int] = field(
@@ -112,7 +112,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
-    f"{model_name_split}_rlhf_rm_without_{script_args.learning_rate}_{script_args.num_train_epochs}"
+    f"{model_name_split}_rlhf_rm_without_bsz1_{script_args.learning_rate}_{script_args.num_train_epochs}"
 )
 
 training_args = RewardConfig(
