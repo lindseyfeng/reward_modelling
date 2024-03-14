@@ -19,11 +19,13 @@ import wandb
 BETA = 0.7
 ALPHA = 1e-5
 TEMPERATURE = 1
-EPOCH = 4
+EPOCH = 1
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
-model = AutoModelForCausalLM.from_pretrained("openlm-research/open_llama_3b")
+model = AutoModelForSequenceClassification.from_pretrained(
+    "openlm-research/open_llama_3b", torch_dtype=torch.bfloat16, num_labels=1,
+)
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
@@ -165,7 +167,7 @@ raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-train_dataset = raw_datasets["train"].select(range(1))
+train_dataset = raw_datasets["train"]
 eval_dataset = raw_datasets["test"]
 
 # peft_config = LoraConfig(
@@ -186,7 +188,7 @@ trainer = IterativeRewardTrainer(
         eval_dataset=eval_dataset,
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
     )
-label_callback = LabelCallback(trainer=trainer)
-trainer.add_callback(label_callback)
+# label_callback = LabelCallback(trainer=trainer)
+# trainer.add_callback(label_callback)
 trainer.train()
-trainer.save_model(reward_config.output_dir + "__final_checkpoint")
+trainer.save_model(reward_config.output_dir + "_epoch1_final_checkpoint")

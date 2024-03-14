@@ -81,7 +81,9 @@ class IterativeRewardTrainer(RewardTrainer):
         exp_logits_chosen = torch.exp(rewards_chosen)
         exp_logits_rejected = torch.exp(rewards_rejected)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
+        print(probs_chosen)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
+        print(probs_rejected)
         labels = inputs["label"]  # Assuming labels are provided in inputs
         labels = labels.unsqueeze(-1)
         # Compute the loss based on the labels and probabilities
@@ -100,27 +102,6 @@ class IterativeRewardTrainer(RewardTrainer):
                 "rewards_rejected": rewards_rejected,
             }
         return loss
-
-
-    def update_labels(self, inputs, model):
-        print("labels are being updated")
-        rewards_chosen = model(
-            input_ids=inputs["input_ids_chosen"],
-            attention_mask=inputs["attention_mask_chosen"],
-            return_dict=True,
-        )["logits"]
-        rewards_rejected = model(
-            input_ids=inputs["input_ids_rejected"],
-            attention_mask=inputs["attention_mask_rejected"],
-            return_dict=True,
-        )["logits"]
-        # Compute the softmax probabilities for chosen over rejected items
-        exp_logits_chosen = torch.exp(rewards_chosen)
-        exp_logits_rejected = torch.exp(rewards_rejected)
-        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
-        inputs["label"] = (1-BETA)*inputs["label"] + BETA * probs_chosen
-
-    
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
         return dataset
         # if not self.args.remove_unused_columns:
@@ -149,19 +130,61 @@ class IterativeRewardTrainer(RewardTrainer):
         # else:
         #     return dataset.remove_columns(ignored_columns)
 
-class LabelCallback(TrainerCallback):
-    def __init__(self, trainer=None):
-        super().__init__()
-        self.trainer = trainer
+# class LabelCallback(TrainerCallback):
+#     def __init__(self, trainer=None):
+#         super().__init__()
+#         self.trainer = trainer
 
-    def on_epoch_end(self, args, state, control, **kwargs):
-        print("hi!")
-        if self.trainer:
-            print("yo!")
-            train_dataloader = self.trainer.get_train_dataloader()
-            for batch in train_dataloader:
-                inputs = self.trainer._prepare_inputs(batch)
-                print("label before: ", inputs["label"])
-                self.trainer.update_labels(inputs, self.trainer.model)
-                print("label after: ", inputs["label"])
+#     def update_dataset_with_new_labels(dataset, new_labels):
+#         # This creates a new dataset with updated labels
+#         updated_dataset = dataset.map(lambda examples, indices: {"label": new_labels[indices]}, with_indices=True)
+#         return updated_dataset
+
+#     def update_labels(self, model, dataset):
+#         print("labels are being updated")
+#         device = model.device
+
+#         # Placeholder for new labels
+#         new_labels = []
+
+#         for inputs in dataset:
+#             # Prepare inputs for model prediction
+#             input_ids_chosen = torch.tensor([inputs["input_ids_chosen"]]).to(device)
+#             attention_mask_chosen = torch.tensor([inputs["attention_mask_chosen"]]).to(device)
+#             input_ids_rejected = torch.tensor([inputs["input_ids_rejected"]]).to(device)
+#             attention_mask_rejected = torch.tensor([inputs["attention_mask_rejected"]]).to(device)
+
+#             with torch.no_grad():  # Ensure no gradients are computed
+#                 rewards_chosen = model(input_ids=input_ids_chosen, attention_mask=attention_mask_chosen, return_dict=True)["logits"]
+#                 rewards_rejected = model(input_ids=input_ids_rejected, attention_mask=attention_mask_rejected, return_dict=True)["logits"]
+
+#             # Compute softmax probabilities for chosen over rejected items
+#             exp_logits_chosen = torch.exp(rewards_chosen)
+#             exp_logits_rejected = torch.exp(rewards_rejected)
+#             probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
+
+#             # Calculate the updated label based on some logic; you might need to adjust this
+#             updated_label = (1 - BETA) * inputs["label"] + BETA * probs_chosen.squeeze().cpu().numpy()
+#             new_labels.append(updated_label)
+
+#         # Update the dataset with new labels
+#         def update_labels(example, idx):
+#             example["label"] = new_labels[idx]
+#             return example
+#         updated_dataset = dataset.map(update_labels, with_indices=True)
+#         return updated_dataset
+
+    
+
+#     def on_epoch_end(self, args, state, control, **kwargs):
+#         print("hi!")
+#         if self.trainer:
+#             print("yo!")
+#             new_labels = self.update_labels(self.trainer.model, self.trainer.dataset)
+    
+#             # Update the dataset with the new labels
+#             dataset = self.update_dataset_with_new_labels(self.trainer.dataset, new_labels)
+
+#             # Create a new DataLoader with the updated dataset for the next epoch
+#             dataloader = DataLoader(dataset, batch_size=self.trainer.args.per_device_train_batch_size, shuffle=True)
     
