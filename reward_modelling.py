@@ -165,7 +165,7 @@ raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-train_dataset = raw_datasets["train"] 
+train_dataset = raw_datasets["train"].select(range(2))
 eval_dataset = raw_datasets["test"]
 
 # peft_config = LoraConfig(
