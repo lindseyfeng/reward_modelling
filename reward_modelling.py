@@ -29,20 +29,27 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
 
 
-raw_datasets = load_dataset("Anthropic/hh-rlhf")
+raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
     # Tokenize chosen/rejected pairs of inputs
     # Adapt this section to your needs for custom datasets
 
 reward_config = RewardConfig(
-
-    output_dir="hh_openllama3b_temp1.2",
-    per_device_train_batch_size= 4,
-    per_device_eval_batch_size = 4,
+    do_eval = True,
+    evaluation_strategy="steps",
+    eval_steps=500,
+    save_strategy="steps",
+    save_steps=500,
+    output_dir="hh_openllama3b_temp1",
+    per_device_train_batch_size= 2,
+    per_device_eval_batch_size = 2,
     gradient_accumulation_steps = 4, 
     max_length = 512, 
     learning_rate=1e-5,
     report_to="wandb",
-    optim="adamw_torch"
+    optim="adamw_torch", 
+    logging_strategy="steps",
+    logging_steps=10,
+    run_name = "iterative_baseline",
 )
 
 class RewardDataCollatorWithPadding:
@@ -190,7 +197,6 @@ trainer = IterativeRewardTrainer(
         eval_dataset=eval_dataset,
         callbacks=[labelCallback()],
         data_collator=RewardDataCollatorWithPadding(tokenizer=tokenizer, max_length=reward_config.max_length),
-
     )
 
 trainer.train()
