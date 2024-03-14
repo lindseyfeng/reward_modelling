@@ -257,8 +257,8 @@ class IterativeRewardTrainer(Trainer):
         )["logits"]
 
         # Compute the softmax probabilities for chosen over rejected items
-        exp_logits_chosen = torch.exp(rewards_chosen * TEMPERATURE)
-        exp_logits_rejected = torch.exp(rewards_rejected * TEMPERATURE)
+        exp_logits_chosen = torch.exp(rewards_chosen)
+        exp_logits_rejected = torch.exp(rewards_rejected)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
         probs_rejected = exp_logits_rejected / (exp_logits_chosen + exp_logits_rejected)
         print(inputs)
@@ -276,11 +276,11 @@ class IterativeRewardTrainer(Trainer):
         #     loss = -nn.functional.logsigmoid(rewards_chosen - rewards_rejected).mean()
 
         if return_outputs:
-            return loss, probs_chosen, {
+            return loss, {
                 "rewards_chosen": rewards_chosen,
                 "rewards_rejected": rewards_rejected,
             }
-        return loss, probs_chosen
+        return loss
 
 
     def prediction_step(
