@@ -157,9 +157,9 @@ def preprocess_function(examples):
     # with open(file, 'r') as file:
     #     data = json.load(file)
     label = 1
-    for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
-        tokenized_chosen = tokenizer(chosen, padding = "max_length", max_length = reward_config.max_length)
-        tokenized_rejected = tokenizer(rejected, padding = "max_length", max_length = reward_config.max_length)
+    for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
+        tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = reward_config.max_length)
+        tokenized_rejected = tokenizer(prompt + " " +rejected, padding = "max_length", max_length = reward_config.max_length)
         # for l, c in zip(data[label], data[input_ids_chosen]):
         #     if c == input_ids_chosen:
         #         label = l
