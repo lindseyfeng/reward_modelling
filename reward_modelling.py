@@ -15,6 +15,7 @@ from transformers import (
 from typing import Any, Dict, List, Optional, Union
 import torch
 import wandb
+import json
 
 BETA = 0.7
 ALPHA = 2e-5
@@ -152,15 +153,35 @@ def preprocess_function(examples):
             "attention_mask_rejected": [],
             "label": []
     }
+    # file = 'logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_train.json'
+    # with open(file, 'r') as file:
+    #     data = json.load(file)
+    label = 1
     for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
         tokenized_chosen = tokenizer(chosen, padding = "max_length", max_length = reward_config.max_length)
         tokenized_rejected = tokenizer(rejected, padding = "max_length", max_length = reward_config.max_length)
+        # for l, c in zip(data[label], data[input_ids_chosen]):
+        #     if c == input_ids_chosen:
+        #         label = l
+        # if label == -100:
+        #     print("no label found!!!")
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["label"].append(torch.tensor([[1]]))
 
+        with torch.no_grad():  # Ensure no gradients are computed
+            rewards_chosen = model(input_ids=input_ids_chosen, attention_mask=attention_mask_chosen, return_dict=True)["logits"]
+            rewards_rejected = model(input_ids=input_ids_rejected, attention_mask=attention_mask_rejected, return_dict=True)["logits"]
+
+            # Compute softmax probabilities for chosen over rejected items
+        exp_logits_chosen = torch.exp(rewards_chosen)
+        exp_logits_rejected = torch.exp(rewards_rejected)
+        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
+
+            # Calculate the updated label based on some logic; you might need to adjust this
+        updated_label = (label - BETA) * inputs["label"] + BETA * probs_chosen.squeeze().cpu().numpy()
+        new_examples["label"].append(updated_label)
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
@@ -169,6 +190,22 @@ raw_datasets = raw_datasets.map(
         batched=True,
         num_proc=4,
     )
+data_to_save = {
+    "input_ids_chosen": raw_datasets["train"]["input_ids_chosen"],
+    "label": raw_datasets["train"]["label"]
+}
+print(data_to_save)
+file_path = 'label_{}.json'.format("2", "iterative_train")
+with open(file_path, 'w') as json_file:
+    json.dump(data_to_save, json_file)
+
+print(f"Data saved to {file_path}")
+
+# Writing the data to a JSON file.
+with open(file_path, 'w') as json_file:
+    json.dump(data_to_save, json_file)
+
+print(f"Data saved to {file_path}")
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
