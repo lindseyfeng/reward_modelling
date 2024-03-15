@@ -11,6 +11,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, 
 
 from trl import DPOTrainer
 
+base_dir = "../llama/llama-2-7b"
 
 # Define and parse arguments.
 @dataclass
@@ -24,7 +25,7 @@ class ScriptArguments:
 
     # training parameters
     model_name_or_path: Optional[str] = field(
-        default="lmsys/vicuna-7b-v1.5",
+        default=base_dir,
         metadata={"help": "the location of the SFT model name or path"},
     )
     learning_rate: Optional[float] = field(default=5e-5, metadata={"help": "optimizer learning rate"})
@@ -53,7 +54,7 @@ class ScriptArguments:
     save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
     eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
 
-    output_dir: Optional[str] = field(default="./results", metadata={"help": "the output directory"})
+    output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
 
     # instrumentation
@@ -161,7 +162,7 @@ if __name__ == "__main__":
         optim=script_args.optimizer_type,
         bf16=True,
         remove_unused_columns=False,
-        run_name="dpo_vicuna",
+        run_name="dpo_llama7b",
     )
 
     peft_config = LoraConfig(
