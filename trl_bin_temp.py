@@ -100,8 +100,8 @@ class ScriptArguments:
             "help": "Path to deepspeed config if using deepspeed. You may need this if the model that you want to train doesn't fit on a single GPU."
         },
     )
-    per_device_train_batch_size: Optional[int] = field(default=1)
-    per_device_eval_batch_size: Optional[int] = field(default=1)
+    per_device_train_batch_size: Optional[int] = field(default=2)
+    per_device_eval_batch_size: Optional[int] = field(default=2)
     gradient_accumulation_steps: Optional[int] = field(default=4)
     learning_rate: Optional[float] = field(default=2e-5)
     weight_decay: Optional[float] = field(default=0.001)
@@ -165,7 +165,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
-    f"{model_name_split}_rlhf_rm_bin_temperature5_{script_args.learning_rate}"
+    f"right_{model_name_split}_rlhf_rm_bin_temperature_{script_args.learning_rate}"
 )
 
 training_args = RewardConfig(
