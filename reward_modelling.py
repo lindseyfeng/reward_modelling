@@ -172,6 +172,7 @@ def preprocess_function(examples):
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         if chosen in chosen_to_label:
             updated_label = chosen_to_label[chosen]
+            print(updated_label)
         else:
             print("no")
         new_examples["label"].append(updated_label)
@@ -190,7 +191,7 @@ raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-print(raw_datasets["laebl"])
+print(raw_datasets["label"])
 eval_dataset = raw_datasets["test"]
 
 
