@@ -9,20 +9,10 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
-            "label": []
     }
-    # file = 'logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_train.json'
-    # with open(file, 'r') as file:
-    #     data = json.load(file)
-    label = 1
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
         tokenized_chosen = tokenizer(prompt + " " + chosen, return_tensors='pt')
         tokenized_rejected = tokenizer(prompt + " " +rejected, return_tensors='pt')
-        # for l, c in zip(data[label], data[input_ids_chosen]):
-        #     if c == input_ids_chosen:
-        #         label = l
-        # if label == -100:
-        #     print("no label found!!!")
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"][0])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"][0])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"][0])
