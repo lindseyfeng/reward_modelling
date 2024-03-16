@@ -89,7 +89,9 @@ if __name__ == "__main__":
             updated_label = (1 - BETA) * 1 + BETA * probs_chosen.squeeze().cpu().numpy() #change 1 to label
             chosen_id.extend(inputs["input_ids_chosen"])
             label.extend(updated_label)
-        
+
+    print(chosen_id)
+    print(label)
     data_to_save = {
         "input_ids_chosen": chosen_id,
         "labels": label
