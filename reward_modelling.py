@@ -152,6 +152,7 @@ data = load_data(file_path)
 
 # Create a dictionary for quick lookup
 chosen_to_label = dict(zip(data["chosen"], data["label"]))
+print(chosen_to_label)
 
 def preprocess_function(examples):
     new_examples = {
@@ -170,9 +171,9 @@ def preprocess_function(examples):
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         if chosen in chosen_to_label:
+            
             updated_label = chosen_to_label[chosen]
-        else:
-            print(f"Default label set for chosen text: {len(chosen)}")
+
         new_examples["label"].append(updated_label)
     return new_examples
 
