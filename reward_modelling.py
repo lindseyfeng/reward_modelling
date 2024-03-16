@@ -151,39 +151,22 @@ def preprocess_function(examples):
             "attention_mask_rejected": [],
             "label": []
     }
-    # file = 'logits_scores_._open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint_train.json'
-    # with open(file, 'r') as file:
-    #     data = json.load(file)
-    label = 1
+    file = 'processed_iterative_epoch1_data.json'
+    with open(file, 'r') as file:
+        data = json.load(file)
+    updated_label = 1
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
-        tokenized_chosen = tokenizer(prompt + " " + chosen, return_tensors='pt')
-        tokenized_rejected = tokenizer(prompt + " " +rejected, return_tensors='pt')
-        # for l, c in zip(data[label], data[input_ids_chosen]):
-        #     if c == input_ids_chosen:
-        #         label = l
-        # if label == -100:
-        #     print("no label found!!!")
-        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"][0])
-        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"][0])
-        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"][0])
-        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"][0])
+        tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = 512)
+        tokenized_rejected = tokenizer(prompt + " " +rejected, padding = "max_length", max_length = 512)
+        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
 
-        with torch.no_grad():  # Ensure no gradients are computed
-            rewards_chosen = model(
-                input_ids=tokenized_chosen["input_ids"],
-                attention_mask=tokenized_chosen["attention_mask"],
-                return_dict=True,
-            )["logits"]
-            rewards_rejected = model(
-                input_ids=tokenized_rejected["input_ids"],
-                attention_mask=tokenized_rejected["attention_mask"],
-                return_dict=True,
-            )["logits"]
-            # Compute softmax probabilities for chosen over rejected items
-        exp_logits_chosen = torch.exp(rewards_chosen)
-        exp_logits_rejected = torch.exp(rewards_rejected)
-        probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
-        updated_label = (1 - BETA) * label + BETA * probs_chosen.squeeze().cpu().numpy()
+        for l, c in zip(data["label"], data["chosen"]):
+            if c == examples["chosen"]:
+                updated_label = l
+                break
+        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
+        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
+        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         new_examples["label"].append(updated_label)
     return new_examples
 
@@ -191,16 +174,6 @@ def preprocess_function(examples):
 raw_datasets = raw_datasets.map(
         preprocess_function,
     )
-data_to_save = {
-    "input_ids_chosen": raw_datasets["train"]["input_ids_chosen"],
-    "label": raw_datasets["train"]["label"]
-}
-print(data_to_save)
-file_path = 'label_{}.json'.format("2", "iterative_train")
-with open(file_path, 'w') as json_file:
-    json.dump(data_to_save, json_file)
-
-print(f"Data saved to {file_path}")
 
 # Writing the data to a JSON file.
 with open(file_path, 'w') as json_file:
