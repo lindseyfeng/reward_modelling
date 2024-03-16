@@ -152,7 +152,7 @@ data = load_data(file_path)
 
 # Create a dictionary for quick lookup
 chosen_to_label = dict(zip(data["chosen"], data["label"]))
-print(chosen_to_label)
+print(len(chosen_to_label))
 
 def preprocess_function(examples):
     new_examples = {
@@ -172,12 +172,6 @@ def preprocess_function(examples):
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         if chosen in chosen_to_label:
             updated_label = chosen_to_label[chosen]
-            print("found")
-        else:
-            print(f"Chosen input_ids length <= max_length: {len(tokenized_chosen['input_ids']) <= reward_config.max_length}")
-            print(f"Rejected input_ids length <= max_length: {len(tokenized_rejected['input_ids']) <= reward_config.max_length}")
-
-
         new_examples["label"].append(updated_label)
     return new_examples
 
