@@ -181,7 +181,7 @@ def preprocess_function(examples):
     # Preprocess the dataset and filter out examples that are longer than args.max_length
 
 # Assuming raw_datasets is a DatasetDict with multiple splits like 'train', 'validation', etc.
-raw_datasets = raw_datasets["train"].select(10).map(
+raw_datasets = raw_datasets["train"].select(range(10)).map(
         preprocess_function,
     )
 print(raw_datasets["label"])
