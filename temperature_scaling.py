@@ -216,7 +216,7 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForSequenceClassification.from_pretrained("./right_open_llama_3b_rlhf_rm_iterative_temperature_0.5_epoch_2e-05_last_checkpoint").to(device)
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
-    bsz = 10
+    bsz = 5
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
