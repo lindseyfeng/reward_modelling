@@ -171,28 +171,28 @@ def preprocess_function(examples):
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         if chosen in chosen_to_label:
-            
+            print("found")
             updated_label = chosen_to_label[chosen]
 
         new_examples["label"].append(updated_label)
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
-raw_datasets = raw_datasets.map(
+eval_dataset = raw_datasets["test"].map(
         preprocess_function,
     )
-
-# Writing the data to a JSON file.
-with open(file_path, 'w') as json_file:
-    json.dump(data_to_save, json_file)
-
-print(f"Data saved to {file_path}")
-raw_datasets = raw_datasets.filter(
+train_dataset = raw_datasets["train"].map(
+        preprocess_function,
+    )
+train_dataset = train_dataset.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-train_dataset = raw_datasets["train"]
-eval_dataset = raw_datasets["test"]
+eval_dataset = eval_dataset.filter(
+        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
+        and len(x["input_ids_rejected"]) <= reward_config.max_length
+    )
+
 
 # peft_config = LoraConfig(
 #     task_type=TaskType.SEQ_CLS,
