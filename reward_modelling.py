@@ -151,7 +151,7 @@ file_path = 'processed_iterative_epoch1_data.json'
 data = load_data(file_path)
 
 # Create a dictionary for quick lookup
-chosen_to_label = {item["chosen"]: item["label"] for item in data}
+chosen_to_label = dict(zip(data["chosen"], data["label"]))
 
 def preprocess_function(examples, chosen_to_label):
     new_examples = {
@@ -161,9 +161,6 @@ def preprocess_function(examples, chosen_to_label):
             "attention_mask_rejected": [],
             "label": []
     }
-    file = 'processed_iterative_epoch1_data.json'
-    with open(file, 'r') as file:
-        data = json.load(file)
     updated_label = 1
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
         tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = 512)
