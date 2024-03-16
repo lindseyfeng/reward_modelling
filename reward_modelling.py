@@ -172,11 +172,13 @@ def preprocess_function(examples):
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         if chosen in chosen_to_label:
             updated_label = chosen_to_label[chosen]
+        else:
+            print("no")
         new_examples["label"].append(updated_label)
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
-raw_datasets = raw_datasets.map(
+raw_datasets = raw_datasets.select(range(10))map(
         preprocess_function,
     )
 raw_datasets = raw_datasets.filter(
