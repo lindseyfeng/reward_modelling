@@ -176,6 +176,7 @@ def preprocess_function(examples):
         else:
             print("no")
         new_examples["label"].append(updated_label)
+        print(new_examples)
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
@@ -184,14 +185,12 @@ def preprocess_function(examples):
 raw_datasets = raw_datasets["train"].select(range(10)).map(
         preprocess_function,
     )
-print(raw_datasets["label"])
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-print(raw_datasets["label"])
+train_dataset = raw_datasets["train"]
 eval_dataset = raw_datasets["test"]
-
 
 # peft_config = LoraConfig(
 #     task_type=TaskType.SEQ_CLS,
