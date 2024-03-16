@@ -163,7 +163,7 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 # Define the training args. Needs to be done before the model is loaded if you are using deepspeed.
 model_name_split = script_args.model_name.split("/")[-1]
 output_name = (
-    f"right_{model_name_split}_rlhf_rm_bin_temperature_{script_args.learning_rate}"
+    f"right_{model_name_split}_rlhf_rm_logit_bin_temperature_{script_args.learning_rate}"
 )
 
 training_args = RewardConfig(
