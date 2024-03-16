@@ -24,9 +24,7 @@ EPOCH = 1
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
-model = AutoModelForSequenceClassification.from_pretrained(
-    "./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint"
-)
+model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint")
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
