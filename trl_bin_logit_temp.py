@@ -60,7 +60,7 @@ class TemperatureRewardTrainer(RewardTrainer):
         logit = rewards_chosen - rewards_rejected
         idx = 0
         for bin_lower, bin_upper in bin_ranges:
-            in_bin = ((logit >= bin_lower) & (logit < bin_upper)) | (-logit >= bin_lower) & (-logit < bin_upper))
+            in_bin = ((logit >= bin_lower) & (logit < bin_upper)) | ((-logit >= bin_lower) & (-logit < bin_upper))
             if in_bin:
                 temperature = temperature_list[idx]
                 break
@@ -68,7 +68,7 @@ class TemperatureRewardTrainer(RewardTrainer):
 
         print(logit)
         print(temperature)
-        
+
         if "margin" in inputs:
             loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*temperature).mean()
         else:
