@@ -173,7 +173,7 @@ def preprocess_function(examples):
         if chosen in chosen_to_label:
             updated_label = chosen_to_label[chosen]
         else:
-            print((len(tokenized_chosen["input_ids"]) <= reward_config.max_length) & len(x["input_ids"]) <= reward_config.max_length)
+            print((len(tokenized_chosen["input_ids"]) <= reward_config.max_length) | len(tokenized_rejected["input_ids"]) <= reward_config.max_length)
 
         new_examples["label"].append(updated_label)
     return new_examples
