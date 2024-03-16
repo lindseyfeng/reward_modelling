@@ -59,6 +59,10 @@ if __name__ == "__main__":
             batched=True,
             num_proc=1,
         )
+    raw_datasets = raw_datasets.filter(
+            lambda x: len(x["input_ids_chosen"]) <= 512
+            and len(x["input_ids_rejected"]) <= 512
+        )
     combined_dataset = concatenate_datasets([raw_datasets['train'], raw_datasets['test']])
     print(combined_dataset)
     valid_loader = torch.utils.data.DataLoader(combined_dataset, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
