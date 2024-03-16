@@ -93,10 +93,11 @@ if __name__ == "__main__":
             label.extend(updated_label)
 
     print(chosen_id)
-    print(label)
+    data_to_save_converted = [float(item) if isinstance(item, np.float32) else item for item in label]
+
     data_to_save = {
         "chosen": chosen_id,
-        "labels": label
+        "label": data_to_save_converted
     }
     save_to_json("processed_iterative_epoch1_data.json", data_to_save)
     
