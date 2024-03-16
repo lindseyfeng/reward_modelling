@@ -53,24 +53,23 @@ if __name__ == "__main__":
     model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint")
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
     model.eval()  # Ensure the model is in evaluation mode
-    bsz = 5
+    bsz = 100
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
             num_proc=1,
         )
-    raw_datasets = raw_datasets.filter(
-            lambda x: len(x["input_ids_chosen"]) <= 512
-            and len(x["input_ids_rejected"]) <= 512
-        )
-    combined_dataset = concatenate_datasets([raw_datasets['train'], raw_datasets['test']]).select(range(10))
+    combined_dataset = concatenate_datasets([raw_datasets['train'], raw_datasets['test']])
+    print(combined_dataset)
     valid_loader = torch.utils.data.DataLoader(combined_dataset, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 
     chosen_id = []
     label = []
-
+    count = 0
     with torch.no_grad(): 
         for inputs in valid_loader: # Ensure no gradients are computed
+            count += 1
+            print(count)
             input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
             attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
             input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
