@@ -173,23 +173,28 @@ def preprocess_function(examples):
         if chosen in chosen_to_label:
             updated_label = chosen_to_label[chosen]
         else:
-            print((len(tokenized_chosen["input_ids"]) <= reward_config.max_length) | len(tokenized_rejected["input_ids"]) <= reward_config.max_length)
+            print((len(tokenized_chosen["input_ids_chosen"]) <= reward_config.max_length) & len(tokenized_rejected["input_ids_rejected"]) <= reward_config.max_length)
 
         new_examples["label"].append(updated_label)
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
-raw_datasets = raw_datasets.map(
+train_dataset = raw_datasets["train"].map(
         preprocess_function,
     )
-raw_datasets = raw_datasets.filter(
+eval_dataset = raw_datasets["test"].map(
+        preprocess_function,
+    )
+train_dataset = train_dataset.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-train_dataset = raw_datasets["train"]
-eval_dataset = raw_datasets["test"]
-print(train_dataset)
-print(eval_dataset)
+eval_dataset = eval_dataset.filter(
+        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
+        and len(x["input_ids_rejected"]) <= reward_config.max_length
+    )
+
+
 # peft_config = LoraConfig(
 #     task_type=TaskType.SEQ_CLS,
 #     inference_mode=False,
