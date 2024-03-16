@@ -121,7 +121,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     print(logits_list)
     
     ind = 0
-    for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
+    for bin_lower, bin_upper in bin_ranges:
         labels_list = []
         print("range: ", bin_lower, bin_upper)
         logits = torch.cat(logits_list[ind], dim=0).squeeze(1)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint").to(device)
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(20))
     bsz = 1
     num_bins = 5
     bin_ranges = [(i, i+1) for i in range(num_bins)]
