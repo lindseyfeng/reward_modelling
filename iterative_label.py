@@ -13,12 +13,12 @@ def preprocess_function(examples):
             "attention_mask_rejected": [],
     }
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
-        tokenized_chosen = tokenizer(prompt + " " + chosen, return_tensors='pt')
-        tokenized_rejected = tokenizer(prompt + " " +rejected, return_tensors='pt')
-        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"][0])
-        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"][0])
-        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"][0])
-        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"][0])
+        tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = 512)
+        tokenized_rejected = tokenizer(prompt + " " +rejected, padding = "max_length", max_length = 512)
+        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
+        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
+        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
+        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
     return new_examples
 
 # Process dataset to generate labels
