@@ -66,9 +66,6 @@ class TemperatureRewardTrainer(RewardTrainer):
                 break
             idx += 1
 
-        print(logit)
-        print(temperature)
-
         if "margin" in inputs:
             loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*temperature).mean()
         else:
