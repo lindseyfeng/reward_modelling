@@ -142,8 +142,18 @@ class RewardDataCollatorWithPadding:
                 batch["margin"] = margin
         return batch
 
+def load_data(file_path):
+    with open(file_path, 'r') as file:
+        return json.load(file)
 
-def preprocess_function(examples):
+# Load your JSON data outside the function
+file_path = 'processed_iterative_epoch1_data.json'
+data = load_data(file_path)
+
+# Create a dictionary for quick lookup
+chosen_to_label = {item["chosen"]: item["label"] for item in data}
+
+def preprocess_function(examples, chosen_to_label):
     new_examples = {
             "input_ids_chosen": [],
             "attention_mask_chosen": [],
@@ -159,14 +169,10 @@ def preprocess_function(examples):
         tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = 512)
         tokenized_rejected = tokenizer(prompt + " " +rejected, padding = "max_length", max_length = 512)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
-
-        for l, c in zip(data["label"], data["chosen"]):
-            if c == examples["chosen"]:
-                updated_label = l
-                break
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
+        updated_label = chosen_to_label.get(chosen, 1) 
         new_examples["label"].append(updated_label)
     return new_examples
 
