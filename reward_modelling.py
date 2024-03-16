@@ -156,17 +156,17 @@ def preprocess_function(examples):
     #     data = json.load(file)
     label = 1
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
-        tokenized_chosen = tokenizer(prompt + " " + chosen)
-        tokenized_rejected = tokenizer(prompt + " " +rejected)
+        tokenized_chosen = tokenizer(prompt + " " + chosen, return_tensors='pt')
+        tokenized_rejected = tokenizer(prompt + " " +rejected, return_tensors='pt')
         # for l, c in zip(data[label], data[input_ids_chosen]):
         #     if c == input_ids_chosen:
         #         label = l
         # if label == -100:
         #     print("no label found!!!")
-        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
-        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
-        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
-        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
+        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"][0])
+        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"][0])
+        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"][0])
+        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"][0])
 
         with torch.no_grad():  # Ensure no gradients are computed
             rewards_chosen = model(
