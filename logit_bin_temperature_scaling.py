@@ -96,7 +96,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
     model.eval()
-    logits_list = [[] for _ in range(len(bin_boundaries) - 1)]
+    logits_list = [[] for _ in range(len(bin_boundaries))]
     print(logits_list)
     count = 0
     for inputs in valid_loader:
