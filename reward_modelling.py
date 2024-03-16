@@ -185,12 +185,12 @@ selected_datasets = {split: raw_datasets[split].select(range(10)) for split in r
 raw_datasets = selected_datasets["train"].map(
         preprocess_function,
     )
-print(raw_datasets)
+print(raw_datasets["label"])
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-print(raw_datasets)
+print(raw_datasets["laebl"])
 eval_dataset = raw_datasets["test"]
 
 
