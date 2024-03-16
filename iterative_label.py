@@ -3,6 +3,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_dataset
 from datasets import concatenate_datasets
 import json
+from torch.utils.data.dataloader import default_collate
 
 def preprocess_function(examples):
     new_examples = {
