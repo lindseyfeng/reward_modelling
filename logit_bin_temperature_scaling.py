@@ -93,8 +93,6 @@ def temperature_scale(logits, temperature):
     return logits / temperature
 
 def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
-    bin_lowers = bin_boundaries[:-1]
-    bin_uppers = bin_boundaries[1:]
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
     model.eval()
@@ -114,8 +112,8 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         neg_logits = -pos_logits
         prob = torch.sigmoid(pos_logits)
         idx = 0
-        for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-            in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
+        for bin_lower, bin_upper in bin_ranges:
+            in_bin = ((pos_logits >= bin_lower) & (pos_logits < bin_upper)) | ((neg_logits >= bin_lower) & ( neg_logits< bin_upper))
             for i, row in enumerate(in_bin):
                 if row.any():  # Checks if there is at least one True in the row
                     logits_list[idx].append(torch.cat((pos_logits[i].unsqueeze(-1), neg_logits[i].unsqueeze(-1)), dim=-1).detach())
@@ -158,10 +156,10 @@ if __name__ == "__main__":
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint").to(device)
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
     bsz = 1
     num_bins = 5
-    bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
+    bin_ranges = [(i, i+1) for i in range(num_bins)]
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
@@ -174,5 +172,5 @@ if __name__ == "__main__":
     print(raw_datasets)
     temperature_list = [nn.Parameter((torch.ones(1) * 1.5).to(device)) for _ in range(num_bins)]
     valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
-    set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries)
+    set_temperature_bin(valid_loader, model, temperature_list, bin_ranges)
     print(temperature_list)
