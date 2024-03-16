@@ -124,9 +124,11 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
     for bin_lower, bin_upper in bin_ranges:
         labels_list = []
         print("range: ", bin_lower, bin_upper)
+
         if len(logits_list[ind]) == 0:
             temperature_list[ind] =1
             ind +=1
+            print(ind)
             continue
         logits = torch.cat(logits_list[ind], dim=0).squeeze(1)
         N, _ = logits.shape
@@ -150,7 +152,6 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         after_temperature_ece = ece_criterion(temperature_scale(logits, temperature_list[ind]), labels).item()
         print('Optimal temperature: %.3f' % temperature_list[ind].item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
-        model.train()
         ind += 1
 
 
