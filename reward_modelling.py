@@ -179,20 +179,16 @@ def preprocess_function(examples):
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
-train_dataset = raw_datasets["train"].map(
+raw_datasets = raw_datasets.map(
         preprocess_function,
     )
-eval_dataset = raw_datasets["test"].map(
-        preprocess_function,
-    )
-train_dataset = train_dataset.filter(
+raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-eval_dataset = eval_dataset.filter(
-        lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
-        and len(x["input_ids_rejected"]) <= reward_config.max_length
-    )
+
+train_dataset = raw_datasets["train"]
+eval_dataset = raw_datasets["test"]
 
 
 # peft_config = LoraConfig(
@@ -204,6 +200,7 @@ eval_dataset = eval_dataset.filter(
 # )
 
 print(train_dataset)
+print(eval_dataset)
 
 trainer = IterativeRewardTrainer(
         model=model,
