@@ -6,6 +6,8 @@ import json
 from torch.utils.data.dataloader import default_collate
 import numpy as np
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 def preprocess_function(examples):
     new_examples = {
             "input_ids_chosen": [],
@@ -47,10 +49,10 @@ def custom_collate_fn(batch):
 
 if __name__ == "__main__":
     BETA = 0.7
-    tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
+    tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b").to(device)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint")
+    model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint").to(device)
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
     model.eval()  # Ensure the model is in evaluation mode
     bsz = 100
