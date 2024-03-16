@@ -11,6 +11,7 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
+            chosen: []
     }
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
         tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = 512)
@@ -19,6 +20,7 @@ def preprocess_function(examples):
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
+        new_examples["chosen"].append(chosen)
     return new_examples
 
 # Process dataset to generate labels
@@ -87,13 +89,13 @@ if __name__ == "__main__":
             exp_logits_rejected = torch.exp(rewards_rejected)
             probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
             updated_label = (1 - BETA) * 1 + BETA * probs_chosen.squeeze().cpu().numpy() #change 1 to label
-            chosen_id.extend(inputs["input_ids_chosen"])
+            chosen_id.extend(inputs["chosen"])
             label.extend(updated_label)
 
     print(chosen_id)
     print(label)
     data_to_save = {
-        "input_ids_chosen": chosen_id,
+        "chosen": chosen_id,
         "labels": label
     }
     save_to_json("processed_iterative_epoch1_data.json", data_to_save)
