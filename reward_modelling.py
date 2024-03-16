@@ -196,8 +196,8 @@ raw_datasets = raw_datasets.filter(
     )
 print(len(raw_datasets))
 print(raw_datasets["label"])
-train_dataset = raw_datasets["train"]
-eval_dataset = raw_datasets["test"]
+train_dataset = raw_datasets #["train"]
+eval_dataset = raw_datasets #["test"]
 
 # peft_config = LoraConfig(
 #     task_type=TaskType.SEQ_CLS,
