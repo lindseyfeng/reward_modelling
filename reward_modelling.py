@@ -153,7 +153,7 @@ data = load_data(file_path)
 # Create a dictionary for quick lookup
 chosen_to_label = dict(zip(data["chosen"], data["label"]))
 
-def preprocess_function(examples, chosen_to_label):
+def preprocess_function(examples):
     new_examples = {
             "input_ids_chosen": [],
             "attention_mask_chosen": [],
