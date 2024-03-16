@@ -60,7 +60,7 @@ if __name__ == "__main__":
             lambda x: len(x["input_ids_chosen"]) <= 512
             and len(x["input_ids_rejected"]) <= 512
         )
-    combined_dataset = concatenate_datasets([raw_datasets['train'], raw_datasets['test']])
+    combined_dataset = concatenate_datasets([raw_datasets['train'], raw_datasets['test']]).select(range(10))
     valid_loader = torch.utils.data.DataLoader(combined_dataset, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 
     chosen_id = []
@@ -68,14 +68,18 @@ if __name__ == "__main__":
 
     with torch.no_grad(): 
         for inputs in valid_loader: # Ensure no gradients are computed
+            input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
+            attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
+            input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
+            attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
             rewards_chosen = model(
-                input_ids=inputs["input_ids_chosen"],
-                attention_mask=inputs["attention_mask_chosen"],
+                input_ids=input_ids_chosen_tensor,
+                attention_mask=attention_mask_chosen_tensor,
                 return_dict=True,
             )["logits"]
             rewards_rejected = model(
-                input_ids=inputs["input_ids_rejected"],
-                attention_mask=inputs["attention_mask_rejected"],
+                input_ids=input_ids_rejected_tensor,
+                attention_mask=attention_mask_rejected_tensor,
                 return_dict=True,
             )["logits"]
             # Compute softmax probabilities for chosen over rejected items
