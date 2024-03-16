@@ -172,13 +172,13 @@ def preprocess_function(examples):
 
         with torch.no_grad():  # Ensure no gradients are computed
             rewards_chosen = model(
-                input_ids=tokenized_chosen["input_ids_chosen"],
-                attention_mask=tokenized_chosen["attention_mask_chosen"],
+                input_ids=tokenized_chosen["input_ids"],
+                attention_mask=tokenized_chosen["attention_mask"],
                 return_dict=True,
             )["logits"]
             rewards_rejected = model(
-                input_ids=tokenized_rejected["input_ids_rejected"],
-                attention_mask=tokenized_rejected["attention_mask_rejected"],
+                input_ids=tokenized_rejected["input_ids"],
+                attention_mask=tokenized_rejected["attention_mask"],
                 return_dict=True,
             )["logits"]
         print(rewards_chosen, rewards_rejected)
