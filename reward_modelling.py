@@ -189,11 +189,13 @@ raw_datasets = raw_datasets["train"].select(range(10)).map(
         preprocess_function,
     )
 print(len(raw_datasets))
+print(raw_datasets["label"])
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
 print(len(raw_datasets))
+print(raw_datasets["label"])
 train_dataset = raw_datasets["train"]
 eval_dataset = raw_datasets["test"]
 
