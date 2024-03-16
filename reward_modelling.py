@@ -171,8 +171,16 @@ def preprocess_function(examples):
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
 
         with torch.no_grad():  # Ensure no gradients are computed
-            rewards_chosen = model(**tokenized_chosen, return_dict=True)["logits"]
-            rewards_rejected = model(**tokenized_rejected, return_dict=True)["logits"]
+            rewards_chosen = model(
+                input_ids=tokenized_chosen["input_ids_chosen"],
+                attention_mask=tokenized_chosen["attention_mask_chosen"],
+                return_dict=True,
+            )["logits"]
+            rewards_rejected = model(
+                input_ids=tokenized_rejected["input_ids_rejected"],
+                attention_mask=tokenized_rejected["attention_mask_rejected"],
+                return_dict=True,
+            )["logits"]
         print(rewards_chosen, rewards_rejected)
 
             # Compute softmax probabilities for chosen over rejected items
