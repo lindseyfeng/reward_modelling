@@ -170,6 +170,7 @@ def preprocess_function(examples):
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
+        print(chosen)
         if chosen in chosen_to_label:
             updated_label = chosen_to_label[chosen]
             print(updated_label)
@@ -184,7 +185,7 @@ def preprocess_function(examples):
     # Preprocess the dataset and filter out examples that are longer than args.max_length
 
 # Assuming raw_datasets is a DatasetDict with multiple splits like 'train', 'validation', etc.
-raw_datasets = raw_datasets["train"].select(range(10)).map(
+raw_datasets = raw_datasets["train"].select(range(1)).map(
         preprocess_function,
     )
 raw_datasets = raw_datasets.filter(
