@@ -157,7 +157,7 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint").to(device)
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(20))
-    bsz = 100
+    bsz = 10
     num_bins = 5
     bin_ranges = [(i, i+1) for i in range(num_bins)]
     raw_datasets = raw_datasets.map(
