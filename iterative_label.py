@@ -53,7 +53,7 @@ if __name__ == "__main__":
     model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint")
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
     model.eval()  # Ensure the model is in evaluation mode
-    bsz = 100
+    bsz = 5
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
