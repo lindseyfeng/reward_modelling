@@ -37,10 +37,8 @@ class TemperatureRewardTrainer(RewardTrainer):
         return_outputs=False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
         num_bins = 5
-        temperature_list = [1.504, 1.780, 1.796, 1.851, 1.938] #5BIN
-        bin_boundaries = torch.linspace(0.5, 1, steps=num_bins + 1)
-        bin_lowers = bin_boundaries[:-1]
-        bin_uppers = bin_boundaries[1:]
+        temperature_list = [1.779, 1.819, 1.916, 1.992, 1.888] #5BIN
+        bin_ranges = [(i, i+1) for i in range(num_bins)]
         if not self.use_reward_data_collator:
             warnings.warn(
                 "The current compute_loss is implemented for RewardDataCollatorWithPadding,"
@@ -59,15 +57,18 @@ class TemperatureRewardTrainer(RewardTrainer):
         )["logits"]
         # calculate loss, optionally modulate with margin
         temperature =1
-        prob = torch.sigmoid(rewards_chosen - rewards_rejected)
+        logit = rewards_chosen - rewards_rejected
         idx = 0
-        for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
-            in_bin = ((prob >= bin_lower) & (prob < bin_upper)) | ((1 - prob >= bin_lower) & (1 - prob < bin_upper))
+        for bin_lower, bin_upper in bin_ranges:
+            in_bin = ((logit >= bin_lower) & (logit < bin_upper)) | (-logit >= bin_lower) & (-logit < bin_upper))
             if in_bin:
                 temperature = temperature_list[idx]
                 break
             idx += 1
 
+        print(logit)
+        print(temperature)
+        
         if "margin" in inputs:
             loss = -nn.functional.logsigmoid((rewards_chosen - rewards_rejected - inputs["margin"])*temperature).mean()
         else:
