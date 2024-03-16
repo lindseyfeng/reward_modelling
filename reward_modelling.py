@@ -177,6 +177,8 @@ def preprocess_function(examples):
             print("no")
         new_examples["label"].append(updated_label)
         print(new_examples["label"])
+        print(len(new_examples["label"]))
+
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
