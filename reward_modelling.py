@@ -179,9 +179,7 @@ def preprocess_function(examples):
         exp_logits_chosen = torch.exp(rewards_chosen)
         exp_logits_rejected = torch.exp(rewards_rejected)
         probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
-
-            # Calculate the updated label based on some logic; you might need to adjust this
-        updated_label = (label - BETA) * inputs["label"] + BETA * probs_chosen.squeeze().cpu().numpy()
+        updated_label = (1 - BETA) * label + BETA * probs_chosen.squeeze().cpu().numpy()
         new_examples["label"].append(updated_label)
     return new_examples
 
