@@ -1,6 +1,7 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_dataset
+from datasets import concatenate_datasets
 import json
 
 def preprocess_function(examples):
@@ -56,8 +57,8 @@ if __name__ == "__main__":
             lambda x: len(x["input_ids_chosen"]) <= 512
             and len(x["input_ids_rejected"]) <= 512
         )
-    raw = raw_datasets["train"] + raw_datasets["test"]
-    valid_loader = torch.utils.data.DataLoader(raw, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
+    combined_dataset = concatenate_datasets([raw_datasets['train'], raw_datasets['test']])
+    valid_loader = torch.utils.data.DataLoader(combined_dataset, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
 
     chosen_id = []
     label = []
