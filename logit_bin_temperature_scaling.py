@@ -126,6 +126,7 @@ def set_temperature_bin(valid_loader, model, temperature_list, bin_boundaries):
         print("range: ", bin_lower, bin_upper)
         if len(logits_list[ind]) == 0:
             temperature_list[ind] =1
+            ind +=1
             continue
         logits = torch.cat(logits_list[ind], dim=0).squeeze(1)
         N, _ = logits.shape
