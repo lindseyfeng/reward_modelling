@@ -49,7 +49,7 @@ def custom_collate_fn(batch):
 
 if __name__ == "__main__":
     BETA = 0.7
-    tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b").to(device)
+    tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint").to(device)
