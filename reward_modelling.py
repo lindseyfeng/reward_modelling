@@ -179,8 +179,6 @@ def preprocess_function(examples):
                 attention_mask=tokenized_rejected["attention_mask"],
                 return_dict=True,
             )["logits"]
-        print(rewards_chosen, rewards_rejected)
-
             # Compute softmax probabilities for chosen over rejected items
         exp_logits_chosen = torch.exp(rewards_chosen)
         exp_logits_rejected = torch.exp(rewards_rejected)
