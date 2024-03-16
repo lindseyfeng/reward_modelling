@@ -87,8 +87,8 @@ if __name__ == "__main__":
             exp_logits_rejected = torch.exp(rewards_rejected)
             probs_chosen = exp_logits_chosen / (exp_logits_chosen + exp_logits_rejected)
             updated_label = (1 - BETA) * 1 + BETA * probs_chosen.squeeze().cpu().numpy() #change 1 to label
-            chosen_id += inputs["input_ids_chosen"]
-            label += updated_label
+            chosen_id.extend(inputs["input_ids_chosen"])
+            label.extend(updated_label)
         
     data_to_save = {
         "input_ids_chosen": chosen_id,
