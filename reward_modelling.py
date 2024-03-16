@@ -158,8 +158,8 @@ def preprocess_function(examples):
     #     data = json.load(file)
     label = 1
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
-        tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = reward_config.max_length)
-        tokenized_rejected = tokenizer(prompt + " " +rejected, padding = "max_length", max_length = reward_config.max_length)
+        tokenized_chosen = tokenizer(prompt + " " + chosen)
+        tokenized_rejected = tokenizer(prompt + " " +rejected)
         # for l, c in zip(data[label], data[input_ids_chosen]):
         #     if c == input_ids_chosen:
         #         label = l
