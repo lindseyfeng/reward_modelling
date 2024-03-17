@@ -172,7 +172,7 @@ def preprocess_function(examples):
             updated_label = chosen_to_label[chosen]
         else:
             updated_label = 1
-        new_examples["label"].append(updated_label)
+        new_examples["label"].append(torch.tensor([[update_labe]]))
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
