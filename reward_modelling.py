@@ -196,7 +196,7 @@ eval_dataset = raw_datasets["test"]
 #     lora_dropout=0.1,
 # )
 
-print(train_dataset)
+print(train_dataset["label"])
 
 trainer = IterativeRewardTrainer(
         model=model,
