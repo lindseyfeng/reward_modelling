@@ -173,6 +173,7 @@ def preprocess_function(examples):
             print(updated_label)
         else:
             print("no")
+            updated_label = 1
         new_examples["label"].append(updated_label)
         print(new_examples["label"])
         print(len(new_examples["label"]))
