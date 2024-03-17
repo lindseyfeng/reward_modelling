@@ -164,8 +164,8 @@ def preprocess_function(examples):
     }
     updated_label = 1
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
-        tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = 512)
-        tokenized_rejected = tokenizer(prompt + " " +rejected, padding = "max_length", max_length = 512)
+        tokenized_chosen = tokenizer(prompt + " " + chosen)
+        tokenized_rejected = tokenizer(prompt + " " +rejected)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
