@@ -137,6 +137,18 @@ class RewardDataCollatorWithPadding:
                 batch["margin"] = margin
         return batch
 
+def load_data(file_path):
+    with open(file_path, 'r') as file:
+        return json.load(file)
+
+# Load your JSON data outside the function
+file_path = 'processed_iterative_epoch1_data.json'
+data = load_data(file_path)
+
+# Create a dictionary for quick lookup
+chosen_to_label = dict(zip(data["chosen"], data["label"]))
+print(len(chosen_to_label))
+
 
 def preprocess_function(examples):
     new_examples = {
@@ -146,14 +158,26 @@ def preprocess_function(examples):
             "attention_mask_rejected": [],
             "label": []
     }
-    for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
-        tokenized_chosen = tokenizer(chosen, padding = "max_length", max_length = reward_config.max_length)
-        tokenized_rejected = tokenizer(rejected, padding = "max_length", max_length = reward_config.max_length)
+    for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
+        chosen_str = prompt + chosen
+        rejected_str = prompt + rejected
+        print(chosen_str, rejected_str)
+        tokenized_chosen = tokenizer(chosen_str, padding = "max_length", max_length = reward_config.max_length)
+        tokenized_rejected = tokenizer(rejected_str, padding = "max_length", max_length = reward_config.max_length)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["label"].append(torch.tensor([[1]]))
+        if examples["chosen"] in chosen_to_label:
+            updated_label = chosen_to_label[examples["chosen"]]
+            print(updated_label)
+        else:
+            print("no")
+        new_examples["label"].append(updated_label)
+        print(new_examples["label"])
+        print(len(new_examples["label"]))
+
+        
 
     return new_examples
 
