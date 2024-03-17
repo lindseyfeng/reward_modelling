@@ -17,7 +17,7 @@ import torch
 import wandb
 
 BETA = 0.7
-ALPHA = e-5
+ALPHA = 2e-5
 TEMPERATURE = 1
 EPOCH = 1
 
@@ -45,8 +45,8 @@ reward_config = RewardConfig(
     per_device_train_batch_size= 2,
     per_device_eval_batch_size = 2,
     gradient_accumulation_steps = 4, 
-    max_length = ALPHA, 
-    learning_rate=1e-5,
+    max_length = 512, 
+    learning_rate=ALPHA,
     report_to="wandb",
     optim="adamw_torch", 
     logging_strategy="steps",
