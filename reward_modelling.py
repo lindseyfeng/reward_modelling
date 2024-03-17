@@ -160,7 +160,7 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
-            "label": []
+            # "label": []
     }
     updated_label = 1
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
@@ -171,14 +171,14 @@ def preprocess_function(examples):
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
     
-    if examples["chosen"] in chosen_to_label:
-        updated_label = chosen_to_label[examples["chosen"]]
-        print(updated_label)
-    else:
-        print("no")
-    new_examples["label"].append(updated_label)
-    print(new_examples["label"])
-    print(len(new_examples["label"]))
+    # if examples["chosen"] in chosen_to_label:
+    #     updated_label = chosen_to_label[examples["chosen"]]
+    #     print(updated_label)
+    # else:
+    #     print("no")
+    # new_examples["label"].append(updated_label)
+    # print(new_examples["label"])
+    # print(len(new_examples["label"]))
 
     return new_examples
 
@@ -189,13 +189,13 @@ raw_datasets = raw_datasets["train"].select(range(10)).map(
         preprocess_function,
     )
 print(len(raw_datasets))
-print(raw_datasets["label"])
+# print(raw_datasets["label"])
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
 print(len(raw_datasets))
-print(raw_datasets["label"])
+# print(raw_datasets["label"])
 train_dataset = raw_datasets #["train"]
 eval_dataset = raw_datasets #["test"]
 
