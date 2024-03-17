@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import RewardConfig
-from reward_trainer import IterativeRewardTrainer #LabelCallback
+from reward_trainer import IterativeRewardTrainer, LabelCallback
 from datasets import load_dataset
 from tqdm import tqdm
 from transformers import (
@@ -15,16 +15,17 @@ from transformers import (
 from typing import Any, Dict, List, Optional, Union
 import torch
 import wandb
-import json
 
 BETA = 0.7
-ALPHA = 2e-5
+ALPHA = e-5
 TEMPERATURE = 1
 EPOCH = 1
 
 PAD_TOKEN = '[PAD]'
 tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b")
-model = AutoModelForSequenceClassification.from_pretrained("./open_llama_3b_rlhf_rm_without_2e-05__last_checkpoint")
+model = AutoModelForSequenceClassification.from_pretrained(
+    "openlm-research/open_llama_3b", torch_dtype=torch.bfloat16, num_labels=1,
+)
 # Assuming `tokenizer` is your tokenizer instance
 if tokenizer.pad_token is None:
     tokenizer.pad_token = PAD_TOKEN
@@ -36,29 +37,23 @@ raw_datasets = load_dataset("Dahoas/full-hh-rlhf")
 
 reward_config = RewardConfig(
     do_eval = True,
-    report_to="wandb",
-    output_dir="iterative_baseline_1",
-    learning_rate= ALPHA,
-    per_device_train_batch_size=1,
-    per_device_eval_batch_size=1,
-    num_train_epochs=1,
-    weight_decay=0.001,
     evaluation_strategy="steps",
     eval_steps=500,
     save_strategy="steps",
     save_steps=500,
-    gradient_accumulation_steps=4,
-    gradient_checkpointing=False,
-    deepspeed=None,
-    local_rank=-1,
-    remove_unused_columns=False,
-    label_names=[],
-    bf16= True,
+    output_dir="hh_openllama3b_temp1",
+    per_device_train_batch_size= 2,
+    per_device_eval_batch_size = 2,
+    gradient_accumulation_steps = 4, 
+    max_length = ALPHA, 
+    learning_rate=1e-5,
+    report_to="wandb",
+    optim="adamw_torch", 
     logging_strategy="steps",
     logging_steps=10,
-    optim="adamw_hf",
-    lr_scheduler_type="linear",
-    max_length = 512
+    run_name = "iterative_baseline",
+    num_train_epochs=EPOCH,
+    remove_unused_columns=False,
 )
 
 class RewardDataCollatorWithPadding:
@@ -142,17 +137,6 @@ class RewardDataCollatorWithPadding:
                 batch["margin"] = margin
         return batch
 
-def load_data(file_path):
-    with open(file_path, 'r') as file:
-        return json.load(file)
-
-# Load your JSON data outside the function
-file_path = 'processed_iterative_epoch1_data.json'
-data = load_data(file_path)
-
-# Create a dictionary for quick lookup
-chosen_to_label = dict(zip(data["chosen"], data["label"]))
-print(len(chosen_to_label))
 
 def preprocess_function(examples):
     new_examples = {
@@ -160,44 +144,31 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
-            # "label": []
+            "label": []
     }
-    updated_label = 1
-    for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
-        tokenized_chosen = tokenizer(prompt + " " + chosen, padding = "max_length", max_length = reward_config.max_length)
-        tokenized_rejected = tokenizer(prompt + " " +rejected, padding = "max_length", max_length = reward_config.max_length)
+    for chosen, rejected in zip(examples["chosen"], examples["rejected"]):
+        tokenized_chosen = tokenizer(chosen, padding = "max_length", max_length = reward_config.max_length)
+        tokenized_rejected = tokenizer(rejected, padding = "max_length", max_length = reward_config.max_length)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-    
-    # if examples["chosen"] in chosen_to_label:
-    #     updated_label = chosen_to_label[examples["chosen"]]
-    #     print(updated_label)
-    # else:
-    #     print("no")
-    # new_examples["label"].append(updated_label)
-    # print(new_examples["label"])
-    # print(len(new_examples["label"]))
+        new_examples["label"].append(torch.tensor([[1]]))
 
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
-
-# Assuming raw_datasets is a DatasetDict with multiple splits like 'train', 'validation', etc.
-raw_datasets = raw_datasets["train"].select(range(10)).map(
+raw_datasets = raw_datasets.map(
         preprocess_function,
+        batched=True,
+        num_proc=4,
     )
-print(len(raw_datasets))
-# print(raw_datasets["label"])
 raw_datasets = raw_datasets.filter(
         lambda x: len(x["input_ids_chosen"]) <= reward_config.max_length
         and len(x["input_ids_rejected"]) <= reward_config.max_length
     )
-print(len(raw_datasets))
-# print(raw_datasets["label"])
-train_dataset = raw_datasets #["train"]
-eval_dataset = raw_datasets #["test"]
+train_dataset = raw_datasets["train"]
+eval_dataset = raw_datasets["test"]
 
 # peft_config = LoraConfig(
 #     task_type=TaskType.SEQ_CLS,
@@ -208,7 +179,6 @@ eval_dataset = raw_datasets #["test"]
 # )
 
 print(train_dataset)
-print(eval_dataset)
 
 trainer = IterativeRewardTrainer(
         model=model,
