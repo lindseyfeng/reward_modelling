@@ -170,9 +170,7 @@ def preprocess_function(examples):
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         if chosen in chosen_to_label:
             updated_label = chosen_to_label[chosen]
-            print(updated_label)
         else:
-            print("no")
             updated_label = 1
         new_examples["label"].append(updated_label)
     return new_examples
