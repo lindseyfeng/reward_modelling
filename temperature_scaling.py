@@ -214,7 +214,9 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_3b") #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForSequenceClassification.from_pretrained("./hh_openllama3b_temp1_epoch1_final_checkpoint").to(device)
+    file = "./hh_openllama3b_temp1_epoch1_final_checkpoint"
+    print(file)
+    model = AutoModelForSequenceClassification.from_pretrained(file).to(device)
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
     bsz = 5
     raw_datasets = raw_datasets.map(
