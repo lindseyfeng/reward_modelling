@@ -162,7 +162,6 @@ def preprocess_function(examples):
     for chosen, rejected, prompt in zip(examples["chosen"], examples["rejected"], examples["prompt"]):
         chosen_str = prompt + chosen
         rejected_str = prompt + rejected
-        print(chosen_str, rejected_str)
         tokenized_chosen = tokenizer(chosen_str, padding = "max_length", max_length = reward_config.max_length)
         tokenized_rejected = tokenizer(rejected_str, padding = "max_length", max_length = reward_config.max_length)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
@@ -176,11 +175,6 @@ def preprocess_function(examples):
             print("no")
             updated_label = 1
         new_examples["label"].append(updated_label)
-        print(new_examples["label"])
-        print(len(new_examples["label"]))
-
-        
-
     return new_examples
 
     # Preprocess the dataset and filter out examples that are longer than args.max_length
