@@ -199,7 +199,6 @@ if __name__ == "__main__":
 
     # 6. train
     dpo_trainer.train()
-    dpo_trainer.save_model(script_args.x)
 
     # 7. save
     output_dir = os.path.join(script_args.output_dir, "final_checkpoint")
