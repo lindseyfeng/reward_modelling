@@ -3,7 +3,7 @@ import json
 import matplotlib.pyplot as plt
 
 # Load logits from JSON
-file = 'logits_scores_._right_open_llama_3b_rlhf_rm_iterative_temperature_0.5_epoch_2e-05_last_checkpoint_test.json'
+file = 'logits_scores_._right_open_llama_3b_rlhf_rm_bin_temperature_2e-05__temperature_last_checkpoint_test.json'
 with open(file, 'r') as file:
     data = json.load(file)
 logits_tensor = torch.tensor(data['logits'])
