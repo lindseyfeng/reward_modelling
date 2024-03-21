@@ -220,6 +220,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             # Accumulate logits and labels
             label_pad_token_id = -100
             chosen_label = input_ids_chosen_tensor[:]
+            print(inputs["prompt_length"])
             chosen_label[: inputs["prompt_length"]] = [
                 label_pad_token_id
             ] * inputs["prompt_length"]
