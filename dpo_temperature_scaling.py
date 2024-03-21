@@ -74,19 +74,18 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
-            "prompt_input_ids":[]
+            "prompt_length":[]
     }
     for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
         chosen_str = prompt + " " + chosen
         rejected_str = prompt + " " + rejected
-        tokenized_prompt = tokenizer(prompt)
         tokenized_chosen = tokenizer(chosen_str, padding = "max_length", max_length = 512)
         tokenized_rejected = tokenizer(rejected_str, padding = "max_length", max_length = 512)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["prompt_input_ids"].append(tokenized_prompt["input_ids"])
+        new_examples["prompt_length"].append([len(prompt)])
 
     return new_examples
 
@@ -219,14 +218,15 @@ def set_temperature(valid_loader, model, temperature):
             # prob_neg_class = 1 - prob_pos_class
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             # Accumulate logits and labels
+            label_pad_token_id = -100
             chosen_label = chosen_sequence_tokens["input_ids"][:]
-            chosen_label[: len(inputs["prompt_input_ids"])] = [
-                self.label_pad_token_id
-            ] * len(inputs["prompt_input_ids"])
+            chosen_label[: inputs["prompt_length"]] = [
+                label_pad_token_id
+            ] * inputs["prompt_length"]
             rejected_sequence_tokens["labels"] = rejected_sequence_tokens["input_ids"][:]
-            rejected_sequence_tokens["labels"][: len(inputs["prompt_input_ids"])] = [
-                self.label_pad_token_id
-            ] * len(inputs["prompt_input_ids"])
+            rejected_sequence_tokens["labels"][: inputs["prompt_length"]] = [
+                label_pad_token_id
+            ] * inputs["prompt_length"]
 
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
             ref_chosen_logprob = get_logps(ref_rewards_chosen, chosen_label)
