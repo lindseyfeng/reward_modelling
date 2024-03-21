@@ -193,7 +193,7 @@ def get_logps( logits: torch.FloatTensor,
 
 
 
-def set_temperature(valid_loader, model, temperature):
+def set_temperature(valid_loader, model, temperature, ref_model):
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
     model.eval()
@@ -210,10 +210,10 @@ def set_temperature(valid_loader, model, temperature):
 
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-            ref_rewards_chosen = ref_file(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+            ref_rewards_chosen = ref_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
 
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
-            ref_rewards_rejected = ref_file(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+            ref_rewards_rejected = ref_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
             # prob_pos_class = torch.sigmoid(rewards_rejected)
             # prob_neg_class = 1 - prob_pos_class
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
@@ -293,5 +293,5 @@ if __name__ == "__main__":
     print(temperature.is_leaf) 
     valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
     print(valid_loader)
-    set_temperature(valid_loader, model, temperature)
+    set_temperature(valid_loader, model, temperature, ref_model)
     
