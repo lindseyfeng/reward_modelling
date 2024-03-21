@@ -272,10 +272,10 @@ if __name__ == "__main__":
     ref_file = "../llama/llama-2-7b"
     model_file="dpo_llama7b_results/checkpoint-1000"
     print(model_file)
-    tokenizer = AutoTokenizer.from_pretrained(file) #openlm-research/open_llama_3b
+    tokenizer = AutoTokenizer.from_pretrained(ref_file) #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(file).to(device)
+    model = AutoModelForCausalLM.from_pretrained(model_file).to(device)
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
     bsz = 5
