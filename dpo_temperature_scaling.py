@@ -219,12 +219,12 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
             # Accumulate logits and labels
             label_pad_token_id = -100
-            chosen_label = chosen_sequence_tokens["input_ids"][:]
+            chosen_label = input_ids_chosen_tensor[:]
             chosen_label[: inputs["prompt_length"]] = [
                 label_pad_token_id
             ] * inputs["prompt_length"]
-            rejected_sequence_tokens["labels"] = rejected_sequence_tokens["input_ids"][:]
-            rejected_sequence_tokens["labels"][: inputs["prompt_length"]] = [
+            reject_label = input_ids_rejected_tensor[:]
+            reject_label[: inputs["prompt_length"]] = [
                 label_pad_token_id
             ] * inputs["prompt_length"]
 
