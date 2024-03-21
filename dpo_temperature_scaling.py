@@ -221,13 +221,10 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             label_pad_token_id = -100
             chosen_label = input_ids_chosen_tensor[:]
             print(inputs["prompt_length"])
-            chosen_label[: inputs["prompt_length"]] = [
-                label_pad_token_id
-            ] * inputs["prompt_length"]
             reject_label = input_ids_rejected_tensor[:]
-            reject_label[: inputs["prompt_length"]] = [
-                label_pad_token_id
-            ] * inputs["prompt_length"]
+            for i, prompt_length in enumerate(inputs["prompt_length"]):
+                chosen_label[i, :prompt_length] = label_pad_token_id
+                reject_label[i, :prompt_length] = label_pad_token_id
 
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
             ref_chosen_logprob = get_logps(ref_rewards_chosen, chosen_label)
