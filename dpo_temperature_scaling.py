@@ -217,8 +217,8 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(file) #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForSequenceClassification.from_pretrained(file).to(device)
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+    model = AutoModelForCausalLM.from_pretrained(file).to(device)
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
     bsz = 5
     raw_datasets = raw_datasets.map(
             preprocess_function,
