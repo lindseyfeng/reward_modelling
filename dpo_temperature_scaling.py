@@ -1,6 +1,6 @@
 import torch
 from torch import optim, nn
-from transformers import AutoTokenizer, AutoModelForCausalLM, PhiForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForCausalLM, PhiForSequenceClassification, HfArgumentParser
 from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn.functional as F
@@ -9,6 +9,24 @@ import os
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 from torch.utils.data.dataloader import default_collate
+
+# Define and parse arguments.
+@dataclass
+class ScriptArguments:
+    """
+    The arguments for the DPO training script.
+    """
+
+    # data parameters
+    ref_file: Optional[str] = field(
+        default="../llama/llama-2-7b",
+        metadata={"help": "the location of the reference model name or path"},
+    )
+    model_file: Optional[str] = field(
+        default="dpo_llama7b_results/checkpoint-1000",
+        metadata={"help": "the location of the SFT model name or path"},
+    )
+
 
 class _ECELoss(nn.Module):
     """
@@ -131,7 +149,6 @@ def set_temperature_trl(valid_loader, model, temperature):
             # Convert logits list to tensor and labels list to tensor
         # llama3b
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
-        print(logits.shape)
 
         N, _ = logits.shape
         labels_list += [0] * N # Assuming binary labels, adjust as necessary
@@ -182,18 +199,13 @@ def get_logps( logits: torch.FloatTensor,
         if logits.shape[:-1] != labels.shape:
             raise ValueError("Logits (batch and sequence length dim) and labels must have the same shape.")
         
-        print(labels)
         if not is_encoder_decoder:
             labels = labels[:, 1:].clone()
             logits = logits[:, :-1, :]
         loss_mask = labels != label_pad_token_id
-        print(loss_mask)
         # dummy token; we'll ignore the losses on these tokens later
         labels[labels == label_pad_token_id] = 0
-        print(labels)
-        print(logits.shape)
         per_token_logps = torch.gather(logits.log_softmax(-1), dim=2, index=labels.unsqueeze(2)).squeeze(2)
-        print(per_token_logps)
         if average_log_prob:
             return (per_token_logps * loss_mask).sum(-1) / loss_mask.sum(-1)
         else:
@@ -213,7 +225,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
         beta = 0.1
         for inputs in valid_loader:
             # Stack and move to the correct device
-            print("k")
             input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
             attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
             input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
@@ -267,7 +278,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
         print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
 
             # Optimize the temperature
-        print(temperature.is_leaf) 
         optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
         def eval():
             optimizer.zero_grad()
@@ -284,9 +294,12 @@ def set_temperature(valid_loader, model, temperature, ref_model):
         return before_temperature_ece
 
 if __name__ == "__main__":
-    ref_file = "../llama/llama-2-7b"
-    model_file="dpo_llama7b_results/checkpoint-1000"
+    parser = HfArgumentParser(ScriptArguments)
+    script_args = parser.parse_args_into_dataclasses()[0]
+    ref_file = script_args.ref_file
+    model_file= script_args.model_file
     print(model_file)
+    print(ref_file)
     tokenizer = AutoTokenizer.from_pretrained(model_file) #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -308,10 +321,7 @@ if __name__ == "__main__":
             lambda x: len(x["input_ids_chosen"]) <= 512
             and len(x["input_ids_rejected"]) <= 512
         )
-    print(raw_datasets)
     temperature = nn.Parameter((torch.ones(1)*1).to(device))
-    print(temperature.is_leaf) 
     valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
-    print(valid_loader)
     set_temperature(valid_loader, model, temperature, ref_model)
     
