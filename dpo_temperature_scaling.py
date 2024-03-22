@@ -155,7 +155,7 @@ def set_temperature_trl(valid_loader, model, temperature):
 
 def get_logps( logits: torch.FloatTensor,
         labels: torch.LongTensor,
-        average_log_prob: bool = False,
+        average_log_prob: bool = True,
         label_pad_token_id: int = -100,
         is_encoder_decoder: bool = False,
     ) -> torch.FloatTensor:
@@ -234,7 +234,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             reject_logprob = get_logps(rewards_rejected, reject_label)
             ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
             print(chosen_logprob, ref_chosen_logprob, reject_logprob, ref_reject_logprob)
-
             pos_logits = (chosen_logprob-reject_logprob)-(ref_chosen_logprob-ref_reject_logprob)
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
@@ -242,8 +241,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
         # llama3b
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
         print(logits)
-        N, _ = logits.shape
-        labels_list += [0] * N # Assuming binary labels, adjust as necessary
         labels = torch.tensor(labels_list).cuda()
 
         # print(labels)
@@ -279,8 +276,8 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(model_file).to(device)
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
-    bsz = 5
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(20))
+    bsz = 10
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
