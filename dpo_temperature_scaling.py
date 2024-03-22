@@ -230,8 +230,8 @@ def set_temperature(valid_loader, model, temperature, ref_model):
 
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
             ref_chosen_logprob = get_logps(ref_rewards_chosen, chosen_label)
-            reject_logprob = get_logps(rewards_reject, reject_label)
-            ref_reject_logprob = get_logps(ref_rewards_reject, reject_label)
+            reject_logprob = get_logps(rewards_rejected, reject_label)
+            ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
 
             pos_logits = (chosen_logprob-reject_logprob)-(ref_chosen_logprob-ref_reject_logprob)
             neg_logits = -pos_logits
