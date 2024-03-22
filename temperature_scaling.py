@@ -217,7 +217,7 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
     file = "../llama/llama-2-7b"
     print(file)
-    model = AutoModelForSequenceClassification.from_pretrained(file).to(device)
+    model = AutoModelForSequenceClassification.from_pretrained(file, num_labels=1).to(device)
     model.config.pad_token_id = tokenizer.pad_token_id
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(20))
     bsz = 5
