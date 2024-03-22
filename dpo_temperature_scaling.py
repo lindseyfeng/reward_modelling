@@ -235,7 +235,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             ref_chosen_logprob = get_logps(ref_rewards_chosen, chosen_label)
             reject_logprob = get_logps(rewards_rejected, reject_label)
             ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
-            print(chosen_logprob, ref_chosen_logprob, reject_logprob, ref_reject_logprob)
+            print(chosen_logprob-ref_chosen_logprob, reject_logprob-ref_reject_logprob)
 
             pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
             neg_logits = -pos_logits
@@ -283,7 +283,7 @@ if __name__ == "__main__":
     model.config.pad_token_id = tokenizer.pad_token_id
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
     ref_model.config.pad_token_id = tokenizer.pad_token_id
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(100))
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(200))
     bsz = 10
     raw_datasets = raw_datasets.map(
             preprocess_function,
