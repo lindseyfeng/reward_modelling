@@ -35,7 +35,7 @@ class _ECELoss(nn.Module):
         self.bin_uppers = bin_boundaries[1:].to(device)
 
     def forward(self, logits, labels):
-        softmaxes = F.softmax(logits, dim=1)
+        softmaxes = torch.sigmoid(logits)
         confidences, predictions = torch.max(softmaxes, 1)
         accuracies = predictions.eq(labels)
         print(confidences)
