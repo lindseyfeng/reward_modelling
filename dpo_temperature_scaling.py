@@ -299,7 +299,7 @@ if __name__ == "__main__":
     ref_file = "../llama/llama-2-7b"
     model_file="dpo_llama7b_results/checkpoint-1000"
     print(model_file)
-    tokenizer = AutoTokenizer.from_pretrained(file) #openlm-research/open_llama_3b
+    tokenizer = AutoTokenizer.from_pretrained(model_file) #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     ref_tokenizer = AutoTokenizer.from_pretrained(ref_file) #openlm-research/open_llama_3b
