@@ -202,7 +202,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
     with torch.no_grad():
         logits_list = []
         labels_list = []
-        veta = 0.1
+        beta = 0.1
         for inputs in valid_loader:
             # Stack and move to the correct device
             print("k")
