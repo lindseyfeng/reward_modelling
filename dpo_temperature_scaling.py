@@ -74,6 +74,10 @@ def preprocess_function(examples):
             "attention_mask_chosen": [],
             "input_ids_rejected": [],
             "attention_mask_rejected": [],
+            "ref_input_ids_chosen": [],
+            "ref_attention_mask_chosen": [],
+            "ref_input_ids_rejected": [],
+            "ref_attention_mask_rejected": [],
             "prompt_length":[]
     }
     for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
@@ -86,6 +90,12 @@ def preprocess_function(examples):
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
         new_examples["prompt_length"].append([len(prompt)])
+        ref_tokenized_chosen = ref_tokenizer(chosen_str, padding = "max_length", max_length = 512)
+        ref_tokenized_rejected = ref_tokenizer(rejected_str, padding = "max_length", max_length = 512)
+        new_examples["ref_input_ids_chosen"].append(ref_tokenized_chosen["input_ids"])
+        new_examples["ref_attention_mask_chosen"].append(ref_tokenized_chosen["attention_mask"])
+        new_examples["ref_input_ids_rejected"].append(ref_tokenized_rejected["input_ids"])
+        new_examples["ref_attention_mask_rejected"].append(ref_tokenized_rejected["attention_mask"])
 
     return new_examples
 
@@ -210,6 +220,10 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
             input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
             attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
+            ref_input_ids_chosen_tensor = torch.stack(inputs["ref_input_ids_chosen"]).to(model.device).transpose(0, 1)
+            ref_attention_mask_chosen_tensor = torch.stack(inputs["ref_attention_mask_chosen"]).to(model.device).transpose(0, 1)
+            ref_input_ids_rejected_tensor = torch.stack(inputs["ref_input_ids_rejected"]).to(model.device).transpose(0, 1)
+            ref_attention_mask_rejected_tensor = torch.stack(inputs["ref_attention_mask_rejected"]).to(model.device).transpose(0, 1)
 
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
@@ -230,6 +244,15 @@ def set_temperature(valid_loader, model, temperature, ref_model):
                 prompt_length = prompt_length.item() 
                 chosen_label[i, :prompt_length] = label_pad_token_id
                 reject_label[i, :prompt_length] = label_pad_token_id
+
+            ref_chosen_label = ref_input_ids_chosen_tensor[:]
+            print(inputs["prompt_length"])
+            ref_reject_label = ref_input_ids_rejected_tensor[:]
+            for i, prompt_length in enumerate(inputs["prompt_length"][0]):
+                print(prompt_length)
+                prompt_length = prompt_length.item() 
+                ref_chosen_label[i, :prompt_length] = label_pad_token_id
+                ref_reject_label[i, :prompt_length] = label_pad_token_id
 
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
             ref_chosen_logprob = get_logps(ref_rewards_chosen, chosen_label)
@@ -274,16 +297,19 @@ def set_temperature(valid_loader, model, temperature, ref_model):
 
 if __name__ == "__main__":
     ref_file = "../llama/llama-2-7b"
-    model_file="dpo_llama7b_temperature_results/checkpoint-1000"
+    model_file="dpo_llama7b_results/checkpoint-1000"
     print(model_file)
-    tokenizer = AutoTokenizer.from_pretrained(ref_file) #openlm-research/open_llama_3b
+    tokenizer = AutoTokenizer.from_pretrained(file) #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
+    ref_tokenizer = AutoTokenizer.from_pretrained(ref_file) #openlm-research/open_llama_3b
+    if ref_tokenizer.pad_token is None:
+        ref_tokenizer.pad_token = ref_tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(model_file).to(device)
     model.config.pad_token_id = tokenizer.pad_token_id
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
-    ref_model.config.pad_token_id = tokenizer.pad_token_id
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(200))
+    ref_model.config.pad_token_id = ref_tokenizer.pad_token_id
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(100))
     bsz = 10
     raw_datasets = raw_datasets.map(
             preprocess_function,
