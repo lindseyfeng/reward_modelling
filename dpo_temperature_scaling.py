@@ -280,7 +280,9 @@ if __name__ == "__main__":
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(model_file).to(device)
+    model.config.pad_token_id = tokenizer.pad_token_id
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
+    ref_model.config.pad_token_id = tokenizer.pad_token_id
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(20))
     bsz = 10
     raw_datasets = raw_datasets.map(
