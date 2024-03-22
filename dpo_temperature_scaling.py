@@ -274,7 +274,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
 
 if __name__ == "__main__":
     ref_file = "../llama/llama-2-7b"
-    model_file="dpo_llama7b_results/checkpoint-1000"
+    model_file="dpo_llama7b_temperature_results/checkpoint-1000"
     print(model_file)
     tokenizer = AutoTokenizer.from_pretrained(ref_file) #openlm-research/open_llama_3b
     if tokenizer.pad_token is None:
