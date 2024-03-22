@@ -173,12 +173,13 @@ def get_logps( logits: torch.FloatTensor,
         """
         if logits.shape[:-1] != labels.shape:
             raise ValueError("Logits (batch and sequence length dim) and labels must have the same shape.")
-
+        
+        print(labels)
         if not is_encoder_decoder:
             labels = labels[:, 1:].clone()
             logits = logits[:, :-1, :]
         loss_mask = labels != label_pad_token_id
-
+        print(loss_mask)
         # dummy token; we'll ignore the losses on these tokens later
         labels[labels == label_pad_token_id] = 0
 
@@ -233,6 +234,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             reject_logprob = get_logps(rewards_rejected, reject_label)
             ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
             print(chosen_logprob, ref_chosen_logprob, reject_logprob, ref_reject_logprob)
+
             pos_logits = (chosen_logprob-reject_logprob)-(ref_chosen_logprob-ref_reject_logprob)
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
