@@ -313,8 +313,9 @@ if __name__ == "__main__":
     model.config.pad_token_id = tokenizer.pad_token_id
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
     ref_model.config.pad_token_id = ref_tokenizer.pad_token_id
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
     bsz = script_args.bsz
+    print(bsz)
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
@@ -324,6 +325,7 @@ if __name__ == "__main__":
             lambda x: len(x["input_ids_chosen"]) <= 512
             and len(x["input_ids_rejected"]) <= 512
         )
+    print(raw_datasets)
     temperature = nn.Parameter((torch.ones(1)*1).to(device))
     valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
     set_temperature(valid_loader, model, temperature, ref_model)

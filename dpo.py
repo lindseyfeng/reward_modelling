@@ -12,7 +12,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, 
 from trl import DPOTrainer
 
 base_dir = "../llama/llama-2-7b"
-temperature = 1.374
 
 # Define and parse arguments.
 @dataclass
@@ -22,7 +21,7 @@ class ScriptArguments:
     """
 
     # data parameters
-    beta: Optional[float] = field(default=0.1*temperature, metadata={"help": "the beta parameter for DPO loss"})
+    beta: Optional[float] = field(default=0.1, metadata={"help": "the beta parameter for DPO loss"})
 
     # training parameters
     model_name_or_path: Optional[str] = field(
@@ -55,7 +54,7 @@ class ScriptArguments:
     save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
     eval_steps: Optional[int] = field(default=500, metadata={"help": "the evaluation frequency"})
 
-    output_dir: Optional[str] = field(default="./dpo_llama7b_temperature_{}_results".format(temperature), metadata={"help": "the output directory"})
+    output_dir: Optional[str] = field(default="./dpo_llama7b_temperature_{}_results".format(beta), metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
 
     # instrumentation
