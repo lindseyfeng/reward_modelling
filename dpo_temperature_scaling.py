@@ -193,7 +193,7 @@ def get_logps( logits: torch.FloatTensor,
         # dummy token; we'll ignore the losses on these tokens later
         labels[labels == label_pad_token_id] = 0
         print(labels)
-
+        print(logits.shape)
         per_token_logps = torch.gather(logits.log_softmax(-1), dim=2, index=labels.unsqueeze(2)).squeeze(2)
         print(per_token_logps)
         if average_log_prob:
@@ -309,7 +309,7 @@ if __name__ == "__main__":
     model.config.pad_token_id = tokenizer.pad_token_id
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
     ref_model.config.pad_token_id = ref_tokenizer.pad_token_id
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(100))
+    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
     bsz = 10
     raw_datasets = raw_datasets.map(
             preprocess_function,
