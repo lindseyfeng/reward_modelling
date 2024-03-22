@@ -155,7 +155,7 @@ def set_temperature_trl(valid_loader, model, temperature):
 
 def get_logps( logits: torch.FloatTensor,
         labels: torch.LongTensor,
-        average_log_prob: bool = True,
+        average_log_prob: bool = False,
         label_pad_token_id: int = -100,
         is_encoder_decoder: bool = False,
     ) -> torch.FloatTensor:
@@ -182,9 +182,10 @@ def get_logps( logits: torch.FloatTensor,
         print(loss_mask)
         # dummy token; we'll ignore the losses on these tokens later
         labels[labels == label_pad_token_id] = 0
+        print(labels)
 
         per_token_logps = torch.gather(logits.log_softmax(-1), dim=2, index=labels.unsqueeze(2)).squeeze(2)
-
+        print(per_token_logps)
         if average_log_prob:
             return (per_token_logps * loss_mask).sum(-1) / loss_mask.sum(-1)
         else:
@@ -234,6 +235,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             reject_logprob = get_logps(rewards_rejected, reject_label)
             ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
             print(chosen_logprob, ref_chosen_logprob, reject_logprob, ref_reject_logprob)
+
             pos_logits = (chosen_logprob-reject_logprob)-(ref_chosen_logprob-ref_reject_logprob)
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
@@ -241,6 +243,8 @@ def set_temperature(valid_loader, model, temperature, ref_model):
         # llama3b
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
         print(logits)
+        N, _ = logits.shape
+        labels_list += [0] * N # Assuming binary labels, adjust as necessary
         labels = torch.tensor(labels_list).cuda()
 
         # print(labels)
