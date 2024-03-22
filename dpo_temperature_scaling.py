@@ -227,10 +227,10 @@ def set_temperature(valid_loader, model, temperature, ref_model):
 
             # Note: Corrected model input to use tensors instead of lists
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-            ref_rewards_chosen = ref_model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+            ref_rewards_chosen = ref_model(input_ids=ref_input_ids_chosen_tensor, attention_mask=ref_attention_mask_chosen_tensor, return_dict=True).logits
 
-            rewards_rejected = model(input_ids=ref_input_ids_rejected_tensor, attention_mask=ref_attention_mask_rejected_tensor, return_dict=True).logits
-            ref_rewards_rejected = ref_model(input_ids=ref_input_ids_chosen_tensor, attention_mask=ref_attention_mask_chosen_tensor, return_dict=True).logits
+            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
+            ref_rewards_rejected = ref_model(input_ids=ref_input_ids_rejected_tensor, attention_mask=ref_attention_mask_rejected_tensor, return_dict=True).logits
             label_pad_token_id = -100
             chosen_label = input_ids_chosen_tensor[:]
             reject_label = input_ids_rejected_tensor[:]
