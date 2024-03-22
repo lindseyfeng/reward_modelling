@@ -5,6 +5,7 @@ from datasets import load_dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn.functional as F
 import os
+from dataclasses import dataclass, field
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -26,6 +27,7 @@ class ScriptArguments:
         default="dpo_llama7b_results/checkpoint-1000",
         metadata={"help": "the location of the SFT model name or path"},
     )
+    bsz: Optional[int] = field(default=10, metadata={"help": "size of each batch"})
 
 
 class _ECELoss(nn.Module):
@@ -311,7 +313,7 @@ if __name__ == "__main__":
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
     ref_model.config.pad_token_id = ref_tokenizer.pad_token_id
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
-    bsz = 10
+    bsz = script_args.bsz
     raw_datasets = raw_datasets.map(
             preprocess_function,
             batched=True,
