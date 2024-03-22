@@ -237,7 +237,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
             print(chosen_logprob, ref_chosen_logprob, reject_logprob, ref_reject_logprob)
 
-            pos_logits = ((chosen_logprob-reject_logprob)-(ref_chosen_logprob-ref_reject_logprob))*beta
+            pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
