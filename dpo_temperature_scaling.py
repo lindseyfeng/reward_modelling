@@ -70,7 +70,7 @@ class _ECELoss(nn.Module):
                 avg_confidence_in_bin = confidences[in_bin].mean()
                 ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
         percentage_true = torch.mean(accuracies.float()) * 100  
-        percentage_true.item()
+        print("accuracy : ", percentage_true.item())
         return ece
     
 
