@@ -235,7 +235,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             chosen_label = input_ids_chosen_tensor[:]
             reject_label = input_ids_rejected_tensor[:]
             for i, prompt_length in enumerate(inputs["prompt_length"][0]):
-                print(prompt_length)
                 prompt_length = prompt_length.item() 
                 chosen_label[i, :prompt_length] = label_pad_token_id
                 reject_label[i, :prompt_length] = label_pad_token_id
@@ -243,7 +242,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             ref_chosen_label = ref_input_ids_chosen_tensor[:]
             ref_reject_label = ref_input_ids_rejected_tensor[:]
             for i, prompt_length in enumerate(inputs["prompt_length"][0]):
-                print(prompt_length)
                 prompt_length = prompt_length.item() 
                 ref_chosen_label[i, :prompt_length] = label_pad_token_id
                 ref_reject_label[i, :prompt_length] = label_pad_token_id
@@ -252,7 +250,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             ref_chosen_logprob = get_logps(ref_rewards_chosen, chosen_label)
             reject_logprob = get_logps(rewards_rejected, reject_label)
             ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
-            print(chosen_logprob-ref_chosen_logprob, reject_logprob-ref_reject_logprob)
 
             pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
             neg_logits = -pos_logits
@@ -260,7 +257,6 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             # Convert logits list to tensor and labels list to tensor
         # llama3b
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
-        print(logits)
         N, _ = logits.shape
         labels_list += [0] * N # Assuming binary labels, adjust as necessary
         labels = torch.tensor(labels_list).cuda()
