@@ -12,13 +12,13 @@ from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature
 from trl import DPOTrainer
 
 base_dir = "../llama/llama-2-7b"
-temperature = 1.374
 
 class IterativeDP0Trainer(DPOTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
         super().__init__(*args, **kwargs)
         self.beta_update_interval = beta_update_interval
         self.eval_step_counter = 3
+        self.temperature = nn.Parameter((torch.ones(1)*1.374).to(device))
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
