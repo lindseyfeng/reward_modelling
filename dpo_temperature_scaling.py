@@ -124,6 +124,7 @@ def temperature_scale(logits, temperature):
     return logits / temperature
 
 def set_temperature_trl(valid_loader, model, temperature):
+    beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
     with torch.no_grad():
@@ -131,10 +132,20 @@ def set_temperature_trl(valid_loader, model, temperature):
         labels_list = []
         for inputs in valid_loader:
             print(inputs)
-            input_ids_chosen_tensor = inputs["input_ids_chosen"]
-            attention_mask_chosen_tensor = inputs["attention_mask_chosen"]
-            input_ids_rejected_tensor = inputs["input_ids_rejected"]
-            attention_mask_rejected_tensor = inputs["attention_mask_rejected"]
+            input_ids_chosen_tensor = inputs["chosen_input_ids"]
+            attention_mask_chosen_tensor = inputs["chosen_attention_mask"]
+            input_ids_rejected_tensor = inputs["rejected_input_ids"]
+            attention_mask_rejected_tensor = inputs["rejected_attention_mask"]
+            prompt_tensor = inputs["rejected_input_ids"]
+            chosen_label = inputs["chosen_labels"]
+            reject_label = inputs["rejected_labels"]
+            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
+            chosen_logprob = get_logps(rewards_chosen, chosen_label)
+            reject_logprob = get_logps(rewards_rejected, reject_label)
+            ref_chosen_logprob = inputs["reference_chosen_logps"]
+            ref_reject_logprob = inputs["reference_rejected_logps"]
+            pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
