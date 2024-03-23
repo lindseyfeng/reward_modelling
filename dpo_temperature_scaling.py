@@ -131,7 +131,6 @@ def set_temperature_trl(valid_loader, model, temperature):
         logits_list = []
         labels_list = []
         for inputs in valid_loader:
-            print(inputs)
             input_ids_chosen_tensor = inputs["chosen_input_ids"]
             attention_mask_chosen_tensor = inputs["chosen_attention_mask"]
             input_ids_rejected_tensor = inputs["rejected_input_ids"]
@@ -151,6 +150,7 @@ def set_temperature_trl(valid_loader, model, temperature):
             # Convert logits list to tensor and labels list to tensor
         # llama3b
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
+        print(logits)
 
         N, _ = logits.shape
         labels_list += [0] * N # Assuming binary labels, adjust as necessary
