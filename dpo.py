@@ -30,17 +30,16 @@ class ScriptArguments:
     )
     learning_rate: Optional[float] = field(default=5e-4, metadata={"help": "optimizer learning rate"})
     lr_scheduler_type: Optional[str] = field(default="cosine", metadata={"help": "the lr scheduler type"})
-    warmup_steps: Optional[int] = field(default=    50, metadata={"help": "the number of warmup steps"})
-    weight_decay: Optional[float] = field(default=0.05, metadata={"help": "the weight decay"})
+    warmup_steps: Optional[int] = field(default=150, metadata={"help": "the number of warmup steps"})
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
-
+    num_train_epochs: Optional[int] = field(default=2, metadata={"help": "num epoch"})
     per_device_train_batch_size: Optional[int] = field(default=4, metadata={"help": "train batch size per device"})
     per_device_eval_batch_size: Optional[int] = field(default=4, metadata={"help": "eval batch size per device"})
     gradient_accumulation_steps: Optional[int] = field(
         default=4, metadata={"help": "the number of gradient accumulation steps"}
     )
     gradient_checkpointing: Optional[bool] = field(
-        default=True, metadata={"help": "whether to use gradient checkpointing"}
+        default=False, metadata={"help": "whether to use gradient checkpointing"}
     )
 
     lora_alpha: Optional[float] = field(default=16, metadata={"help": "the lora alpha parameter"})
@@ -48,8 +47,8 @@ class ScriptArguments:
     lora_r: Optional[int] = field(default=64, metadata={"help": "the lora r parameter"})
     max_target_length: Optional[int] = field(default=128, metadata={"help": "Only used for encoder decoder model. Max target of each sample's prompt"})
     max_prompt_length: Optional[int] = field(default=512, metadata={"help": "the maximum prompt length"})
-    max_length: Optional[int] = field(default=1024, metadata={"help": "the maximum sequence length"})
-    max_steps: Optional[int] = field(default=2048, metadata={"help": "max number of training steps"})
+    max_length: Optional[int] = field(default=512, metadata={"help": "the maximum sequence length"})
+    max_steps: Optional[int] = field(default=-1, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
     eval_steps: Optional[int] = field(default=500, metadata={"help": "the evaluation frequency"})
@@ -147,22 +146,23 @@ if __name__ == "__main__":
         do_eval = True,
         per_device_train_batch_size=script_args.per_device_train_batch_size,
         per_device_eval_batch_size=script_args.per_device_eval_batch_size,
-        max_steps=script_args.max_steps,
         logging_steps=script_args.logging_steps,
-        save_steps=script_args.save_steps,
+        logging_first_step=True,
         gradient_accumulation_steps=script_args.gradient_accumulation_steps,
         gradient_checkpointing=script_args.gradient_checkpointing,
         learning_rate=script_args.learning_rate,
         evaluation_strategy="steps",
+        save_strategy="epoch",
         eval_steps=script_args.eval_steps,
         output_dir=script_args.output_dir,
         report_to=script_args.report_to,
-        lr_scheduler_type=script_args.lr_scheduler_type,
         warmup_steps=script_args.warmup_steps,
         optim=script_args.optimizer_type,
         bf16=True,
         remove_unused_columns=False,
         run_name="dpo_llama7b",
+        num_train_epochs=script_args.num_train_epochs,
+        save_total_limit=1,
     )
 
     peft_config = LoraConfig(
