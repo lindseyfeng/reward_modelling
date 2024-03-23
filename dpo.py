@@ -53,7 +53,7 @@ class ScriptArguments:
     save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
     eval_steps: Optional[int] = field(default=500, metadata={"help": "the evaluation frequency"})
 
-    output_dir: Optional[str] = field(default="./dpo_llama7b_temperature_{}_results".format(beta), metadata={"help": "the output directory"})
+    output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
 
     # instrumentation
@@ -160,7 +160,7 @@ if __name__ == "__main__":
         optim=script_args.optimizer_type,
         bf16=True,
         remove_unused_columns=False,
-        run_name="dpo_llama7b",
+        run_name="dpo_llama7b_temp_{}".format(script_args.beta),
         num_train_epochs=script_args.num_train_epochs,
         save_total_limit=1,
     )
