@@ -135,19 +135,6 @@ def set_temperature_trl(valid_loader, model, temperature):
             attention_mask_chosen_tensor = inputs["attention_mask_chosen"]
             input_ids_rejected_tensor = inputs["input_ids_rejected"]
             attention_mask_rejected_tensor = inputs["attention_mask_rejected"]
-
-            # Note: Corrected model input to use tensors instead of lists
-            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-
-            # prob_pos_class = torch.sigmoid(rewards_chosen)
-            # prob_neg_class = 1 - prob_pos_class
-            # prob_chosen = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
-            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
-            # prob_pos_class = torch.sigmoid(rewards_rejected)
-            # prob_neg_class = 1 - prob_pos_class
-            # prob_reject = torch.cat((prob_pos_class.unsqueeze(-1), prob_neg_class.unsqueeze(-1)), dim=-1)
-            # Accumulate logits and labels
-            pos_logits = rewards_chosen - rewards_rejected
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor

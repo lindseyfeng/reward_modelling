@@ -8,7 +8,7 @@ import torch
 from datasets import Dataset, load_dataset
 from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
-
+from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature_trl
 from trl import DPOTrainer
 
 base_dir = "../llama/llama-2-7b"
@@ -23,19 +23,18 @@ class CustomDPTrainer(DPTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
+            eval_dataloader = self.get_eval_dataloader(eval_dataset)
+            print(eval_dataloader)
+            eval_result["ece"] = set_temperature_trl(eval_dataloader, self.model, self.temperature)
+            log_value = self.temperature.detach().cpu().item()
+            self.beta = 0.1*log_value
+            wandb.log({'temperature_trajectory': self.beta})
 
-        
         # Increment the counter
         self.eval_step_counter += 1
         
         # Now call the original evaluate function
         return super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
-        eval_dataloader = self.get_eval_dataloader(eval_dataset)
-        print(eval_dataloader)
-        eval_result["ece"] = set_temperature_trl(eval_dataloader, self.model, self.temperature)
-        log_value = self.temperature.detach().cpu().item()
-        self.beta = 0.1*log_value
-        wandb.log({'temperature_trajectory': self.beta})
 
 
 
@@ -79,7 +78,7 @@ class ScriptArguments:
     max_steps: Optional[int] = field(default=1000, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
+    eval_steps: Optional[int] = field(default=5, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_temperature_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
