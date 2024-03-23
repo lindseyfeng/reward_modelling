@@ -12,6 +12,7 @@ from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature
 from trl import DPOTrainer
 
 base_dir = "../llama/llama-2-7b"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class IterativeDP0Trainer(DPOTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
