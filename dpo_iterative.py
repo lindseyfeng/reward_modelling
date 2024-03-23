@@ -3,7 +3,7 @@
 import os
 from dataclasses import dataclass, field
 from typing import Dict, Optional
-
+import torch.nn as nn
 import torch
 from datasets import Dataset, load_dataset
 from peft import LoraConfig
@@ -162,11 +162,11 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
 
     # 2. Load the Stack-exchange paired dataset
-    train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
+    train_dataset = get_hh("train", sanity_check=script_args.sanity_check).select(range(10))
     print(train_dataset)
 
     # 3. Load evaluation dataset
-    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
+    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check).select(range(10))
     print(eval_dataset)
 
     # 4. initialize training arguments:
