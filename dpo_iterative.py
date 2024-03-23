@@ -18,17 +18,18 @@ class CustomDPTrainer(DPTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
         super().__init__(*args, **kwargs)
         self.beta_update_interval = beta_update_interval
-        self.eval_step_counter = 1
+        self.eval_step_counter = 3
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
             print(eval_dataloader)
-            eval_result["ece"] = set_temperature_trl(eval_dataloader, self.model, self.temperature)
+            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
             log_value = self.temperature.detach().cpu().item()
             self.beta = 0.1*log_value
             wandb.log({'temperature_trajectory': self.beta})
+            wandb.log({'ece': ece})
 
         # Increment the counter
         self.eval_step_counter += 1
