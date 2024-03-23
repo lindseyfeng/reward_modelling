@@ -14,7 +14,7 @@ from trl import DPOTrainer
 base_dir = "../llama/llama-2-7b"
 temperature = 1.374
 
-class CustomDPTrainer(DPTrainer):
+class IterativeDP0Trainer(DPOTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
         super().__init__(*args, **kwargs)
         self.beta_update_interval = beta_update_interval
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     )
 
     # 5. initialize the DPO trainer
-    dpo_trainer = DPOTrainer(
+    dpo_trainer = IterativeDP0Trainer(
         model,
         model_ref,
         args=training_args,
