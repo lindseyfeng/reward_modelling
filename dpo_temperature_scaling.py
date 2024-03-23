@@ -130,7 +130,7 @@ def set_temperature_trl(valid_loader, model, temperature):
         logits_list = []
         labels_list = []
         for inputs in valid_loader:
-            # Stack and move to the correct device
+            print(inputs)
             input_ids_chosen_tensor = inputs["input_ids_chosen"]
             attention_mask_chosen_tensor = inputs["attention_mask_chosen"]
             input_ids_rejected_tensor = inputs["input_ids_rejected"]
