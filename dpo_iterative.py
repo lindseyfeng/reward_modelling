@@ -19,7 +19,7 @@ class IterativeDP0Trainer(DPOTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
         super().__init__(*args, **kwargs)
         self.beta_update_interval = beta_update_interval
-        self.eval_step_counter = 3
+        self.eval_step_counter = 0
         self.temperature = nn.Parameter((torch.ones(1)*1.374).to(device))
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
@@ -50,7 +50,7 @@ class ScriptArguments:
     """
 
     # data parameters
-    beta: Optional[float] = field(default=0.1, metadata={"help": "the beta parameter for DPO loss"})
+    beta: Optional[float] = field(default=0.137, metadata={"help": "the beta parameter for DPO loss"})
 
     # training parameters
     model_name_or_path: Optional[str] = field(
@@ -81,7 +81,7 @@ class ScriptArguments:
     max_steps: Optional[int] = field(default=1000, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=5, metadata={"help": "the evaluation frequency"})
+    eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_iterative_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
@@ -164,11 +164,11 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
 
     # 2. Load the Stack-exchange paired dataset
-    train_dataset = get_hh("train", sanity_check=script_args.sanity_check).select(range(10))
+    train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
     print(train_dataset)
 
     # 3. Load evaluation dataset
-    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check).select(range(10))
+    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
     print(eval_dataset)
 
     # 4. initialize training arguments:
