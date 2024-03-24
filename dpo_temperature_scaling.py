@@ -224,7 +224,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
     with torch.no_grad():
         logits_list = []
         labels_list = []
-        beta = 0.1
+        beta = 0.1442
         count = 0
         for inputs in valid_loader:
             print(count)
