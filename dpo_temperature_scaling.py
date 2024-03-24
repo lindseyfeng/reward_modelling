@@ -103,8 +103,8 @@ def preprocess_function(examples):
     for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
         chosen_str = prompt + " " + chosen
         rejected_str = prompt + " " + rejected
-        tokenized_chosen = ref_tokenizer(chosen_str, padding = "max_length", max_length = 512)
-        tokenized_rejected = ref_tokenizer(rejected_str, padding = "max_length", max_length = 512)
+        tokenized_chosen = tokenizer(chosen_str, padding = "max_length", max_length = 512)
+        tokenized_rejected = tokenizer(rejected_str, padding = "max_length", max_length = 512)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
