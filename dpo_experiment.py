@@ -32,8 +32,6 @@ class ScriptArguments:
 def logits_to_list(logits_tensor):
     logits_list = logits_tensor.detach().cpu().tolist()
     # Flatten the list since the original tensor has a shape of [10, 1]
-    print(logits_list)
-    logits_list = [item for sublist in logits_list for item in sublist]
     return logits_list
 
 def custom_collate_fn(batch):
