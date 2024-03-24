@@ -261,9 +261,9 @@ def set_temperature(valid_loader, model, temperature, ref_model):
                 ref_reject_label[i, :prompt_length] = label_pad_token_id
 
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
-            ref_chosen_logprob = get_logps(ref_rewards_chosen, chosen_label)
+            ref_chosen_logprob = get_logps(ref_rewards_chosen, ref_chosen_label)
             reject_logprob = get_logps(rewards_rejected, reject_label)
-            ref_reject_logprob = get_logps(ref_rewards_rejected, reject_label)
+            ref_reject_logprob = get_logps(ref_rewards_rejected, ref_reject_label)
 
             pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
             neg_logits = -pos_logits
