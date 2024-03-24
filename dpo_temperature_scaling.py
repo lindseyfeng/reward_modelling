@@ -305,11 +305,14 @@ if __name__ == "__main__":
     model_file= script_args.model_file
     print(model_file)
     print(ref_file)
+    tokenizer = AutoTokenizer.from_pretrained(model_file) #openlm-research/open_llama_3b
     ref_tokenizer = AutoTokenizer.from_pretrained(ref_file) #openlm-research/open_llama_3b
     if ref_tokenizer.pad_token is None:
         ref_tokenizer.pad_token = ref_tokenizer.eos_token
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(model_file).to(device)
-    model.config.pad_token_id = ref_tokenizer.pad_token_id
+    model.config.pad_token_id = tokenizer.pad_token_id
     ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
     ref_model.config.pad_token_id = ref_tokenizer.pad_token_id
     raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"].select(range(10))
