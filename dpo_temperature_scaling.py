@@ -25,7 +25,7 @@ class ScriptArguments:
         metadata={"help": "the location of the reference model name or path"},
     )
     model_file: Optional[str] = field(
-        default="./dpo_llama7b_iterative_results/final_checkpoint",
+        default="./dpo_llama7b_iterative_results/checkpoint-1000",
         metadata={"help": "the location of the SFT model name or path"},
     )
     bsz: Optional[int] = field(default=10, metadata={"help": "size of each batch"})
