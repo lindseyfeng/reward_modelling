@@ -25,7 +25,7 @@ class ScriptArguments:
         metadata={"help": "the location of the reference model name or path"},
     )
     model_file: Optional[str] = field(
-        default="dpo_llama7b_results/checkpoint-1000",
+        default="./dpo_llama7b_iterative_results/final_checkpoint",
         metadata={"help": "the location of the SFT model name or path"},
     )
     bsz: Optional[int] = field(default=10, metadata={"help": "size of each batch"})
@@ -225,7 +225,10 @@ def set_temperature(valid_loader, model, temperature, ref_model):
         logits_list = []
         labels_list = []
         beta = 0.1
+        count = 0
         for inputs in valid_loader:
+            print(count)
+            count +=1
             # Stack and move to the correct device
             input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
             attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
