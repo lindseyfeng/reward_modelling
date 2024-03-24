@@ -99,23 +99,27 @@ def preprocess_function(examples):
             "ref_input_ids_rejected": [],
             "ref_attention_mask_rejected": [],
             "prompt_length":[]
+            "ref_prompt_length":[]
     }
     for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
         chosen_str = prompt + " " + chosen
         rejected_str = prompt + " " + rejected
+        tokenized_prompt = tokenizer(prompt)
         tokenized_chosen = tokenizer(chosen_str, padding = "max_length", max_length = 512)
         tokenized_rejected = tokenizer(rejected_str, padding = "max_length", max_length = 512)
         new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
         new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
         new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["prompt_length"].append([len(prompt)])
+        new_examples["prompt_length"].append([len(tokenized_prompt)])
+        ref_tokenized_prompt = ref_tokenizer(prompt)
         ref_tokenized_chosen = ref_tokenizer(chosen_str, padding = "max_length", max_length = 512)
         ref_tokenized_rejected = ref_tokenizer(rejected_str, padding = "max_length", max_length = 512)
         new_examples["ref_input_ids_chosen"].append(ref_tokenized_chosen["input_ids"])
         new_examples["ref_attention_mask_chosen"].append(ref_tokenized_chosen["attention_mask"])
         new_examples["ref_input_ids_rejected"].append(ref_tokenized_rejected["input_ids"])
         new_examples["ref_attention_mask_rejected"].append(ref_tokenized_rejected["attention_mask"])
+        new_examples["ref_prompt_length"].append([len(ref_tokenized_prompt)])
 
     return new_examples
 
@@ -256,7 +260,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
                 print(reject_label)
             ref_chosen_label = ref_input_ids_chosen_tensor
             ref_reject_label = ref_input_ids_rejected_tensor
-            for i, prompt_length in enumerate(inputs["prompt_length"][0]):
+            for i, prompt_length in enumerate(inputs["ref_prompt_length"][0]):
                 prompt_length = prompt_length.item() 
                 ref_chosen_label[i, :prompt_length] = label_pad_token_id
                 ref_reject_label[i, :prompt_length] = label_pad_token_id
