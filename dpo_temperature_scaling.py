@@ -98,7 +98,7 @@ def preprocess_function(examples):
             "ref_attention_mask_chosen": [],
             "ref_input_ids_rejected": [],
             "ref_attention_mask_rejected": [],
-            "prompt_length":[]
+            "prompt_length":[],
             "ref_prompt_length":[]
     }
     for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
