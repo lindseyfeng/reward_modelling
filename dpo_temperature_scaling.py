@@ -224,7 +224,7 @@ def set_temperature(valid_loader, model, temperature, ref_model):
     with torch.no_grad():
         logits_list = []
         labels_list = []
-        beta = 0.1442
+        beta = 0.1
         count = 0
         for inputs in valid_loader:
             print(count)
@@ -246,15 +246,15 @@ def set_temperature(valid_loader, model, temperature, ref_model):
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
             ref_rewards_rejected = ref_model(input_ids=ref_input_ids_rejected_tensor, attention_mask=ref_attention_mask_rejected_tensor, return_dict=True).logits
             label_pad_token_id = -100
-            chosen_label = input_ids_chosen_tensor[:]
-            reject_label = input_ids_rejected_tensor[:]
+            chosen_label = input_ids_chosen_tensor
+            reject_label = input_ids_rejected_tensor
             for i, prompt_length in enumerate(inputs["prompt_length"][0]):
                 prompt_length = prompt_length.item() 
                 chosen_label[i, :prompt_length] = label_pad_token_id
                 reject_label[i, :prompt_length] = label_pad_token_id
 
-            ref_chosen_label = ref_input_ids_chosen_tensor[:]
-            ref_reject_label = ref_input_ids_rejected_tensor[:]
+            ref_chosen_label = ref_input_ids_chosen_tensor
+            ref_reject_label = ref_input_ids_rejected_tensor
             for i, prompt_length in enumerate(inputs["prompt_length"][0]):
                 prompt_length = prompt_length.item() 
                 ref_chosen_label[i, :prompt_length] = label_pad_token_id
