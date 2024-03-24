@@ -35,6 +35,18 @@ def logits_to_list(logits_tensor):
     logits_list = [item for sublist in logits_list for item in sublist]
     return logits_list
 
+def custom_collate_fn(batch):
+    # This function assumes that each element in `batch` is a dictionary
+    # with keys 'input_ids_chosen', 'attention_mask_chosen', 'input_ids_rejected', 'attention_mask_rejected'.
+    # Modify as necessary to match your dataset structure.
+
+    batched_data = {}
+    for key in batch[0].keys():
+        # Use default_collate to handle the usual collation logic, such as
+        # converting lists of tensors into a single tensor.
+        batched_data[key] = default_collate([d[key] for d in batch])
+    return batched_data
+
 def get_logps( logits: torch.FloatTensor,
         labels: torch.LongTensor,
         average_log_prob: bool = False,
