@@ -172,7 +172,65 @@ def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
     return logits / temperature
 
-def set_temperature_trl(valid_loader, model, temperature, pretrained_model_name_or_path):
+def set_temperature_trl(valid_loader, model, temperature):
+    beta = 0.1
+    nll_criterion = nn.CrossEntropyLoss().cuda()
+    ece_criterion = _ECELoss().cuda()
+    with torch.no_grad():
+        logits_list = []
+        labels_list = []
+        for inputs in valid_loader:
+            input_ids_chosen_tensor = inputs["chosen_input_ids"]
+            attention_mask_chosen_tensor = inputs["chosen_attention_mask"]
+            input_ids_rejected_tensor = inputs["rejected_input_ids"]
+            attention_mask_rejected_tensor = inputs["rejected_attention_mask"]
+            prompt_tensor = inputs["rejected_input_ids"]
+            chosen_label = inputs["chosen_labels"]
+            reject_label = inputs["rejected_labels"]
+            print(input_ids_chosen_tensor)
+            print(attention_mask_chosen_tensor)
+            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
+            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
+            chosen_logprob = get_logps(rewards_chosen, chosen_label)
+            reject_logprob = get_logps(rewards_rejected, reject_label)
+            ref_chosen_logprob = inputs["reference_chosen_logps"]
+            ref_reject_logprob = inputs["reference_rejected_logps"]
+            pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
+            neg_logits = -pos_logits
+            logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+            # Convert logits list to tensor and labels list to tensor
+        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
+        print(logits)
+
+        N, _ = logits.shape
+        labels_list += [0] * N # Assuming binary labels, adjust as necessary
+        labels = torch.tensor(labels_list).cuda()
+
+
+        # print(labels)
+            # Calculate NLL and ECE before temperature scaling
+        before_temperature_nll = nll_criterion(logits, labels).item()
+        before_temperature_ece = ece_criterion(logits, labels).item()
+        print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
+
+            # Optimize the temperature
+        print(temperature.is_leaf) 
+        optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
+        def eval():
+            optimizer.zero_grad()
+            loss = nll_criterion(temperature_scale(logits, temperature), labels)
+            loss.backward()
+            return loss
+        optimizer.step(eval)
+
+            # Calculate NLL after temperature scaling
+        after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
+        after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
+        print('Optimal temperature: %.3f' % temperature.item())
+        print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
+        return before_temperature_ece
+
+def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_path):
     beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
@@ -280,8 +338,8 @@ class Temperature_scaling_DP0Trainer(DPOTrainer):
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
-        eval_dataloader = self.get_eval_dataloader(eval_dataset)
-        ece = set_temperature_trl(eval_dataloader, self.model, self.temperature, script_args.model_file)
+        eval_dataloader = self.get_eval_dataloader(eval_dataset).to(device)
+        ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.model_file)
         log_value = self.temperature.detach().cpu().item()      
         # Now call the original evaluate function
         return super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
@@ -375,7 +433,7 @@ if __name__ == "__main__":
         max_prompt_length=script_args.max_prompt_length,
         max_length=script_args.max_length,
         precompute_ref_log_probs = True, 
-    )
+    ).to(device)
 
     # 6. train
     dpo_trainer.evaluate()
