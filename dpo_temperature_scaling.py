@@ -7,6 +7,8 @@ import torch.nn.functional as F
 import os
 from dataclasses import dataclass, field
 from typing import Dict, Optional
+import json
+from trl import DPOTrainer
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -208,7 +210,7 @@ def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
     return logits / temperature
 
-def set_temperature_trl(valid_loader, model, temperature):
+def set_temperature_trl(valid_loader, model, temperature, pretrained_model_name_or_path):
     beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
@@ -234,6 +236,14 @@ def set_temperature_trl(valid_loader, model, temperature):
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
         # llama3b
+        data_to_save = {
+            "logits": logits_list
+        }
+        file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
+
+            # Writing the data to a JSON file.
+        with open(file_path, 'w') as json_file:
+            json.dump(data_to_save, json_file)
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
         print(logits)
 
@@ -299,7 +309,7 @@ def get_logps( logits: torch.FloatTensor,
             return (per_token_logps * loss_mask).sum(-1)
 
 
-class IterativeDP0Trainer(DPOTrainer):
+class Temperature_scaling_DP0Trainer(DPOTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
         super().__init__(*args, **kwargs)
         self.temperature = nn.Parameter((torch.ones(1)*1.374).to(device))
@@ -388,7 +398,7 @@ if __name__ == "__main__":
     )
 
     # 5. initialize the DPO trainer
-    dpo_trainer = IterativeDP0Trainer(
+    dpo_trainer = Temperature_scaling_DP0Trainer(
         model,
         model_ref,
         args=training_args,
