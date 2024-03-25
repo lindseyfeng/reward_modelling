@@ -38,7 +38,7 @@ class ScriptArguments:
         metadata={"help": "the location of the SFT model name or path"},
     )
      # data parameters
-    beta: Optional[float] = field(default=0.137, metadata={"help": "the beta parameter for DPO loss"})
+    beta: Optional[float] = field(default=0.1, metadata={"help": "the beta parameter for DPO loss"})
 
     learning_rate: Optional[float] = field(default=5e-5, metadata={"help": "optimizer learning rate"})
     lr_scheduler_type: Optional[str] = field(default="cosine", metadata={"help": "the lr scheduler type"})
@@ -340,7 +340,7 @@ def get_logps( logits: torch.FloatTensor,
 class Temperature_scaling_DP0Trainer(DPOTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
         super().__init__(*args, **kwargs)
-        self.temperature = nn.Parameter((torch.ones(1)*1.374).to(device))
+        self.temperature = nn.Parameter((torch.ones(1)).to(device))
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
@@ -374,7 +374,7 @@ if __name__ == "__main__":
         ref_file,
         low_cpu_mem_usage=True,
     )
-    tokenizer = AutoTokenizer.from_pretrained(model_file)
+    tokenizer = AutoTokenizer.from_pretrained(ref_file)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
