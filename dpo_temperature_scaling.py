@@ -28,7 +28,88 @@ class ScriptArguments:
         default="./dpo_llama7b_iterative_results/checkpoint-1000",
         metadata={"help": "the location of the SFT model name or path"},
     )
-    bsz: Optional[int] = field(default=10, metadata={"help": "size of each batch"})
+     # data parameters
+    beta: Optional[float] = field(default=0.137, metadata={"help": "the beta parameter for DPO loss"})
+
+    # training parameters
+    model_name_or_path: Optional[str] = field(
+        default=base_dir,
+        metadata={"help": "the location of the SFT model name or path"},
+    )
+    learning_rate: Optional[float] = field(default=5e-5, metadata={"help": "optimizer learning rate"})
+    lr_scheduler_type: Optional[str] = field(default="cosine", metadata={"help": "the lr scheduler type"})
+    warmup_steps: Optional[int] = field(default=100, metadata={"help": "the number of warmup steps"})
+    weight_decay: Optional[float] = field(default=0.05, metadata={"help": "the weight decay"})
+    optimizer_type: Optional[str] = field(default="paged_adamw_32bit", metadata={"help": "the optimizer type"})
+
+    per_device_train_batch_size: Optional[int] = field(default=4, metadata={"help": "train batch size per device"})
+    per_device_eval_batch_size: Optional[int] = field(default=1, metadata={"help": "eval batch size per device"})
+    gradient_accumulation_steps: Optional[int] = field(
+        default=5, metadata={"help": "the number of gradient accumulation steps"}
+    )
+    gradient_checkpointing: Optional[bool] = field(
+        default=True, metadata={"help": "whether to use gradient checkpointing"}
+    )
+
+    lora_alpha: Optional[float] = field(default=16, metadata={"help": "the lora alpha parameter"})
+    lora_dropout: Optional[float] = field(default=0.05, metadata={"help": "the lora dropout parameter"})
+    lora_r: Optional[int] = field(default=8, metadata={"help": "the lora r parameter"})
+
+    max_prompt_length: Optional[int] = field(default=512, metadata={"help": "the maximum prompt length"})
+    max_length: Optional[int] = field(default=1024, metadata={"help": "the maximum sequence length"})
+    max_steps: Optional[int] = field(default=1000, metadata={"help": "max number of training steps"})
+    logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
+    save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
+    eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
+
+    log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
+
+    # instrumentation
+    sanity_check: Optional[bool] = field(default=False, metadata={"help": "only train on 1000 samples"})
+    report_to: Optional[str] = field(
+        default="wandb",
+        metadata={
+            "help": 'The list of integrations to report the results and logs to. Supported platforms are `"azure_ml"`,'
+            '`"comet_ml"`, `"mlflow"`, `"neptune"`, `"tensorboard"`,`"clearml"` and `"wandb"`. '
+            'Use `"all"` to report to all integrations installed, `"none"` for no integrations.'
+        },
+    )
+    # debug argument for distributed training
+    ignore_bias_buffers: Optional[bool] = field(
+        default=False,
+        metadata={
+            "help": "fix for DDP issues with LM bias/mask buffers - invalid scalar type,`inplace operation. See"
+            "https://github.com/huggingface/transformers/issues/22482#issuecomment-1595790992"
+        },
+    )
+
+
+def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_dir: str = None) -> Dataset:
+    """Load the Anthropic Helpful-Harmless dataset from Hugging Face and convert it to the necessary format.
+
+    The dataset is converted to a dictionary with the following structure:
+    {
+        'prompt': List[str],
+        'chosen': List[str],
+        'rejected': List[str],
+    }
+
+    Prompts should be structured as follows:
+      \n\nHuman: <prompt>\n\nAssistant:
+    Multiple turns are allowed, but the prompt should always start with \n\nHuman: and end with \n\nAssistant:.
+    """
+    dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
+    if sanity_check:
+        dataset = dataset.select(range(min(len(dataset), 1000)))
+
+    def split_prompt_and_responses(sample) -> Dict[str, str]:
+        return {
+            "prompt": sample["prompt"],
+            "chosen": sample["chosen"],
+            "rejected": sample["rejected"],
+        }
+
+    return dataset.map(split_prompt_and_responses)
 
 
 class _ECELoss(nn.Module):
@@ -218,121 +299,109 @@ def get_logps( logits: torch.FloatTensor,
             return (per_token_logps * loss_mask).sum(-1)
 
 
+class IterativeDP0Trainer(DPOTrainer):
+    def __init__(self, *args, beta_update_interval=3, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.temperature = nn.Parameter((torch.ones(1)*1.374).to(device))
+    
+    def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
+        # Check if it's time to update beta
+        ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
+        log_value = self.temperature.detach().cpu().item()      
+        # Now call the original evaluate function
+        return super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
 
 
-
-def set_temperature(valid_loader, model, temperature, ref_model):
-    nll_criterion = nn.CrossEntropyLoss().cuda()
-    ece_criterion = _ECELoss().cuda()
-    model.eval()
-    with torch.no_grad():
-        logits_list = []
-        labels_list = []
-        beta = 0.1
-        count = 0
-        for inputs in valid_loader:
-            print(count)
-            count +=1
-            # Stack and move to the correct device
-            input_ids_chosen_tensor = torch.stack(inputs["input_ids_chosen"]).to(model.device).transpose(0, 1)
-            attention_mask_chosen_tensor = torch.stack(inputs["attention_mask_chosen"]).to(model.device).transpose(0, 1)
-            input_ids_rejected_tensor = torch.stack(inputs["input_ids_rejected"]).to(model.device).transpose(0, 1)
-            attention_mask_rejected_tensor = torch.stack(inputs["attention_mask_rejected"]).to(model.device).transpose(0, 1)
-            ref_input_ids_chosen_tensor = torch.stack(inputs["ref_input_ids_chosen"]).to(model.device).transpose(0, 1)
-            ref_attention_mask_chosen_tensor = torch.stack(inputs["ref_attention_mask_chosen"]).to(model.device).transpose(0, 1)
-            ref_input_ids_rejected_tensor = torch.stack(inputs["ref_input_ids_rejected"]).to(model.device).transpose(0, 1)
-            ref_attention_mask_rejected_tensor = torch.stack(inputs["ref_attention_mask_rejected"]).to(model.device).transpose(0, 1)
-
-            # Note: Corrected model input to use tensors instead of lists
-            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-            ref_rewards_chosen = ref_model(input_ids=ref_input_ids_chosen_tensor, attention_mask=ref_attention_mask_chosen_tensor, return_dict=True).logits
-
-            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
-            ref_rewards_rejected = ref_model(input_ids=ref_input_ids_rejected_tensor, attention_mask=ref_attention_mask_rejected_tensor, return_dict=True).logits
-            label_pad_token_id = -100
-            chosen_label = input_ids_chosen_tensor
-            reject_label = input_ids_rejected_tensor
-            for i, prompt_length in enumerate(inputs["prompt_length"][0]):
-                prompt_length = prompt_length.item() 
-                chosen_label[i, :prompt_length] = label_pad_token_id
-                reject_label[i, :prompt_length] = label_pad_token_id
-            ref_chosen_label = ref_input_ids_chosen_tensor
-            ref_reject_label = ref_input_ids_rejected_tensor
-            for i, prompt_length in enumerate(inputs["ref_prompt_length"][0]):
-                prompt_length = prompt_length.item() 
-                ref_chosen_label[i, :prompt_length] = label_pad_token_id
-                ref_reject_label[i, :prompt_length] = label_pad_token_id
-                
-
-            chosen_logprob = get_logps(rewards_chosen, chosen_label)
-            ref_chosen_logprob = get_logps(ref_rewards_chosen, ref_chosen_label)
-            reject_logprob = get_logps(rewards_rejected, reject_label)
-            ref_reject_logprob = get_logps(ref_rewards_rejected, ref_reject_label)
-
-            pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
-            neg_logits = -pos_logits
-            logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
-            # Convert logits list to tensor and labels list to tensor
-        # llama3b
-        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
-        N, _ = logits.shape
-        labels_list += [0] * N # Assuming binary labels, adjust as necessary
-        labels = torch.tensor(labels_list).cuda()
-
-        # print(labels)
-
-            # Calculate NLL and ECE before temperature scaling
-        before_temperature_nll = nll_criterion(logits, labels).item()
-        before_temperature_ece = ece_criterion(logits, labels).item()
-        print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
-
-            # Optimize the temperature
-        optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
-        def eval():
-            optimizer.zero_grad()
-            loss = nll_criterion(temperature_scale(logits, temperature), labels)
-            loss.backward()
-            return loss
-        optimizer.step(eval)
-
-            # Calculate NLL after temperature scaling
-        after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
-        after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
-        print('Optimal temperature: %.3f' % temperature.item())
-        print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
-        return before_temperature_ece
 
 if __name__ == "__main__":
     parser = HfArgumentParser(ScriptArguments)
     script_args = parser.parse_args_into_dataclasses()[0]
     ref_file = script_args.ref_file
     model_file= script_args.model_file
-    print(model_file)
-    print(ref_file)
-    tokenizer = AutoTokenizer.from_pretrained(model_file) #openlm-research/open_llama_3b
-    ref_tokenizer = AutoTokenizer.from_pretrained(ref_file) #openlm-research/open_llama_3b
-    if ref_tokenizer.pad_token is None:
-        ref_tokenizer.pad_token = ref_tokenizer.eos_token
+        # 1. load a pretrained model
+    model = AutoModelForCausalLM.from_pretrained(
+        model_file
+        low_cpu_mem_usage=True,
+        torch_dtype=torch.float16,
+        load_in_4bit=True,
+    )
+    model.config.use_cache = False
+
+    if script_args.ignore_bias_buffers:
+        # torch distributed hack
+        model._ddp_params_and_buffers_to_ignore = [
+            name for name, buffer in model.named_buffers() if buffer.dtype == torch.bool
+        ]
+
+    model_ref = AutoModelForCausalLM.from_pretrained(
+        ref_file,
+        low_cpu_mem_usage=True,
+        torch_dtype=torch.float16,
+        load_in_4bit=True,
+    )
+    tokenizer = AutoTokenizer.from_pretrained(script_args.model_name_or_path)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(model_file).to(device)
-    model.config.pad_token_id = tokenizer.pad_token_id
-    ref_model= AutoModelForCausalLM.from_pretrained(ref_file).to(device)
-    ref_model.config.pad_token_id = ref_tokenizer.pad_token_id
-    raw_datasets = load_dataset("Dahoas/full-hh-rlhf")["test"]
-    bsz = script_args.bsz
-    print(bsz)
-    raw_datasets = raw_datasets.map(
-            preprocess_function,
-            batched=True,
-            num_proc=1,
-        )
-    raw_datasets = raw_datasets.filter(
-            lambda x: len(x["input_ids_chosen"]) <= 512
-            and len(x["input_ids_rejected"]) <= 512
-        )
-    print(raw_datasets)
-    temperature = nn.Parameter((torch.ones(1)*1).to(device))
-    valid_loader = torch.utils.data.DataLoader(raw_datasets, pin_memory=True, batch_size=bsz, collate_fn=custom_collate_fn)
-    set_temperature(valid_loader, model, temperature, ref_model)
-    
+
+    # 3. Load evaluation dataset
+    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
+    print(eval_dataset)
+
+    # 4. initialize training arguments:
+    training_args = TrainingArguments(
+        do_eval = True,
+        per_device_train_batch_size=script_args.per_device_train_batch_size,
+        per_device_eval_batch_size=script_args.per_device_eval_batch_size,
+        max_steps=script_args.max_steps,
+        logging_steps=script_args.logging_steps,
+        save_steps=script_args.save_steps,
+        gradient_accumulation_steps=script_args.gradient_accumulation_steps,
+        gradient_checkpointing=script_args.gradient_checkpointing,
+        learning_rate=script_args.learning_rate,
+        evaluation_strategy="steps",
+        eval_steps=script_args.eval_steps,
+        output_dir=script_args.output_dir,
+        report_to=script_args.report_to,
+        lr_scheduler_type=script_args.lr_scheduler_type,
+        warmup_steps=script_args.warmup_steps,
+        optim=script_args.optimizer_type,
+        bf16=True,
+        remove_unused_columns=False,
+        run_name="dpo_iterative_llama7b_temperature_scaling",
+    )
+
+    peft_config = LoraConfig(
+        r=script_args.lora_r,
+        lora_alpha=script_args.lora_alpha,
+        lora_dropout=script_args.lora_dropout,
+        target_modules=[
+            "q_proj",
+            "v_proj",
+            "k_proj",
+            "out_proj",
+            "fc_in",
+            "fc_out",
+            "wte",
+        ],
+        bias="none",
+        task_type="CAUSAL_LM",
+    )
+
+    # 5. initialize the DPO trainer
+    dpo_trainer = IterativeDP0Trainer(
+        model,
+        model_ref,
+        args=training_args,
+        beta=script_args.beta,
+        train_dataset=eval_dataset,
+        eval_dataset=eval_dataset,
+        tokenizer=tokenizer,
+        peft_config=peft_config,
+        max_prompt_length=script_args.max_prompt_length,
+        max_length=script_args.max_length,
+        precompute_ref_log_probs = True, 
+    )
+
+    # 6. train
+    dpo_trainer.evaluate()
+
