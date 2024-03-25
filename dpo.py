@@ -8,7 +8,7 @@ import torch
 from datasets import Dataset, load_dataset
 from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
-
+import json
 from trl import DPOTrainer
 
 base_dir = "../llama/llama-2-7b"
