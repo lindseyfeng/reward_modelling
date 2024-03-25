@@ -349,7 +349,7 @@ if __name__ == "__main__":
         torch_dtype=torch.float16,
         load_in_4bit=True,
     )
-    tokenizer = AutoTokenizer.from_pretrained(script_args.model_name_or_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_file)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
