@@ -18,8 +18,8 @@ def save_to_json(data_slice, file_path):
     data_to_save = {
         "chosen": data_slice['chosen'],
         "rejected": data_slice['rejected'],
-        "id": data_slice['id'],
-        "prompt": data_slice['prompt']
+        "prompt": data_slice['prompt'],
+        "response":data_slice['response']
     }
     with open(file_path, 'w') as f:
         json.dump(data_to_save, f)
