@@ -16,6 +16,11 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 from torch.utils.data.dataloader import default_collate
 
+def logits_to_list(logits_tensor):
+    logits_list = logits_tensor.detach().cpu().tolist()
+    # Flatten the list since the original tensor has a shape of [10, 1]
+    return logits_list
+
 # Define and parse arguments.
 @dataclass
 class ScriptArguments:
@@ -99,7 +104,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
     """
     dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
     if sanity_check:
-        dataset = dataset.select(range(min(len(dataset), 1000)))
+        dataset = dataset.select(range(min(len(dataset), 10)))
 
     def split_prompt_and_responses(sample) -> Dict[str, str]:
         return {
@@ -237,6 +242,7 @@ def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_p
     with torch.no_grad():
         logits_list = []
         labels_list = []
+        logits_to_save = []
         for inputs in valid_loader:
             input_ids_chosen_tensor = inputs["chosen_input_ids"]
             attention_mask_chosen_tensor = inputs["chosen_attention_mask"]
@@ -245,8 +251,6 @@ def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_p
             prompt_tensor = inputs["rejected_input_ids"]
             chosen_label = inputs["chosen_labels"]
             reject_label = inputs["rejected_labels"]
-            print(input_ids_chosen_tensor)
-            print(attention_mask_chosen_tensor)
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
@@ -254,12 +258,14 @@ def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_p
             ref_chosen_logprob = inputs["reference_chosen_logps"]
             ref_reject_logprob = inputs["reference_rejected_logps"]
             pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
+            logits_to_save.extend(logits_to_list(pos_logits))
             neg_logits = -pos_logits
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
         # llama3b
+
         data_to_save = {
-            "logits": logits_list
+            "logits": logits_to_save
         }
         file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
 
@@ -355,7 +361,6 @@ if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
         model_file,
         low_cpu_mem_usage=True,
-        load_in_4bit=True,
     )
     model.config.use_cache = False
 
@@ -368,7 +373,6 @@ if __name__ == "__main__":
     model_ref = AutoModelForCausalLM.from_pretrained(
         ref_file,
         low_cpu_mem_usage=True,
-        load_in_4bit=True,
     )
     tokenizer = AutoTokenizer.from_pretrained(model_file)
     if tokenizer.pad_token is None:
