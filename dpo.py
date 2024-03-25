@@ -12,6 +12,7 @@ import json
 from trl import DPOTrainer
 
 base_dir = "../llama/llama-2-7b"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class ECEDP0Trainer(DPOTrainer):
     def __init__(self, *args, beta_update_interval=3, **kwargs):
