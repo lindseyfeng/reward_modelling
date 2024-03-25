@@ -10,6 +10,7 @@ from typing import Dict, Optional
 import json
 from trl import DPOTrainer
 import wandb
+from peft import LoraConfig
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
