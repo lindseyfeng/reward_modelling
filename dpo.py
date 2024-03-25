@@ -25,7 +25,7 @@ class ECEDP0Trainer(DPOTrainer):
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
             print(eval_dataloader)
-            ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.output_dir)
+            ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
@@ -127,7 +127,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
       \n\nHuman: <prompt>\n\nAssistant:
     Multiple turns are allowed, but the prompt should always start with \n\nHuman: and end with \n\nAssistant:.
     """
-    dataset = 
+    dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
     if sanity_check:
         dataset = dataset.select(range(min(len(dataset), 1000)))
 
