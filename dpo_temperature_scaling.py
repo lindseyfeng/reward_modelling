@@ -34,11 +34,6 @@ class ScriptArguments:
      # data parameters
     beta: Optional[float] = field(default=0.137, metadata={"help": "the beta parameter for DPO loss"})
 
-    # training parameters
-    model_name_or_path: Optional[str] = field(
-        default=base_dir,
-        metadata={"help": "the location of the SFT model name or path"},
-    )
     learning_rate: Optional[float] = field(default=5e-5, metadata={"help": "optimizer learning rate"})
     lr_scheduler_type: Optional[str] = field(default="cosine", metadata={"help": "the lr scheduler type"})
     warmup_steps: Optional[int] = field(default=100, metadata={"help": "the number of warmup steps"})
