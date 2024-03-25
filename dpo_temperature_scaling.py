@@ -313,6 +313,7 @@ class Temperature_scaling_DP0Trainer(DPOTrainer):
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
         ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
         log_value = self.temperature.detach().cpu().item()      
         # Now call the original evaluate function
