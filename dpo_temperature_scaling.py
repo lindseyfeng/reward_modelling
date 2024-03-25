@@ -263,15 +263,6 @@ def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_p
             logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
         # llama3b
-
-        data_to_save = {
-            "logits": logits_to_save
-        }
-        file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
-
-            # Writing the data to a JSON file.
-        with open(file_path, 'w') as json_file:
-            json.dump(data_to_save, json_file)
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
         print(logits)
 
@@ -301,6 +292,16 @@ def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_p
         after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
         print('Optimal temperature: %.3f' % temperature.item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
+        data_to_save = {
+            "logits": logits_to_save
+            "ece": before_temperature_ece
+            "optimal_temp": temperature.item()
+        }
+        file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
+
+            # Writing the data to a JSON file.
+        with open(file_path, 'w') as json_file:
+            json.dump(data_to_save, json_file)
         return before_temperature_ece
 
 def get_logps( logits: torch.FloatTensor,

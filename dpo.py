@@ -13,6 +13,30 @@ from trl import DPOTrainer
 
 base_dir = "../llama/llama-2-7b"
 
+class ECEDP0Trainer(DPOTrainer):
+    def __init__(self, *args, beta_update_interval=3, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.beta_update_interval = beta_update_interval
+        self.eval_step_counter = 0
+        self.temperature = nn.Parameter((torch.ones(1)*1).to(device))
+    
+    def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
+        # Check if it's time to update beta
+        if self.eval_step_counter % self.beta_update_interval == 0:
+            eval_dataloader = self.get_eval_dataloader(eval_dataset)
+            print(eval_dataloader)
+            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
+            log_value = self.temperature.detach().cpu().item()
+            wandb.log({'temperature_trajectory': self.beta})
+            wandb.log({'ece': ece})
+
+        # Increment the counter
+        self.eval_step_counter += 1
+        
+        # Now call the original evaluate function
+        return super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+
+
 # Define and parse arguments.
 @dataclass
 class ScriptArguments:
@@ -28,7 +52,7 @@ class ScriptArguments:
         default=base_dir,
         metadata={"help": "the location of the SFT model name or path"},
     )
-    learning_rate: Optional[float] = field(default=5e-4, metadata={"help": "optimizer learning rate"})
+    learning_rate: Optional[float] = field(default=5e-5, metadata={"help": "optimizer learning rate"})
     lr_scheduler_type: Optional[str] = field(default="cosine", metadata={"help": "the lr scheduler type"})
     warmup_steps: Optional[int] = field(default=150, metadata={"help": "the number of warmup steps"})
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
@@ -183,7 +207,7 @@ if __name__ == "__main__":
     )
 
     # 5. initialize the DPO trainer
-    dpo_trainer = DPOTrainer(
+    dpo_trainer = ECEDP0Trainer(
         model,
         model_ref,
         args=training_args,
