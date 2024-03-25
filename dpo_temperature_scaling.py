@@ -371,7 +371,7 @@ if __name__ == "__main__":
         evaluation_strategy="steps",
         eval_steps=script_args.eval_steps,
         output_dir=script_args.output_dir,
-        report_to=script_args.report_to,
+        # report_to=script_args.report_to,
         lr_scheduler_type=script_args.lr_scheduler_type,
         warmup_steps=script_args.warmup_steps,
         optim=script_args.optimizer_type,
