@@ -433,7 +433,7 @@ if __name__ == "__main__":
         max_prompt_length=script_args.max_prompt_length,
         max_length=script_args.max_length,
         precompute_ref_log_probs = True, 
-    ).to(device)
+    )
 
     # 6. train
     dpo_trainer.evaluate()
