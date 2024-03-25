@@ -168,41 +168,6 @@ def custom_collate_fn(batch):
     return batched_data
 
 
-def preprocess_function(examples):
-    new_examples = {
-            "input_ids_chosen": [],
-            "attention_mask_chosen": [],
-            "input_ids_rejected": [],
-            "attention_mask_rejected": [],
-            "ref_input_ids_chosen": [],
-            "ref_attention_mask_chosen": [],
-            "ref_input_ids_rejected": [],
-            "ref_attention_mask_rejected": [],
-            "prompt_length":[],
-            "ref_prompt_length":[]
-    }
-    for prompt, chosen, rejected in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
-        chosen_str = prompt + " " + chosen
-        rejected_str = prompt + " " + rejected
-        tokenized_prompt = tokenizer(prompt)
-        tokenized_chosen = tokenizer(chosen_str, padding = "max_length", max_length = 512)
-        tokenized_rejected = tokenizer(rejected_str, padding = "max_length", max_length = 512)
-        new_examples["input_ids_chosen"].append(tokenized_chosen["input_ids"])
-        new_examples["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])
-        new_examples["input_ids_rejected"].append(tokenized_rejected["input_ids"])
-        new_examples["attention_mask_rejected"].append(tokenized_rejected["attention_mask"])
-        new_examples["prompt_length"].append([len(tokenized_prompt)])
-        ref_tokenized_prompt = ref_tokenizer(prompt)
-        ref_tokenized_chosen = ref_tokenizer(chosen_str, padding = "max_length", max_length = 512)
-        ref_tokenized_rejected = ref_tokenizer(rejected_str, padding = "max_length", max_length = 512)
-        new_examples["ref_input_ids_chosen"].append(ref_tokenized_chosen["input_ids"])
-        new_examples["ref_attention_mask_chosen"].append(ref_tokenized_chosen["attention_mask"])
-        new_examples["ref_input_ids_rejected"].append(ref_tokenized_rejected["input_ids"])
-        new_examples["ref_attention_mask_rejected"].append(ref_tokenized_rejected["attention_mask"])
-        new_examples["ref_prompt_length"].append([len(ref_tokenized_prompt)])
-
-    return new_examples
-
 def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
     return logits / temperature
@@ -222,6 +187,8 @@ def set_temperature_trl(valid_loader, model, temperature, pretrained_model_name_
             prompt_tensor = inputs["rejected_input_ids"]
             chosen_label = inputs["chosen_labels"]
             reject_label = inputs["rejected_labels"]
+            print(input_ids_chosen_tensor)
+            print(attention_mask_chosen_tensor)
             rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
             rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
