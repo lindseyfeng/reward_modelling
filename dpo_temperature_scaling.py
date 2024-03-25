@@ -330,7 +330,7 @@ if __name__ == "__main__":
     model_file= script_args.model_file
         # 1. load a pretrained model
     model = AutoModelForCausalLM.from_pretrained(
-        model_file
+        model_file,
         low_cpu_mem_usage=True,
         torch_dtype=torch.float16,
         load_in_4bit=True,
