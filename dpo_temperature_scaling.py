@@ -355,7 +355,6 @@ if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
         model_file,
         low_cpu_mem_usage=True,
-        torch_dtype=torch.float16,
         load_in_4bit=True,
     )
     model.config.use_cache = False
@@ -369,7 +368,6 @@ if __name__ == "__main__":
     model_ref = AutoModelForCausalLM.from_pretrained(
         ref_file,
         low_cpu_mem_usage=True,
-        torch_dtype=torch.float16,
         load_in_4bit=True,
     )
     tokenizer = AutoTokenizer.from_pretrained(model_file)
@@ -398,7 +396,6 @@ if __name__ == "__main__":
         lr_scheduler_type=script_args.lr_scheduler_type,
         warmup_steps=script_args.warmup_steps,
         optim=script_args.optimizer_type,
-        bf16=True,
         remove_unused_columns=False,
         run_name="dpo_iterative_llama7b_temperature_scaling",
     )
