@@ -3,7 +3,7 @@
 import os
 from dataclasses import dataclass, field
 from typing import Dict, Optional
-
+import torch.nn as nn
 import torch
 from datasets import Dataset, load_dataset
 from peft import LoraConfig
@@ -25,7 +25,7 @@ class ECEDP0Trainer(DPOTrainer):
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
             print(eval_dataloader)
-            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
+            ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.output_dir)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
@@ -98,6 +98,19 @@ class ScriptArguments:
             "https://github.com/huggingface/transformers/issues/22482#issuecomment-1595790992"
         },
     )
+    train_path: Optional[str] = field(
+        default="train_data.json",
+    )
+    val_path: Optional[str] = field(
+        default="val_data.json",
+    )
+
+def load_json(path):
+    with open(path, "r") as f:
+        data = json.load(f)
+    return Dataset.from_dict(data)
+
+
 
 
 def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_dir: str = None) -> Dataset:
@@ -114,7 +127,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
       \n\nHuman: <prompt>\n\nAssistant:
     Multiple turns are allowed, but the prompt should always start with \n\nHuman: and end with \n\nAssistant:.
     """
-    dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
+    dataset = 
     if sanity_check:
         dataset = dataset.select(range(min(len(dataset), 1000)))
 
@@ -157,13 +170,16 @@ if __name__ == "__main__":
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    # 2. Load the Stack-exchange paired dataset
-    train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
-    print(train_dataset)
+    # # 2. Load the Stack-exchange paired dataset
+    # train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
+    # print(train_dataset)
 
-    # 3. Load evaluation dataset
-    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
-    print(eval_dataset)
+    # # 3. Load evaluation dataset
+    # eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
+    # print(eval_dataset)
+
+    train_dataset = load_json(script_args.train_path)
+    eval_dataset = load_json(script_args.val_path)
 
     # 4. initialize training arguments:
     training_args = TrainingArguments(

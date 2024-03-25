@@ -95,7 +95,7 @@ class ScriptArguments:
 
     # instrumentation
     sanity_check: Optional[bool] = field(default=False, metadata={"help": "only train on 1000 samples"})
-    report_to: Optional[str] = field(
+    report_to: Optional[str] = field(  
         default="wandb",
         metadata={
             "help": 'The list of integrations to report the results and logs to. Supported platforms are `"azure_ml"`,'
