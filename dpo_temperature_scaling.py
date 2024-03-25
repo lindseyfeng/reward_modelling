@@ -1,7 +1,7 @@
 import torch
 from torch import optim, nn
 from transformers import AutoTokenizer, AutoModelForCausalLM, PhiForSequenceClassification, HfArgumentParser
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn.functional as F
 import os
