@@ -230,7 +230,7 @@ if __name__ == "__main__":
         model_ref,
         args=training_args,
         beta=script_args.beta,
-        train_dataset=train_dataset,
+        train_dataset=eval_dataset,
         eval_dataset=eval_dataset,
         tokenizer=tokenizer,
         peft_config=peft_config,
