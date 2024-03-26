@@ -11,6 +11,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, 
 import json
 from trl import DPOTrainer
 from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature
+import wandb
 
 base_dir = "../llama/llama-2-7b"
 device = "cuda" if torch.cuda.is_available() else "cpu"
