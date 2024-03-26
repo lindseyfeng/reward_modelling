@@ -10,6 +10,7 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
 import json
 from trl import DPOTrainer
+from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature
 
 base_dir = "../llama/llama-2-7b"
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -76,7 +77,7 @@ class ScriptArguments:
     max_steps: Optional[int] = field(default=-1, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=500, metadata={"help": "the evaluation frequency"})
+    eval_steps: Optional[int] = field(default=10, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
