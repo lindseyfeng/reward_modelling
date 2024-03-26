@@ -78,13 +78,13 @@ class ScriptArguments:
     max_steps: Optional[int] = field(default=-1, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=10, metadata={"help": "the evaluation frequency"})
+    eval_steps: Optional[int] = field(default=500, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
 
     # instrumentation
-    sanity_check: Optional[bool] = field(default=True, metadata={"help": "only train on 1000 samples"})
+    sanity_check: Optional[bool] = field(default=False, metadata={"help": "only train on 1000 samples"})
     report_to: Optional[str] = field(
         default="wandb",
         metadata={
@@ -231,7 +231,7 @@ if __name__ == "__main__":
         model_ref,
         args=training_args,
         beta=script_args.beta,
-        train_dataset=eval_dataset,
+        train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         tokenizer=tokenizer,
         peft_config=peft_config,
