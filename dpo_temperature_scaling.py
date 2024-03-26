@@ -293,8 +293,8 @@ def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_p
         print('Optimal temperature: %.3f' % temperature.item())
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
         data_to_save = {
-            "logits": logits_to_save
-            "ece": before_temperature_ece
+            "logits": logits_to_save,
+            "ece": before_temperature_ece,
             "optimal_temp": temperature.item()
         }
         file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
