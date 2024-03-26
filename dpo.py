@@ -83,7 +83,7 @@ class ScriptArguments:
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
 
     # instrumentation
-    sanity_check: Optional[bool] = field(default=False, metadata={"help": "only train on 1000 samples"})
+    sanity_check: Optional[bool] = field(default=True, metadata={"help": "only train on 1000 samples"})
     report_to: Optional[str] = field(
         default="wandb",
         metadata={
