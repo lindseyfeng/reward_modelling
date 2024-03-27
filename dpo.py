@@ -31,20 +31,20 @@ class ECEDP0Trainer(DPOTrainer):
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
             eval_dataloader = self.data_collator(eval_dataloader.dataset)
-            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-                (
+            # with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+            (
                         policy_chosen_logps,
                         policy_rejected_logps,
                         policy_chosen_logits,
                         policy_rejected_logits,
-                ) = self.concatenated_forward(self.model, eval_dataloader)
-                losses, chosen_rewards, rejected_rewards = self.dpo_loss(
+            ) = self.concatenated_forward(self.model, eval_dataloader)
+            losses, chosen_rewards, rejected_rewards = self.dpo_loss(
                 policy_chosen_logps,
                 policy_rejected_logps,
                 eval_dataset["reference_chosen_logps"],
                 inpeval_datasetuts["reference_rejected_logps"],
-                )
-                print(chosen_rewards, rejected_rewards)
+            )
+            print(chosen_rewards, rejected_rewards)
             ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.output_dir)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
@@ -157,13 +157,13 @@ class ScriptArguments:
     warmup_steps: Optional[int] = field(default=150, metadata={"help": "the number of warmup steps"})
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
     num_train_epochs: Optional[int] = field(default=2, metadata={"help": "num epoch"})
-    per_device_train_batch_size: Optional[int] = field(default=2, metadata={"help": "train batch size per device"})
+    per_device_train_batch_size: Optional[int] = field(default=1, metadata={"help": "train batch size per device"})
     per_device_eval_batch_size: Optional[int] = field(default=1, metadata={"help": "eval batch size per device"})
     gradient_accumulation_steps: Optional[int] = field(
         default=4, metadata={"help": "the number of gradient accumulation steps"}
     )
     gradient_checkpointing: Optional[bool] = field(
-        default=False, metadata={"help": "whether to use gradient checkpointing"}
+        default=True, metadata={"help": "whether to use gradient checkpointing"}
     )
 
     lora_alpha: Optional[float] = field(default=16, metadata={"help": "the lora alpha parameter"})
