@@ -31,6 +31,15 @@ class ECEDP0Trainer(DPOTrainer):
             eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
             print(eval_dataset)
             eval_dataloader = self.data_collator(eval_dataset)
+            for entry in eval_dataset:
+                if not isinstance(entry["chosen_input_ids"], torch.Tensor):
+                    entry["chosen_input_ids"] = torch.tensor(entry["chosen_input_ids"], dtype=torch.long).to(self.device)
+                if not isinstance(entry["rejected_input_ids"], torch.Tensor):
+                    entry["rejected_input_ids"] = torch.tensor(entry["rejected_input_ids"], dtype=torch.long).to(self.device)
+                if not isinstance(entry["chosen_attention_mask"], torch.Tensor):
+                    entry["chosen_attention_mask"] = torch.tensor(entry["chosen_attention_mask"], dtype=torch.long).to(self.device)
+                if not isinstance(entry["rejected_attention_mask"], torch.Tensor):
+                    entry["rejected_attention_mask"] = torch.tensor(entry["rejected_attention_mask"], dtype=torch.long).to(self.device)
             (
                 policy_chosen_logps,
                 policy_rejected_logps,
