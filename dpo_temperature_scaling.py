@@ -189,6 +189,7 @@ def set_temperature_trl(valid_loader, model, temperature):
     beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
+    model.eval()
     with torch.no_grad():
         logits_list = []
         labels_list = []
