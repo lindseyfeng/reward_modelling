@@ -31,6 +31,7 @@ class ECEDP0Trainer(DPOTrainer):
         if self.eval_step_counter % self.beta_update_interval == 0:
             data_collator = DPODataCollatorWithPadding()
             eval_dataloader = DataLoader(eval_dataset, batch_size=16, collate_fn=data_collator)
+            print(eval_dataloader)
             ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
@@ -161,7 +162,7 @@ class ScriptArguments:
     max_steps: Optional[int] = field(default=-1, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=5, metadata={"help": "the evaluation frequency"})
+    eval_steps: Optional[int] = field(default=1, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
