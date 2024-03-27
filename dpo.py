@@ -11,7 +11,7 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
 import json
 from trl import DPOTrainer
-from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature, set_temperature_trl
+from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature, set_temperature
 import wandb
 import torch.nn.functional as F
 
@@ -44,7 +44,7 @@ class ECEDP0Trainer(DPOTrainer):
                 # inpeval_datasetuts["reference_rejected_logps"],
                 # )
                 # print(chosen_rewards, rejected_rewards)
-            ece = set_temperature_trl(eval_dataset, self.model, self.temperature)
+            ece = set_temperature_trl(eval_dataset, self.model, self.temperature, script_args.output_dir)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
