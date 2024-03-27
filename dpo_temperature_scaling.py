@@ -192,42 +192,32 @@ def set_temperature_trl(inputs, model, temperature):
     with torch.no_grad():
         logits_list = []
         labels_list = []
-        print(inputs)
-        concatenated_input_ids = torch.cat([inputs["chosen_input_ids"], inputs["rejected_input_ids"]], dim=0)
-        print(concatenated_input_ids)
-        concatenated_attention_mask = torch.cat([inputs["chosen_attention_mask"], inputs["rejected_attention_mask"]], dim=0)
-        print(concatenated_attention_mask)
+        for inputs in valid_loader:
+            print(inputs)
+            concatenated_input_ids = torch.cat([inputs["chosen_input_ids"], inputs["rejected_input_ids"]], dim=0)
+            print(concatenated_input_ids)
+            concatenated_attention_mask = torch.cat([inputs["chosen_attention_mask"], inputs["rejected_attention_mask"]], dim=0)
+            print(concatenated_attention_mask)
+            concatenated_label = torch.cat([inputs["chosen_labels"], inputs["rejected_labels"]], dim=0)
             
             # Assuming you're not using an encoder-decoder model or additional inputs like 'decoder_input_ids'.
             # If you do, handle them similarly to 'input_ids' and 'attention_mask'.
 
             # Infer model once with concatenated inputs
-        concatenated_logits = model(input_ids=concatenated_input_ids, attention_mask=concatenated_attention_mask, return_dict=True).logits
+            concatenated_logits = model(input_ids=concatenated_input_ids, attention_mask=concatenated_attention_mask, return_dict=True).logits
 
             # Split logits back into 'chosen' and 'rejected' parts
-        len_chosen = inputs["chosen_input_ids"].shape[0]  # Number of chosen inputs
-        concatenated_input_ids = torch.cat([inputs["chosen_input_ids"], inputs["rejected_input_ids"]], dim=0)
-        concatenated_attention_mask = torch.cat([inputs["chosen_attention_mask"], inputs["rejected_attention_mask"]], dim=0)
-            
-            # Assuming you're not using an encoder-decoder model or additional inputs like 'decoder_input_ids'.
-            # If you do, handle them similarly to 'input_ids' and 'attention_mask'.
-
-            # Infer model once with concatenated inputs
-        concatenated_logits = model(input_ids=concatenated_input_ids, attention_mask=concatenated_attention_mask, return_dict=True).logits
-
-            # Split logits back into 'chosen' and 'rejected' parts
-        len_chosen = inputs["chosen_input_ids"].shape[0]  # Number of chosen inputs
-        rewards_chosen = concatenated_logits[:len_chosen]
-        rewards_rejected = concatenated_logits[len_chosen:]
-        chosen_logprob = get_logps(rewards_chosen, inputs["chosen_labels"])
-        reject_logprob = get_logps(rewards_rejected, inputs["rejected_labels"])
-        ref_chosen_logprob = inputs["reference_chosen_logps"]
-        ref_reject_logprob = inputs["reference_rejected_logps"]
-        pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
-        neg_logits = -pos_logits
-        logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+            len_chosen = inputs["chosen_labels"].shape[0]  # Number of chosen inputs
+            all_logprob = get_logps(concatenated_logits, concatenated_label)
+            chosen_logprob = all_logprob[:len_chosen]
+            reject_logprob = all_logprob[len_chosen:]
+            ref_chosen_logprob = inputs["reference_chosen_logps"]
+            ref_reject_logprob = inputs["reference_rejected_logps"]
+            pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
+            neg_logits = -pos_logits
+            logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
-        logits = torch.cat(logits_list, dim=0).squeeze(1).to(device)  # This is your tensor from logits_list
+        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
         print(logits)
 
         N, _ = logits.shape
