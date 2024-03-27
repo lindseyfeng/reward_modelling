@@ -256,7 +256,7 @@ def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_mo
     logits_to_save.extend(pos_logits)
     pos_logits = torch.tensor(pos_logits)
     neg_logits = -pos_logits
-    logits.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+    logits = (torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
     print(logits)
 
