@@ -99,7 +99,6 @@ class ECEDP0Trainer(DPOTrainer):
             return chosen_rewards, rejected_rewards
 
         prefix = "eval_" if train_eval == "eval" else ""
-        print(chosen_rewards, rejected_rewards)
         metrics[f"{prefix}rewards/chosen"] = chosen_rewards.mean().cpu()
         metrics[f"{prefix}rewards/rejected"] = rejected_rewards.mean().cpu()
         metrics[f"{prefix}rewards/accuracies"] = reward_accuracies.mean().cpu()
@@ -243,15 +242,15 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
 
     # 2. Load the Stack-exchange paired dataset
-    train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
-    print(train_dataset)
+    # train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
+    # print(train_dataset)
 
-    # 3. Load evaluation dataset
-    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
-    print(eval_dataset)
+    # # 3. Load evaluation dataset
+    # eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
+    # print(eval_dataset)
 
-    # train_dataset = load_json(script_args.train_path)
-    # eval_dataset = load_json(script_args.val_path)
+    train_dataset = load_json(script_args.train_path)
+    eval_dataset = load_json(script_args.val_path)
 
     # 4. initialize training arguments:
     training_args = TrainingArguments(
