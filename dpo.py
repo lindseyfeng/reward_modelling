@@ -44,7 +44,7 @@ class ECEDP0Trainer(DPOTrainer):
                 # inpeval_datasetuts["reference_rejected_logps"],
                 # )
                 # print(chosen_rewards, rejected_rewards)
-            ece = set_temperature_trl(eval_dataset, self.model, self.temperature, script_args.output_dir)
+            ece = set_temperature(eval_dataset, self.model, self.temperature, script_args.output_dir)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
