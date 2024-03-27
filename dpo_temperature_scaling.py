@@ -250,7 +250,6 @@ def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_mo
     neg_logits = -pos_logits
     logits = (torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1)).cuda()
             # Convert logits list to tensor and labels list to tensor
-    print(logits)
     N, _ = logits.shape
     labels_list += [0] * N # Assuming binary labels, adjust as necessary
     labels = torch.tensor(labels_list).cuda()
