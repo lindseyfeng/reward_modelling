@@ -292,6 +292,7 @@ if __name__ == "__main__":
         report_to=script_args.report_to,
         warmup_steps=script_args.warmup_steps,
         optim=script_args.optimizer_type,
+        bf16=True,
         remove_unused_columns=False,
         run_name="dpo_llama7b_temp_{}".format(script_args.beta),
         num_train_epochs=script_args.num_train_epochs,
