@@ -149,7 +149,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
     """
     dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
     if sanity_check:
-        dataset = dataset.select(range(min(len(dataset), 100)))
+        dataset = dataset.select(range(min(len(dataset), 10)))
 
     def split_prompt_and_responses(sample) -> Dict[str, str]:
         return {
