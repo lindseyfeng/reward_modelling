@@ -76,8 +76,8 @@ class ScriptArguments:
     warmup_steps: Optional[int] = field(default=150, metadata={"help": "the number of warmup steps"})
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
     num_train_epochs: Optional[int] = field(default=1, metadata={"help": "num epoch"})
-    per_device_train_batch_size: Optional[int] = field(default=2, metadata={"help": "train batch size per device"})
-    per_device_eval_batch_size: Optional[int] = field(default=2, metadata={"help": "eval batch size per device"})
+    per_device_train_batch_size: Optional[int] = field(default=1, metadata={"help": "train batch size per device"})
+    per_device_eval_batch_size: Optional[int] = field(default=1, metadata={"help": "eval batch size per device"})
     gradient_accumulation_steps: Optional[int] = field(
         default=4, metadata={"help": "the number of gradient accumulation steps"}
     )
