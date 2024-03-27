@@ -183,8 +183,6 @@ def custom_collate_fn(batch):
 def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
     return logits / temperature
-
-def set_temperature_trl(valid_loader, model, temperature):
     beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
@@ -248,32 +246,15 @@ def set_temperature_trl(valid_loader, model, temperature):
         print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
         return before_temperature_ece
 
-def set_temperature(valid_loader, model, temperature, pretrained_model_name_or_path):
+def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_model_name_or_path):
     beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
-    with torch.no_grad():
-        logits_list = []
-        labels_list = []
-        logits_to_save = []
-        for inputs in valid_loader:
-            input_ids_chosen_tensor = inputs["chosen_input_ids"]
-            attention_mask_chosen_tensor = inputs["chosen_attention_mask"]
-            input_ids_rejected_tensor = inputs["rejected_input_ids"]
-            attention_mask_rejected_tensor = inputs["rejected_attention_mask"]
-            prompt_tensor = inputs["rejected_input_ids"]
-            chosen_label = inputs["chosen_labels"]
-            reject_label = inputs["rejected_labels"]
-            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
-            chosen_logprob = get_logps(rewards_chosen, chosen_label)
-            reject_logprob = get_logps(rewards_rejected, reject_label)
-            ref_chosen_logprob = inputs["reference_chosen_logps"]
-            ref_reject_logprob = inputs["reference_rejected_logps"]
-            pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
-            logits_to_save.extend(logits_to_list(pos_logits))
-            neg_logits = -pos_logits
-            logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+
+        pos_logits = (chosen_rewards-rejected_rewards)*beta
+        logits_to_save.extend(logits_to_list(pos_logits))
+        neg_logits = -pos_logits
+        logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
         # llama3b
         logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
