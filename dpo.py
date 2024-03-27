@@ -29,7 +29,7 @@ class ECEDP0Trainer(DPOTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataset = get_eval_dataloader.dataset
+            eval_dataset = self.get_eval_dataloader.dataset
             data_collator = DPODataCollatorWithPadding()
             eval_dataloader = DataLoader(eval_dataset, batch_size=16, collate_fn=data_collator)
             print(eval_dataloader.dataset)  # Should not be None
