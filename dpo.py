@@ -35,7 +35,7 @@ class ECEDP0Trainer(DPOTrainer):
                 policy_rejected_logps,
                 policy_chosen_logits,
                 policy_rejected_logits,
-            ) = self.concatenated_forward(model, eval_dataloader)
+            ) = self.concatenated_forward(model, eval_dataloader).to(device)
             losses, chosen_rewards, rejected_rewards = self.dpo_loss(
             policy_chosen_logps,
             policy_rejected_logps,
@@ -247,6 +247,8 @@ if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
         low_cpu_mem_usage=True,
+        torch_dtype=torch.float16,
+        load_in_4bit=True,
     )
     model.config.use_cache = False
 
@@ -259,6 +261,8 @@ if __name__ == "__main__":
     model_ref = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
         low_cpu_mem_usage=True,
+        torch_dtype=torch.float16,
+        load_in_4bit=True,
     )
     tokenizer = AutoTokenizer.from_pretrained(script_args.model_name_or_path)
     if tokenizer.pad_token is None:
