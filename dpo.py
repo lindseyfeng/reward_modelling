@@ -31,8 +31,8 @@ class ECEDP0Trainer(DPOTrainer):
         self.model.eval() 
         with torch.no_grad():  
             if self.eval_step_counter % self.beta_update_interval == 0:
-                eval_dataloader = self.get_eval_dataloader(eval_dataset)
-                eval_dataloader = self.data_collator(eval_dataloader.dataset)
+                # eval_dataloader = self.get_eval_dataloader(eval_dataset)
+                eval_dataloader = self.data_collator(eval_dataset)
                 (
                             policy_chosen_logps,
                             policy_rejected_logps,
