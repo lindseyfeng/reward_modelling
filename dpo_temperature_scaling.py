@@ -142,13 +142,8 @@ class _ECELoss(nn.Module):
 
     def forward(self, logits, labels):
         softmaxes = torch.sigmoid(logits)
-        print(softmaxes)
         confidences, _ = torch.max(softmaxes, 1)
-        print(confidences)
         predictions = (softmaxes >= 0.5001).long() 
-        print(predictions.shape)
-        print(predictions)
-        print(labels)
 
         accuracies = torch.argmax(predictions, dim=1).eq(labels)
 
@@ -251,16 +246,12 @@ def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_mo
     labels_list = []
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
-    print(type(chosen_rewards), chosen_rewards)
-    print(type(rejected_rewards), rejected_rewards)
     pos_logits = [chosen - rejected for chosen, rejected in zip(chosen_rewards, rejected_rewards)]
     logits_to_save.extend(pos_logits)
     pos_logits = torch.tensor(pos_logits)
     neg_logits = -pos_logits
     logits = (torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1)).cuda()
             # Convert logits list to tensor and labels list to tensor
-    print(logits)
-
     N, _ = logits.shape
     labels_list += [0] * N # Assuming binary labels, adjust as necessary
     labels = torch.tensor(labels_list).cuda()
