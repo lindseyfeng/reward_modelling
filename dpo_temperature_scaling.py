@@ -165,7 +165,6 @@ class _ECELoss(nn.Module):
         percentage_true = torch.mean(accuracies.float()) * 100  
         print("accuracy : ", percentage_true.item())
         return ece
-    
 
 
 def custom_collate_fn(batch):
@@ -194,17 +193,20 @@ def set_temperature_trl(valid_loader, model, temperature):
         logits_list = []
         labels_list = []
         for inputs in valid_loader:
-            input_ids_chosen_tensor = inputs["chosen_input_ids"]
-            attention_mask_chosen_tensor = inputs["chosen_attention_mask"]
-            input_ids_rejected_tensor = inputs["rejected_input_ids"]
-            attention_mask_rejected_tensor = inputs["rejected_attention_mask"]
-            prompt_tensor = inputs["rejected_input_ids"]
-            chosen_label = inputs["chosen_labels"]
-            reject_label = inputs["rejected_labels"]
-            print(input_ids_chosen_tensor)
-            print(attention_mask_chosen_tensor)
-            rewards_chosen = model(input_ids=input_ids_chosen_tensor, attention_mask=attention_mask_chosen_tensor, return_dict=True).logits
-            rewards_rejected = model(input_ids=input_ids_rejected_tensor, attention_mask=attention_mask_rejected_tensor, return_dict=True).logits
+
+            concatenated_input_ids = torch.cat([inputs["chosen_input_ids"], inputs["rejected_input_ids"]], dim=0)
+            concatenated_attention_mask = torch.cat([inputs["chosen_attention_mask"], inputs["rejected_attention_mask"]], dim=0)
+            
+            # Assuming you're not using an encoder-decoder model or additional inputs like 'decoder_input_ids'.
+            # If you do, handle them similarly to 'input_ids' and 'attention_mask'.
+
+            # Infer model once with concatenated inputs
+            concatenated_logits = model(input_ids=concatenated_input_ids, attention_mask=concatenated_attention_mask, return_dict=True).logits
+
+            # Split logits back into 'chosen' and 'rejected' parts
+            len_chosen = inputs["chosen_input_ids"].shape[0]  # Number of chosen inputs
+            rewards_chosen = concatenated_logits[:len_chosen]
+            rewards_rejected = concatenated_logits[len_chosen:]
             chosen_logprob = get_logps(rewards_chosen, chosen_label)
             reject_logprob = get_logps(rewards_rejected, reject_label)
             ref_chosen_logprob = inputs["reference_chosen_logps"]
