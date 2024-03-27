@@ -75,7 +75,7 @@ class ScriptArguments:
     lr_scheduler_type: Optional[str] = field(default="cosine", metadata={"help": "the lr scheduler type"})
     warmup_steps: Optional[int] = field(default=150, metadata={"help": "the number of warmup steps"})
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
-    num_train_epochs: Optional[int] = field(default=2, metadata={"help": "num epoch"})
+    num_train_epochs: Optional[int] = field(default=1, metadata={"help": "num epoch"})
     per_device_train_batch_size: Optional[int] = field(default=4, metadata={"help": "train batch size per device"})
     per_device_eval_batch_size: Optional[int] = field(default=4, metadata={"help": "eval batch size per device"})
     gradient_accumulation_steps: Optional[int] = field(
@@ -93,8 +93,8 @@ class ScriptArguments:
     max_length: Optional[int] = field(default=512, metadata={"help": "the maximum sequence length"})
     max_steps: Optional[int] = field(default=2000, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
-    save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=1, metadata={"help": "the evaluation frequency"})
+    save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
+    eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
