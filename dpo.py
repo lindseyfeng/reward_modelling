@@ -41,10 +41,9 @@ class ECEDP0Trainer(DPOTrainer):
                 ) = self.concatenated_forward(self.model, eval_dataloader)
                 (
                             reference_chosen_logps,
-                            reference_rejected_logps,
-                            _,
-                            _,
-                ) = self.concatenated_forward(self.ref_model, eval_dataloader)
+                            reference_rejected_logps
+                ) = self.compute_reference_log_probs(eval_dataloader)
+                
                 losses, chosen_rewards, rejected_rewards = self.dpo_loss(
                     policy_chosen_logps,
                     policy_rejected_logps,
@@ -91,7 +90,6 @@ class ECEDP0Trainer(DPOTrainer):
         pi_logratios = pi_logratios.to(self.accelerator.device)
         ref_logratios = ref_logratios.to(self.accelerator.device)
         logits = pi_logratios - ref_logratios
-        print("logits", logits)
         # The beta is a temperature parameter for the DPO loss, typically something in the range of 0.1 to 0.5.
         # We ignore the reference model as beta -> 0. The label_smoothing parameter encodes our uncertainty about the labels and
         # calculates a conservative DPO loss.
@@ -276,15 +274,15 @@ if __name__ == "__main__":
         tokenizer.pad_token = tokenizer.eos_token
 
     # 2. Load the Stack-exchange paired dataset
-    train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
-    print(train_dataset)
+    # train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
+    # print(train_dataset)
 
-    # 3. Load evaluation dataset
-    eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
-    print(eval_dataset)
+    # # 3. Load evaluation dataset
+    # eval_dataset = get_hh("test", sanity_check=script_args.sanity_check)
+    # print(eval_dataset)
 
-    # train_dataset = load_json(script_args.train_path)
-    # eval_dataset = load_json(script_args.val_path)
+    train_dataset = load_json(script_args.train_path)
+    eval_dataset = load_json(script_args.val_path)
 
     # 4. initialize training arguments:
     training_args = TrainingArguments(
