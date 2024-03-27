@@ -10,6 +10,7 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
 import json
 from trl import DPOTrainer
+from trl.utils import DPODataCollatorWithPadding
 from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature, set_temperature_trl
 import wandb
 import torch.nn.functional as F
@@ -27,16 +28,12 @@ class ECEDP0Trainer(DPOTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataloader = self.get_eval_dataloader(eval_dataset)
-            print(eval_dataloader)
-        # (
-        #     policy_chosen_logps,
-        #     policy_rejected_logps,
-        #     policy_chosen_logits,
-        #     policy_rejected_logits,
-        # ) = self.concatenated_forward(model, eval_dataloader)
+            data_collator = DPODataCollatorWithPadding(padding_value=0)
+
+        # Initialize DataLoader with the custom collate_fn
+        eval_dataloader = DataLoader(eval_dataset, batch_size=32, collate_fn=data_collator)
         
-            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
+            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature, self.tokenizer.pad_token)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
