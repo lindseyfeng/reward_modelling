@@ -227,7 +227,7 @@ def set_temperature_trl(inputs, model, temperature):
         neg_logits = -pos_logits
         logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
-        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
+        logits = torch.cat(logits_list, dim=0).squeeze(1).to(device)  # This is your tensor from logits_list
         print(logits)
 
         N, _ = logits.shape
