@@ -264,3 +264,4 @@ if __name__ == "__main__":
     # 7. save
     output_dir = os.path.join(script_args.output_dir, "final_checkpoint")
     dpo_trainer.model.save_pretrained(output_dir)
+    dpo_trainer.tokenizer.save_pretrained(output_dir)
