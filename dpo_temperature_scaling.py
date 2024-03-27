@@ -144,6 +144,10 @@ class _ECELoss(nn.Module):
         softmaxes = torch.sigmoid(logits)
         confidences, predictions = torch.max(softmaxes, 1)
         accuracies = predictions.eq(labels)
+        print(logits)
+        print(softmaxes)
+        print(confidences)
+        print(accuracies)
 
 
         ece = torch.zeros(1, device=logits.device)
