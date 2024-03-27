@@ -31,7 +31,7 @@ class ECEDP0Trainer(DPOTrainer):
             eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
             print(eval_dataset)
             eval_dataloader = self.data_collator(eval_dataset)
-            print(eval_dataloader.dataset)
+            print(eval_dataloader)
             ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
