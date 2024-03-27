@@ -251,52 +251,52 @@ def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_mo
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
 
-        pos_logits = (chosen_rewards-rejected_rewards)*beta
-        logits_to_save.extend(logits_to_list(pos_logits))
-        neg_logits = -pos_logits
-        logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+    pos_logits = (chosen_rewards-rejected_rewards)*beta
+    logits_to_save.extend(logits_to_list(pos_logits))
+    neg_logits = -pos_logits
+    logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
         # llama3b
-        logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
-        print(logits)
+    logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
+    print(logits)
 
-        N, _ = logits.shape
-        labels_list += [0] * N # Assuming binary labels, adjust as necessary
-        labels = torch.tensor(labels_list).cuda()
+    N, _ = logits.shape
+    labels_list += [0] * N # Assuming binary labels, adjust as necessary
+    labels = torch.tensor(labels_list).cuda()
 
 
         # print(labels)
             # Calculate NLL and ECE before temperature scaling
-        before_temperature_nll = nll_criterion(logits, labels).item()
-        before_temperature_ece = ece_criterion(logits, labels).item()
-        print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
+    before_temperature_nll = nll_criterion(logits, labels).item()
+    before_temperature_ece = ece_criterion(logits, labels).item()
+    print('Before temperature - NLL: %.3f ECE: %.3f' %  (before_temperature_nll, before_temperature_ece))
 
             # Optimize the temperature
-        print(temperature.is_leaf) 
-        optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
-        def eval():
-            optimizer.zero_grad()
-            loss = nll_criterion(temperature_scale(logits, temperature), labels)
-            loss.backward()
-            return loss
-        optimizer.step(eval)
+    print(temperature.is_leaf) 
+    optimizer = optim.LBFGS([temperature], lr=0.01, max_iter=100)
+    def eval():
+        optimizer.zero_grad()
+        loss = nll_criterion(temperature_scale(logits, temperature), labels)
+        loss.backward()
+        return loss
+    optimizer.step(eval)
 
             # Calculate NLL after temperature scaling
-        after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
-        after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
-        print('Optimal temperature: %.3f' % temperature.item())
-        print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
-        data_to_save = {
-            "logits": logits_to_save,
-            "ece": before_temperature_ece,
-            "optimal_temp": temperature.item()
-        }
-        file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
+    after_temperature_nll = nll_criterion(temperature_scale(logits, temperature), labels).item()
+    after_temperature_ece = ece_criterion(temperature_scale(logits, temperature), labels).item()
+    print('Optimal temperature: %.3f' % temperature.item())
+    print('After temperature - NLL: %.3f ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
+    data_to_save = {
+        "logits": logits_to_save,
+        "ece": before_temperature_ece,
+        "optimal_temp": temperature.item()
+    }
+    file_path = 'logits_scores_{}_{}.json'.format(pretrained_model_name_or_path.replace("/", "_"), "test")
 
             # Writing the data to a JSON file.
-        with open(file_path, 'w') as json_file:
-            json.dump(data_to_save, json_file)
-        return before_temperature_ece
+    with open(file_path, 'w') as json_file:
+        json.dump(data_to_save, json_file)
+    return before_temperature_ece
 
 def get_logps( logits: torch.FloatTensor,
         labels: torch.LongTensor,
