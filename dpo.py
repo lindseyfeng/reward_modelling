@@ -91,7 +91,7 @@ class ScriptArguments:
     max_target_length: Optional[int] = field(default=128, metadata={"help": "Only used for encoder decoder model. Max target of each sample's prompt"})
     max_prompt_length: Optional[int] = field(default=512, metadata={"help": "the maximum prompt length"})
     max_length: Optional[int] = field(default=512, metadata={"help": "the maximum sequence length"})
-    max_steps: Optional[int] = field(default=2000, metadata={"help": "max number of training steps"})
+    max_steps: Optional[int] = field(default=-1, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
     eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
@@ -148,7 +148,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
     """
     dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
     if sanity_check:
-        dataset = dataset.select(range(min(len(dataset), 10)))
+        dataset = dataset.select(range(min(len(dataset), 100)))
 
     def split_prompt_and_responses(sample) -> Dict[str, str]:
         return {
@@ -259,6 +259,7 @@ if __name__ == "__main__":
 
     # 6. train
     dpo_trainer.train()
+    dpo_trainer.evaluate()
 
     # 7. save
     output_dir = os.path.join(script_args.output_dir, "final_checkpoint")
