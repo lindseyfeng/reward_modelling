@@ -37,7 +37,7 @@ class ECEDP0Trainer(DPOTrainer):
                 compute_loss_context_manager = torch.cuda.amp.autocast if self._peft_has_been_casted_to_bf16 else nullcontext
 
                 with compute_loss_context_manager():
-                    chosen_rewards, rejected_rewards = self.get_batch_loss_metrics(self.model, eval_dataloader, train_eval="train")
+                    chosen_rewards, rejected_rewards = self.get_batch_loss_metrics(self.model, eval_dataloader, train_eval="ece")
                     print(chosen_rewards)
                     print(rejected_rewards)
                 ece = set_temperature(chosen_rewards.tolist(), rejected_rewards.tolist(), self.temperature, script_args.output_dir)
