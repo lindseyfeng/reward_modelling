@@ -28,8 +28,9 @@ class ECEDP0Trainer(DPOTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
-            batch = self.data_collator(eval_dataset)
-            ece = set_temperature_trl(batch, self.model, self.temperature)
+            eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
+            eval_dataloader = self.data_collator(eval_dataset)
+            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
