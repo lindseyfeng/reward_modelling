@@ -29,7 +29,9 @@ class ECEDP0Trainer(DPOTrainer):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
+            print(eval_dataset)
             eval_dataloader = self.data_collator(eval_dataset)
+            print(eval_dataloader.dataset)
             ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
@@ -214,7 +216,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
     """
     dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
     if sanity_check:
-        dataset = dataset.select(range(min(len(dataset), 1000)))
+        dataset = dataset.select(range(min(len(dataset), 10)))
 
     def split_prompt_and_responses(sample) -> Dict[str, str]:
         return {
