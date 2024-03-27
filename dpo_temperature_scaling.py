@@ -220,8 +220,8 @@ def set_temperature_trl(valid_loader, model, temperature):
             len_chosen = inputs["chosen_input_ids"].shape[0]  # Number of chosen inputs
             rewards_chosen = concatenated_logits[:len_chosen]
             rewards_rejected = concatenated_logits[len_chosen:]
-            chosen_logprob = get_logps(rewards_chosen, chosen_label)
-            reject_logprob = get_logps(rewards_rejected, reject_label)
+            chosen_logprob = get_logps(rewards_chosen, inputs["chosen_labels"])
+            reject_logprob = get_logps(rewards_rejected, inputs["rejected_labels"])
             ref_chosen_logprob = inputs["reference_chosen_logps"]
             ref_reject_logprob = inputs["reference_rejected_logps"]
             pos_logits = ((chosen_logprob-ref_chosen_logprob)-(reject_logprob-ref_reject_logprob))*beta
