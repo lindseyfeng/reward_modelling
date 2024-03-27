@@ -31,8 +31,8 @@ class ECEDP0Trainer(DPOTrainer):
         self.model.eval() 
         with torch.no_grad():  
             if self.eval_step_counter % self.beta_update_interval == 0:
-                # eval_dataloader = self.get_eval_dataloader(eval_dataset)
-                eval_dataloader = self.data_collator(eval_dataset)
+                eval_dataloader = self.get_eval_dataloader(eval_dataset)
+                eval_dataloader = self.data_collator(eval_dataloader.dataset)
                 (
                             policy_chosen_logps,
                             policy_rejected_logps,
@@ -45,7 +45,6 @@ class ECEDP0Trainer(DPOTrainer):
                     eval_dataloader["reference_chosen_logps"],
                     eval_dataloader["reference_rejected_logps"],
                 )
-                print("print", chosen_rewards.tolist(), rejected_rewards.tolist())
                 ece = set_temperature(chosen_rewards.tolist(), rejected_rewards.tolist(), self.temperature, script_args.output_dir)
                 log_value = self.temperature.detach().cpu().item()
                 wandb.log({'temperature_trajectory': self.beta})
@@ -86,8 +85,6 @@ class ECEDP0Trainer(DPOTrainer):
         pi_logratios = pi_logratios.to(self.accelerator.device)
         ref_logratios = ref_logratios.to(self.accelerator.device)
         logits = pi_logratios - ref_logratios
-        print("logits in dpo_loss", logits*self.beta)
-
         # The beta is a temperature parameter for the DPO loss, typically something in the range of 0.1 to 0.5.
         # We ignore the reference model as beta -> 0. The label_smoothing parameter encodes our uncertainty about the labels and
         # calculates a conservative DPO loss.
@@ -230,7 +227,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
     """
     dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
     if sanity_check:
-        dataset = dataset.select(range(min(len(dataset), 10)))
+        dataset = dataset.select(range(min(len(dataset), 100)))
 
     def split_prompt_and_responses(sample) -> Dict[str, str]:
         return {
