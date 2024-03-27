@@ -41,8 +41,8 @@ class ECEDP0Trainer(DPOTrainer):
             losses, chosen_rewards, rejected_rewards = self.dpo_loss(
                 policy_chosen_logps,
                 policy_rejected_logps,
-                eval_dataset["reference_chosen_logps"],
-                inpeval_datasetuts["reference_rejected_logps"],
+                eval_dataloader["reference_chosen_logps"],
+                eval_dataloader["reference_rejected_logps"],
             )
             print(chosen_rewards, rejected_rewards)
             ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.output_dir)
