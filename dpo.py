@@ -61,10 +61,8 @@ class ECEDP0Trainer(DPOTrainer):
             The chosen_rewards and rejected_rewards tensors contain the rewards for the chosen and rejected responses, respectively.
         """
         pi_logratios = policy_chosen_logps - policy_rejected_logps
-        if self.reference_free:
-            ref_logratios = torch.tensor([0], dtype=pi_logratios.dtype, device=pi_logratios.device)
-        else:
-            ref_logratios = reference_chosen_logps - reference_rejected_logps
+
+        ref_logratios = reference_chosen_logps - reference_rejected_logps
 
         pi_logratios = pi_logratios.to(self.accelerator.device)
         ref_logratios = ref_logratios.to(self.accelerator.device)
