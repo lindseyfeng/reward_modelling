@@ -29,9 +29,7 @@ class ECEDP0Trainer(DPOTrainer):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
-            eval_dataloader = self.data_collator(eval_dataset)
-            for entry in eval_dataloader:
-                print(entry)
+            eval_dataloader = self.data_collator(eval_dataset).to(device)
             (
                 policy_chosen_logps,
                 policy_rejected_logps,
