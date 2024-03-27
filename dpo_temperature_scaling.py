@@ -184,7 +184,7 @@ def temperature_scale(logits, temperature):
     temperature = temperature.unsqueeze(1).expand(logits.size(0), logits.size(1)).cuda()
     return logits / temperature
 
-def set_temperature_trl(inputs, model, temperature):
+def set_temperature_trl(valid_loader, model, temperature):
     beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
