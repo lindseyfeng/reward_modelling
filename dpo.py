@@ -29,22 +29,21 @@ class ECEDP0Trainer(DPOTrainer):
         # Check if it's time to update beta
         # with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
         if self.eval_step_counter % self.beta_update_interval == 0:
-            with torch.no_grad():
-                eval_dataloader = self.get_eval_dataloader(eval_dataset)
-                eval_dataloader = self.data_collator(eval_dataloader.dataset)
-                (
-                            policy_chosen_logps,
-                            policy_rejected_logps,
-                            policy_chosen_logits,
-                            policy_rejected_logits,
-                ) = self.concatenated_forward(self.model, eval_dataloader)
-                losses, chosen_rewards, rejected_rewards = self.dpo_loss(
-                    policy_chosen_logps,
-                    policy_rejected_logps,
-                    eval_dataloader["reference_chosen_logps"],
-                    eval_dataloader["reference_rejected_logps"],
-                )
-                print("print", chosen_rewards.tolist(), rejected_rewards.tolist())
+            eval_dataloader = self.get_eval_dataloader(eval_dataset)
+            eval_dataloader = self.data_collator(eval_dataloader.dataset)
+            (
+                        policy_chosen_logps,
+                        policy_rejected_logps,
+                        policy_chosen_logits,
+                        policy_rejected_logits,
+            ) = self.concatenated_forward(self.model, eval_dataloader)
+            losses, chosen_rewards, rejected_rewards = self.dpo_loss(
+                policy_chosen_logps,
+                policy_rejected_logps,
+                eval_dataloader["reference_chosen_logps"],
+                eval_dataloader["reference_rejected_logps"],
+            )
+            print("print", chosen_rewards.tolist(), rejected_rewards.tolist())
             ece = set_temperature(chosen_rewards.tolist(), rejected_rewards.tolist(), self.temperature, script_args.output_dir)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
@@ -56,6 +55,7 @@ class ECEDP0Trainer(DPOTrainer):
         
         # Now call the original evaluate function
         return super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+    
 
     def dpo_loss(
         self,
@@ -78,11 +78,13 @@ class ECEDP0Trainer(DPOTrainer):
             The chosen_rewards and rejected_rewards tensors contain the rewards for the chosen and rejected responses, respectively.
         """
         pi_logratios = policy_chosen_logps - policy_rejected_logps
+
         ref_logratios = reference_chosen_logps - reference_rejected_logps
 
         pi_logratios = pi_logratios.to(self.accelerator.device)
         ref_logratios = ref_logratios.to(self.accelerator.device)
         logits = pi_logratios - ref_logratios
+        print("logits in dpo_loss", logits*self.beta)
 
         # The beta is a temperature parameter for the DPO loss, typically something in the range of 0.1 to 0.5.
         # We ignore the reference model as beta -> 0. The label_smoothing parameter encodes our uncertainty about the labels and
@@ -131,7 +133,7 @@ class ECEDP0Trainer(DPOTrainer):
             ).detach()
         )
 
-        return losses, chosen_rewards, rejected_rewards
+        return losses, chosen_rewards, rejected_rewards 
 
 
 # Define and parse arguments.
@@ -153,7 +155,7 @@ class ScriptArguments:
     lr_scheduler_type: Optional[str] = field(default="cosine", metadata={"help": "the lr scheduler type"})
     warmup_steps: Optional[int] = field(default=150, metadata={"help": "the number of warmup steps"})
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
-    num_train_epochs: Optional[int] = field(default=1, metadata={"help": "num epoch"})
+    num_train_epochs: Optional[int] = field(default=2, metadata={"help": "num epoch"})
     per_device_train_batch_size: Optional[int] = field(default=1, metadata={"help": "train batch size per device"})
     per_device_eval_batch_size: Optional[int] = field(default=1, metadata={"help": "eval batch size per device"})
     gradient_accumulation_steps: Optional[int] = field(
@@ -169,10 +171,10 @@ class ScriptArguments:
     max_target_length: Optional[int] = field(default=128, metadata={"help": "Only used for encoder decoder model. Max target of each sample's prompt"})
     max_prompt_length: Optional[int] = field(default=512, metadata={"help": "the maximum prompt length"})
     max_length: Optional[int] = field(default=512, metadata={"help": "the maximum sequence length"})
-    max_steps: Optional[int] = field(default=-1, metadata={"help": "max number of training steps"})
+    max_steps: Optional[int] = field(default=2000, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
-    save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
+    save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
+    eval_steps: Optional[int] = field(default=1, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
@@ -226,7 +228,7 @@ def get_hh(split: str, sanity_check: bool = False, silent: bool = False, cache_d
     """
     dataset = load_dataset("Dahoas/full-hh-rlhf", split=split, cache_dir=cache_dir)
     if sanity_check:
-        dataset = dataset.select(range(min(len(dataset), 100)))
+        dataset = dataset.select(range(min(len(dataset), 10)))
 
     def split_prompt_and_responses(sample) -> Dict[str, str]:
         return {
@@ -338,8 +340,6 @@ if __name__ == "__main__":
     # 6. train
     dpo_trainer.train()
     dpo_trainer.evaluate()
-
     # 7. save
     output_dir = os.path.join(script_args.output_dir, "final_checkpoint")
     dpo_trainer.model.save_pretrained(output_dir)
-    dpo_trainer.tokenizer.save_pretrained(output_dir)
