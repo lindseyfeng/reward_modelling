@@ -29,7 +29,7 @@ class ECEDP0Trainer(DPOTrainer):
         # Check if it's time to update beta
         # with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
         if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataset = self.get_eval_dataloader(eval_dataset)
+            eval_dataloader = self.get_eval_dataloader(eval_dataset)
                 # eval_dataloader = self.data_collator(eval_dataset)
                 # (
                 #     policy_chosen_logps,
@@ -44,7 +44,7 @@ class ECEDP0Trainer(DPOTrainer):
                 # inpeval_datasetuts["reference_rejected_logps"],
                 # )
                 # print(chosen_rewards, rejected_rewards)
-            ece = set_temperature(eval_dataset, self.model, self.temperature, script_args.output_dir)
+            ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.output_dir)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
