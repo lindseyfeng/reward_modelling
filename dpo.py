@@ -247,8 +247,6 @@ if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
         low_cpu_mem_usage=True,
-        torch_dtype=torch.float16,
-        load_in_4bit=True,
     )
     model.config.use_cache = False
 
@@ -261,8 +259,6 @@ if __name__ == "__main__":
     model_ref = AutoModelForCausalLM.from_pretrained(
         script_args.model_name_or_path,
         low_cpu_mem_usage=True,
-        torch_dtype=torch.float16,
-        load_in_4bit=True,
     )
     tokenizer = AutoTokenizer.from_pretrained(script_args.model_name_or_path)
     if tokenizer.pad_token is None:
@@ -296,7 +292,6 @@ if __name__ == "__main__":
         report_to=script_args.report_to,
         warmup_steps=script_args.warmup_steps,
         optim=script_args.optimizer_type,
-        bf16=True,
         remove_unused_columns=False,
         run_name="dpo_llama7b_temp_{}".format(script_args.beta),
         num_train_epochs=script_args.num_train_epochs,
