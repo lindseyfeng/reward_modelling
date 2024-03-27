@@ -248,6 +248,7 @@ def temperature_scale(logits, temperature):
 
 def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_model_name_or_path):
     logits_to_save = []
+    labels_list = []
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
     print(type(chosen_rewards), chosen_rewards)
@@ -256,7 +257,7 @@ def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_mo
     logits_to_save.extend(pos_logits)
     pos_logits = torch.tensor(pos_logits)
     neg_logits = -pos_logits
-    logits = (torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+    logits = (torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1)).cuda()
             # Convert logits list to tensor and labels list to tensor
     print(logits)
 
