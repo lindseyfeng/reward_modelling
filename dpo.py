@@ -9,8 +9,7 @@ from datasets import Dataset, load_dataset
 from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
 import json
-from trl import DPOTrainer
-from trl.utils import DPODataCollatorWithPadding
+from trl import DPOTrainer, DPODataCollatorWithPadding
 from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature, set_temperature_trl
 import wandb
 import torch.nn.functional as F
