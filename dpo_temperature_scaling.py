@@ -193,8 +193,11 @@ def set_temperature_trl(valid_loader, model, temperature):
         logits_list = []
         labels_list = []
         for inputs in valid_loader:
+            print(inputs)
             concatenated_input_ids = torch.cat([inputs["chosen_input_ids"], inputs["rejected_input_ids"]], dim=0)
+            print(concatenated_input_ids)
             concatenated_attention_mask = torch.cat([inputs["chosen_attention_mask"], inputs["rejected_attention_mask"]], dim=0)
+            print(concatenated_attention_mask)
             
             # Assuming you're not using an encoder-decoder model or additional inputs like 'decoder_input_ids'.
             # If you do, handle them similarly to 'input_ids' and 'attention_mask'.

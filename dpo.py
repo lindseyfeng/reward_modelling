@@ -31,7 +31,7 @@ class ECEDP0Trainer(DPOTrainer):
         if self.eval_step_counter % self.beta_update_interval == 0:
             data_collator = DPODataCollatorWithPadding()
             eval_dataloader = DataLoader(eval_dataset, batch_size=16, collate_fn=data_collator)
-            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature, self.tokenizer.pad_token)
+            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
