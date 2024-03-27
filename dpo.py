@@ -27,26 +27,27 @@ class ECEDP0Trainer(DPOTrainer):
     
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
-        if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
-            eval_dataloader = self.data_collator(eval_dataset)
-            (
+        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+            if self.eval_step_counter % self.beta_update_interval == 0:
+                eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
+                eval_dataloader = self.data_collator(eval_dataset)
+                (
+                    policy_chosen_logps,
+                    policy_rejected_logps,
+                    policy_chosen_logits,
+                    policy_rejected_logits,
+                ) = self.concatenated_forward(model, eval_dataloader)
+                losses, chosen_rewards, rejected_rewards = self.dpo_loss(
                 policy_chosen_logps,
                 policy_rejected_logps,
-                policy_chosen_logits,
-                policy_rejected_logits,
-            ) = self.concatenated_forward(model, eval_dataloader)
-            losses, chosen_rewards, rejected_rewards = self.dpo_loss(
-            policy_chosen_logps,
-            policy_rejected_logps,
-            eval_dataset["reference_chosen_logps"],
-            inpeval_datasetuts["reference_rejected_logps"],
-            )
-            print(chosen_rewards, rejected_rewards)
-            ece = set_temperature_trl(chosen_rewards, rejected_rewards, self.temperature)
-            log_value = self.temperature.detach().cpu().item()
-            wandb.log({'temperature_trajectory': self.beta})
-            wandb.log({'ece': ece})
+                eval_dataset["reference_chosen_logps"],
+                inpeval_datasetuts["reference_rejected_logps"],
+                )
+                print(chosen_rewards, rejected_rewards)
+                ece = set_temperature_trl(chosen_rewards, rejected_rewards, self.temperature)
+                log_value = self.temperature.detach().cpu().item()
+                wandb.log({'temperature_trajectory': self.beta})
+                wandb.log({'ece': ece})
         
 
         # Increment the counter
@@ -300,6 +301,7 @@ if __name__ == "__main__":
         run_name="dpo_llama7b_temp_{}".format(script_args.beta),
         num_train_epochs=script_args.num_train_epochs,
         save_total_limit=1,
+        bf16=True
     )
 
     peft_config = LoraConfig(
