@@ -37,7 +37,7 @@ class ECEDP0Trainer(DPOTrainer):
                         policy_rejected_logps,
                         policy_chosen_logits,
                         policy_rejected_logits,
-                ) = self.concatenated_forward(model, eval_dataloader)
+                ) = self.concatenated_forward(self.model, eval_dataloader)
                 losses, chosen_rewards, rejected_rewards = self.dpo_loss(
                 policy_chosen_logps,
                 policy_rejected_logps,
