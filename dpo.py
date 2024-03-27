@@ -29,17 +29,9 @@ class ECEDP0Trainer(DPOTrainer):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
-            print(eval_dataset)
             eval_dataloader = self.data_collator(eval_dataset)
             for entry in eval_dataloader:
-                if not isinstance(entry["chosen_input_ids"], torch.Tensor):
-                    entry["chosen_input_ids"] = torch.tensor(entry["chosen_input_ids"], dtype=torch.long).to(device)
-                if not isinstance(entry["rejected_input_ids"], torch.Tensor):
-                    entry["rejected_input_ids"] = torch.tensor(entry["rejected_input_ids"], dtype=torch.long).to(device)
-                if not isinstance(entry["chosen_attention_mask"], torch.Tensor):
-                    entry["chosen_attention_mask"] = torch.tensor(entry["chosen_attention_mask"], dtype=torch.long).to(device)
-                if not isinstance(entry["rejected_attention_mask"], torch.Tensor):
-                    entry["rejected_attention_mask"] = torch.tensor(entry["rejected_attention_mask"], dtype=torch.long).to(device)
+                print(entry)
             (
                 policy_chosen_logps,
                 policy_rejected_logps,
