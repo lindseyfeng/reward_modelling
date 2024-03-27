@@ -251,14 +251,12 @@ def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_mo
     ece_criterion = _ECELoss().cuda()
     print(type(chosen_rewards), chosen_rewards)
     print(type(rejected_rewards), rejected_rewards)
-    print(type(beta), beta)
-    pos_logits = chosen_rewards-rejected_rewards
-    logits_to_save.extend(logits_to_list(pos_logits))
+    pos_logits = [chosen - rejected for chosen, rejected in zip(chosen_rewards, rejected_rewards)]
+    logits_to_save.extend(pos_logits)
+    pos_logits = torch.tensor(pos_logits)
     neg_logits = -pos_logits
-    logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
+    logits.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
             # Convert logits list to tensor and labels list to tensor
-        # llama3b
-    logits = torch.cat(logits_list, dim=0).squeeze(1)  # This is your tensor from logits_list
     print(logits)
 
     N, _ = logits.shape
