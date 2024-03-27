@@ -247,6 +247,7 @@ def temperature_scale(logits, temperature):
         return before_temperature_ece
 
 def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_model_name_or_path):
+    logits_to_save = []
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
     print(type(chosen_rewards), chosen_rewards)
