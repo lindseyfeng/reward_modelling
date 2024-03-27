@@ -247,11 +247,12 @@ def temperature_scale(logits, temperature):
         return before_temperature_ece
 
 def set_temperature(chosen_rewards, rejected_rewards, temperature, pretrained_model_name_or_path):
-    beta = 0.1
     nll_criterion = nn.CrossEntropyLoss().cuda()
     ece_criterion = _ECELoss().cuda()
-
-    pos_logits = (chosen_rewards-rejected_rewards)*beta
+    print(type(chosen_rewards), chosen_rewards)
+    print(type(rejected_rewards), rejected_rewards)
+    print(type(beta), beta)
+    pos_logits = chosen_rewards-rejected_rewards
     logits_to_save.extend(logits_to_list(pos_logits))
     neg_logits = -pos_logits
     logits_list.append(torch.cat((pos_logits.unsqueeze(-1), neg_logits.unsqueeze(-1)), dim=-1))
