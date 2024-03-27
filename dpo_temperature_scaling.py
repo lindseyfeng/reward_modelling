@@ -144,10 +144,6 @@ class _ECELoss(nn.Module):
         softmaxes = torch.sigmoid(logits)
         confidences, predictions = torch.max(softmaxes, 1)
         accuracies = predictions.eq(labels)
-        print(logits)
-        print(softmaxes)
-        print(confidences)
-        print(accuracies)
 
 
         ece = torch.zeros(1, device=logits.device)
@@ -160,7 +156,7 @@ class _ECELoss(nn.Module):
                 avg_confidence_in_bin = confidences[in_bin].mean()
                 ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
         percentage_true = torch.mean(accuracies.float()) * 100  
-        print("accuracy : ", percentage_true.item())
+        print("accuracies : ", percentage_true.item())
         return ece
 
 

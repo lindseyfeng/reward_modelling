@@ -28,9 +28,8 @@ class ECEDP0Trainer(DPOTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         # with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-        model.eval() 
+        self.model.eval() 
         with torch.no_grad():  
-
             if self.eval_step_counter % self.beta_update_interval == 0:
                 eval_dataloader = self.get_eval_dataloader(eval_dataset)
                 eval_dataloader = self.data_collator(eval_dataloader.dataset)
@@ -55,7 +54,7 @@ class ECEDP0Trainer(DPOTrainer):
 
             # Increment the counter
             self.eval_step_counter += 1
-        
+        print("now calling eval")
         # Now call the original evaluate function
         return super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
     
