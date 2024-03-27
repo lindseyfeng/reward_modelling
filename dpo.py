@@ -28,8 +28,8 @@ class ECEDP0Trainer(DPOTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataset = self.get_eval_dataloader(eval_dataset).dataset.to(device)
-            eval_dataloader = self.data_collator(eval_dataset)
+            eval_dataset = self.get_eval_dataloader(eval_dataset.to(self.accelerator.device)).dataset
+            eval_dataloader = self.data_collator(eval_dataset.to(self.accelerator.device))
             (
                 policy_chosen_logps,
                 policy_rejected_logps,
