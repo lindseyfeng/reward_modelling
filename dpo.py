@@ -11,9 +11,10 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
 import json
 from trl import DPOTrainer
-from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature, set_temperature
+from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature
 import wandb
 import torch.nn.functional as F
+from trl import create_reference_model
 
 base_dir = "../llama/llama-2-7b"
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -148,7 +149,7 @@ class ScriptArguments:
     max_steps: Optional[int] = field(default=2000, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=1, metadata={"help": "the evaluation frequency"})
+    eval_steps: Optional[int] = field(default=500, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
@@ -234,12 +235,8 @@ if __name__ == "__main__":
             name for name, buffer in model.named_buffers() if buffer.dtype == torch.bool
         ]
 
-    model_ref = AutoModelForCausalLM.from_pretrained(
-        script_args.model_name_or_path,
-        low_cpu_mem_usage=True,
-        torch_dtype=torch.float16,
-        load_in_4bit=True,
-    )
+    model_ref = create_reference_model(model)
+    
     tokenizer = AutoTokenizer.from_pretrained(script_args.model_name_or_path)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
