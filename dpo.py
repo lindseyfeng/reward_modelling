@@ -2,7 +2,7 @@
 # 0. imports
 import os
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 import torch.nn as nn
 import torch
 from datasets import Dataset, load_dataset
@@ -41,8 +41,7 @@ class ECEDP0Trainer(DPOTrainer):
                 log_value = self.temperature.detach().cpu().item()
                 wandb.log({'temperature_trajectory': self.beta})
                 wandb.log({'ece': ece})
-            
-
+    
             # Increment the counter
             self.eval_step_counter += 1
         print("now calling eval")
