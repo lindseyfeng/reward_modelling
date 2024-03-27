@@ -142,8 +142,10 @@ class _ECELoss(nn.Module):
 
     def forward(self, logits, labels):
         softmaxes = torch.sigmoid(logits)
-        confidences, predictions = torch.max(softmaxes, 1)
+        confidences, _ = torch.max(softmaxes, 1)
+        predictions = (softmaxes > 0.5001).long() 
         accuracies = predictions.eq(labels)
+
 
         ece = torch.zeros(1, device=logits.device)
         for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
