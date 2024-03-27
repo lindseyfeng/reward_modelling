@@ -34,11 +34,9 @@ class ECEDP0Trainer(DPOTrainer):
             if self.eval_step_counter % self.beta_update_interval == 0:
                 eval_dataloader = self.get_eval_dataloader(eval_dataset)
                 for batch in eval_dataloader:
-                    print(batch)
-                    eval_dataloader = self.data_collator(batch.dataset)
                     compute_loss_context_manager = torch.cuda.amp.autocast if self._peft_has_been_casted_to_bf16 else nullcontext
                     with compute_loss_context_manager():
-                        chosen_rewards, rejected_rewards = self.get_batch_loss_metrics(self.model, eval_dataloader, train_eval="ece")
+                        chosen_rewards, rejected_rewards = self.get_batch_loss_metrics(self.model, batch, train_eval="ece")
                 ece = set_temperature(chosen_rewards.tolist(), rejected_rewards.tolist(), self.temperature, script_args.output_dir)
                 log_value = self.temperature.detach().cpu().item()
                 wandb.log({'temperature_trajectory': self.beta})
