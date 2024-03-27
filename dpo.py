@@ -19,7 +19,7 @@ base_dir = "../llama/llama-2-7b"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class ECEDP0Trainer(DPOTrainer):
-    def __init__(self, *args, beta_update_interval=3, **kwargs):
+    def __init__(self, *args, beta_update_interval=2, **kwargs):
         super().__init__(*args, **kwargs)
         self.beta_update_interval = beta_update_interval
         self.eval_step_counter = 0
@@ -36,14 +36,20 @@ class ECEDP0Trainer(DPOTrainer):
                 (
                             policy_chosen_logps,
                             policy_rejected_logps,
-                            policy_chosen_logits,
-                            policy_rejected_logits,
+                            _,
+                            _,
                 ) = self.concatenated_forward(self.model, eval_dataloader)
+                (
+                            reference_chosen_logps,
+                            reference_rejected_logps,
+                            _,
+                            _,
+                ) = self.concatenated_forward(self.ref_model, eval_dataloader)
                 losses, chosen_rewards, rejected_rewards = self.dpo_loss(
                     policy_chosen_logps,
                     policy_rejected_logps,
-                    eval_dataloader["reference_chosen_logps"],
-                    eval_dataloader["reference_rejected_logps"],
+                    reference_chosen_logps,
+                    reference_rejected_logps,
                 )
                 ece = set_temperature(chosen_rewards.tolist(), rejected_rewards.tolist(), self.temperature, script_args.output_dir)
                 log_value = self.temperature.detach().cpu().item()
@@ -333,7 +339,6 @@ if __name__ == "__main__":
         max_prompt_length=script_args.max_prompt_length,
         max_length=script_args.max_length,
         max_target_length=script_args.max_target_length,
-        precompute_ref_log_probs = True, 
     )
 
     # 6. train
