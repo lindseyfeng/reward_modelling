@@ -33,13 +33,13 @@ class ECEDP0Trainer(DPOTrainer):
             eval_dataloader = self.data_collator(eval_dataset)
             for entry in eval_dataset:
                 if not isinstance(entry["chosen_input_ids"], torch.Tensor):
-                    entry["chosen_input_ids"] = torch.tensor(entry["chosen_input_ids"], dtype=torch.long).to(self.device)
+                    entry["chosen_input_ids"] = torch.tensor(entry["chosen_input_ids"], dtype=torch.long).to(device)
                 if not isinstance(entry["rejected_input_ids"], torch.Tensor):
-                    entry["rejected_input_ids"] = torch.tensor(entry["rejected_input_ids"], dtype=torch.long).to(self.device)
+                    entry["rejected_input_ids"] = torch.tensor(entry["rejected_input_ids"], dtype=torch.long).to(.device)
                 if not isinstance(entry["chosen_attention_mask"], torch.Tensor):
-                    entry["chosen_attention_mask"] = torch.tensor(entry["chosen_attention_mask"], dtype=torch.long).to(self.device)
+                    entry["chosen_attention_mask"] = torch.tensor(entry["chosen_attention_mask"], dtype=torch.long).to(device)
                 if not isinstance(entry["rejected_attention_mask"], torch.Tensor):
-                    entry["rejected_attention_mask"] = torch.tensor(entry["rejected_attention_mask"], dtype=torch.long).to(self.device)
+                    entry["rejected_attention_mask"] = torch.tensor(entry["rejected_attention_mask"], dtype=torch.long).to(device)
             (
                 policy_chosen_logps,
                 policy_rejected_logps,
