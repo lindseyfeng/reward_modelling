@@ -10,9 +10,10 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
 import json
 from trl import DPOTrainer
-from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature
+from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature, set_temperature_trl
 import wandb
 import torch.nn.functional as F
+
 base_dir = "../llama/llama-2-7b"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -28,10 +29,18 @@ class ECEDP0Trainer(DPOTrainer):
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
             print(eval_dataloader)
-            ece = set_temperature(eval_dataloader, self.model, self.temperature, script_args.output_dir)
+        # (
+        #     policy_chosen_logps,
+        #     policy_rejected_logps,
+        #     policy_chosen_logits,
+        #     policy_rejected_logits,
+        # ) = self.concatenated_forward(model, eval_dataloader)
+        
+            ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
             wandb.log({'ece': ece})
+        
 
         # Increment the counter
         self.eval_step_counter += 1
