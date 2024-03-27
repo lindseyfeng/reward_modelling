@@ -38,8 +38,6 @@ class ECEDP0Trainer(DPOTrainer):
 
                 with compute_loss_context_manager():
                     chosen_rewards, rejected_rewards = self.get_batch_loss_metrics(self.model, eval_dataloader, train_eval="ece")
-                    print(chosen_rewards)
-                    print(rejected_rewards)
                 ece = set_temperature(chosen_rewards.tolist(), rejected_rewards.tolist(), self.temperature, script_args.output_dir)
                 log_value = self.temperature.detach().cpu().item()
                 wandb.log({'temperature_trajectory': self.beta})
@@ -88,6 +86,7 @@ class ECEDP0Trainer(DPOTrainer):
                         _,
                         _,
                     ) = self.concatenated_forward(self.ref_model, batch)
+                    print("yo")
 
         losses, chosen_rewards, rejected_rewards = self.dpo_loss(
             policy_chosen_logps,
@@ -95,6 +94,7 @@ class ECEDP0Trainer(DPOTrainer):
             reference_chosen_logps,
             reference_rejected_logps,
         )
+        print(chosen_rewards, rejected_rewards)
         reward_accuracies = (chosen_rewards > rejected_rewards).float()
 
         if train_eval == "ece":
