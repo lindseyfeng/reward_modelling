@@ -145,12 +145,6 @@ class _ECELoss(nn.Module):
         confidences, _ = torch.max(softmaxes, 1)
         first_elements = logits[:, 0]
         accuracies = first_elements > 0
-
-        print(softmaxes)
-        print(confidences)
-        print(accuracies)
-
-
         ece = torch.zeros(1, device=logits.device)
         for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
             # Calculated |confidence - accuracy| in each bin
