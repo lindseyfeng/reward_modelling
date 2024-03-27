@@ -29,21 +29,22 @@ class ECEDP0Trainer(DPOTrainer):
         # Check if it's time to update beta
         # with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
         if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataloader = self.get_eval_dataloader(eval_dataset)
-            eval_dataloader = self.data_collator(eval_dataloader.dataset)
-            (
-                        policy_chosen_logps,
-                        policy_rejected_logps,
-                        policy_chosen_logits,
-                        policy_rejected_logits,
-            ) = self.concatenated_forward(self.model, eval_dataloader)
-            losses, chosen_rewards, rejected_rewards = self.dpo_loss(
-                policy_chosen_logps,
-                policy_rejected_logps,
-                eval_dataloader["reference_chosen_logps"],
-                eval_dataloader["reference_rejected_logps"],
-            )
-            print("print", chosen_rewards.tolist(), rejected_rewards.tolist())
+            with torch.no_grad():
+                eval_dataloader = self.get_eval_dataloader(eval_dataset)
+                eval_dataloader = self.data_collator(eval_dataloader.dataset)
+                (
+                            policy_chosen_logps,
+                            policy_rejected_logps,
+                            policy_chosen_logits,
+                            policy_rejected_logits,
+                ) = self.concatenated_forward(self.model, eval_dataloader)
+                losses, chosen_rewards, rejected_rewards = self.dpo_loss(
+                    policy_chosen_logps,
+                    policy_rejected_logps,
+                    eval_dataloader["reference_chosen_logps"],
+                    eval_dataloader["reference_rejected_logps"],
+                )
+                print("print", chosen_rewards.tolist(), rejected_rewards.tolist())
             ece = set_temperature(chosen_rewards.tolist(), rejected_rewards.tolist(), self.temperature, script_args.output_dir)
             log_value = self.temperature.detach().cpu().item()
             wandb.log({'temperature_trajectory': self.beta})
