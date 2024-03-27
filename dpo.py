@@ -28,7 +28,7 @@ class ECEDP0Trainer(DPOTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataset = self.get_eval_dataloader(eval_dataset.to(self.accelerator.device)).dataset
+            eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
             eval_dataloader = self.data_collator(eval_dataset.to(self.accelerator.device))
             (
                 policy_chosen_logps,
@@ -296,7 +296,6 @@ if __name__ == "__main__":
         report_to=script_args.report_to,
         warmup_steps=script_args.warmup_steps,
         optim=script_args.optimizer_type,
-        bf16=True,
         remove_unused_columns=False,
         run_name="dpo_llama7b_temp_{}".format(script_args.beta),
         num_train_epochs=script_args.num_train_epochs,
