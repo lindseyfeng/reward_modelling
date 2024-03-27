@@ -98,7 +98,7 @@ class ECEDP0Trainer(DPOTrainer):
         reward_accuracies = (chosen_rewards > rejected_rewards).float()
 
         if train_eval == "ece":
-            return chosen_rewards, chosen_rewards
+            return chosen_rewards, rejected_rewards
 
         prefix = "eval_" if train_eval == "eval" else ""
         metrics[f"{prefix}rewards/chosen"] = chosen_rewards.mean().cpu()
