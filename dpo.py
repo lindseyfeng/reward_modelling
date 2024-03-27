@@ -11,7 +11,6 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, TrainingArguments
 import json
 from trl import DPOTrainer
-from trl.trainer.utils import DPODataCollatorWithPadding
 from dpo_temperature_scaling import _ECELoss, temperature_scale, set_temperature, set_temperature_trl
 import wandb
 import torch.nn.functional as F
@@ -30,8 +29,7 @@ class ECEDP0Trainer(DPOTrainer):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
             eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
-            data_collator = DPODataCollatorWithPadding()
-            eval_dataloader = DataLoader(eval_dataset, batch_size=16, collate_fn=data_collator)
+            eval_dataloader = DataLoader(eval_dataset, batch_size=16, collate_fn=self.data_collator)
             print(eval_dataloader.dataset)  # Should not be None
             assert eval_dataloader.dataset is not None, "The DataLoader's dataset is None!"
             ece = set_temperature_trl(eval_dataloader, self.model, self.temperature)
