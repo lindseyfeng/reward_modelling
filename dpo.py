@@ -244,7 +244,7 @@ if __name__ == "__main__":
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    2. Load the Stack-exchange paired dataset
+    # 2. Load the Stack-exchange paired dataset
     train_dataset = get_hh("train", sanity_check=script_args.sanity_check)
     print(train_dataset)
 
