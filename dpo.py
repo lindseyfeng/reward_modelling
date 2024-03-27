@@ -28,13 +28,14 @@ class ECEDP0Trainer(DPOTrainer):
     def evaluate(self, eval_dataset=None, ignore_keys=None, metric_key_prefix="eval"):
         # Check if it's time to update beta
         if self.eval_step_counter % self.beta_update_interval == 0:
-            eval_dataset = self.get_eval_dataloader(eval_dataset)
+            eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
+            eval_dataloader = self.data_collator(eval_dataset)
             (
                 policy_chosen_logps,
                 policy_rejected_logps,
                 policy_chosen_logits,
                 policy_rejected_logits,
-            ) = self.concatenated_forward(model, eval_dataset.dataset)
+            ) = self.concatenated_forward(model, eval_dataloader)
             losses, chosen_rewards, rejected_rewards = self.dpo_loss(
             policy_chosen_logps,
             policy_rejected_logps,
@@ -155,7 +156,7 @@ class ScriptArguments:
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
     num_train_epochs: Optional[int] = field(default=2, metadata={"help": "num epoch"})
     per_device_train_batch_size: Optional[int] = field(default=2, metadata={"help": "train batch size per device"})
-    per_device_eval_batch_size: Optional[int] = field(default=2, metadata={"help": "eval batch size per device"})
+    per_device_eval_batch_size: Optional[int] = field(default=1, metadata={"help": "eval batch size per device"})
     gradient_accumulation_steps: Optional[int] = field(
         default=4, metadata={"help": "the number of gradient accumulation steps"}
     )
