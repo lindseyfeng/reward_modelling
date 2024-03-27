@@ -31,7 +31,7 @@ class ECEDP0Trainer(DPOTrainer):
             eval_dataset = self.get_eval_dataloader(eval_dataset).dataset
             print(eval_dataset)
             eval_dataloader = self.data_collator(eval_dataset)
-            for entry in eval_dataset:
+            for entry in eval_dataloader:
                 if not isinstance(entry["chosen_input_ids"], torch.Tensor):
                     entry["chosen_input_ids"] = torch.tensor(entry["chosen_input_ids"], dtype=torch.long).to(device)
                 if not isinstance(entry["rejected_input_ids"], torch.Tensor):
@@ -45,7 +45,7 @@ class ECEDP0Trainer(DPOTrainer):
                 policy_rejected_logps,
                 policy_chosen_logits,
                 policy_rejected_logits,
-            ) = self.concatenated_forward(model, eval_dataset)
+            ) = self.concatenated_forward(model, eval_dataloader)
             losses, chosen_rewards, rejected_rewards = self.dpo_loss(
             policy_chosen_logps,
             policy_rejected_logps,
