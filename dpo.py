@@ -86,7 +86,6 @@ class ECEDP0Trainer(DPOTrainer):
                         _,
                         _,
                     ) = self.concatenated_forward(self.ref_model, batch)
-                    print("yo")
 
         losses, chosen_rewards, rejected_rewards = self.dpo_loss(
             policy_chosen_logps,
@@ -94,13 +93,13 @@ class ECEDP0Trainer(DPOTrainer):
             reference_chosen_logps,
             reference_rejected_logps,
         )
-        print(chosen_rewards, rejected_rewards)
         reward_accuracies = (chosen_rewards > rejected_rewards).float()
 
         if train_eval == "ece":
             return chosen_rewards, rejected_rewards
 
         prefix = "eval_" if train_eval == "eval" else ""
+        print(chosen_rewards, rejected_rewards)
         metrics[f"{prefix}rewards/chosen"] = chosen_rewards.mean().cpu()
         metrics[f"{prefix}rewards/rejected"] = rejected_rewards.mean().cpu()
         metrics[f"{prefix}rewards/accuracies"] = reward_accuracies.mean().cpu()
