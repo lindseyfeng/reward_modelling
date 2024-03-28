@@ -266,7 +266,7 @@ if __name__ == "__main__":
         gradient_checkpointing=script_args.gradient_checkpointing,
         learning_rate=script_args.learning_rate,
         evaluation_strategy="steps",
-        save_strategy="step",
+        save_strategy="steps",
         max_steps=script_args.max_steps,
         eval_steps=script_args.eval_steps,
         output_dir=script_args.output_dir,
