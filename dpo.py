@@ -134,10 +134,10 @@ class ScriptArguments:
     warmup_steps: Optional[int] = field(default=150, metadata={"help": "the number of warmup steps"})
     optimizer_type: Optional[str] = field(default="rmsprop", metadata={"help": "the optimizer type"})
     num_train_epochs: Optional[int] = field(default=2, metadata={"help": "num epoch"})
-    per_device_train_batch_size: Optional[int] = field(default=1, metadata={"help": "train batch size per device"})
-    per_device_eval_batch_size: Optional[int] = field(default=1, metadata={"help": "eval batch size per device"})
+    per_device_train_batch_size: Optional[int] = field(default=2, metadata={"help": "train batch size per device"})
+    per_device_eval_batch_size: Optional[int] = field(default=2, metadata={"help": "eval batch size per device"})
     gradient_accumulation_steps: Optional[int] = field(
-        default=4, metadata={"help": "the number of gradient accumulation steps"}
+        default=8, metadata={"help": "the number of gradient accumulation steps"}
     )
     gradient_checkpointing: Optional[bool] = field(
         default=True, metadata={"help": "whether to use gradient checkpointing"}
@@ -149,7 +149,7 @@ class ScriptArguments:
     max_target_length: Optional[int] = field(default=128, metadata={"help": "Only used for encoder decoder model. Max target of each sample's prompt"})
     max_prompt_length: Optional[int] = field(default=512, metadata={"help": "the maximum prompt length"})
     max_length: Optional[int] = field(default=512, metadata={"help": "the maximum sequence length"})
-    max_steps: Optional[int] = field(default=2000, metadata={"help": "max number of training steps"})
+    max_steps: Optional[int] = field(default=1000, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
     save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
     eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
@@ -266,7 +266,8 @@ if __name__ == "__main__":
         gradient_checkpointing=script_args.gradient_checkpointing,
         learning_rate=script_args.learning_rate,
         evaluation_strategy="steps",
-        save_strategy="epoch",
+        save_strategy="step",
+        max_steps=script_args.max_steps,
         eval_steps=script_args.eval_steps,
         output_dir=script_args.output_dir,
         report_to=script_args.report_to,
