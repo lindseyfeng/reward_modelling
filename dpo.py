@@ -151,8 +151,8 @@ class ScriptArguments:
     max_length: Optional[int] = field(default=512, metadata={"help": "the maximum sequence length"})
     max_steps: Optional[int] = field(default=2000, metadata={"help": "max number of training steps"})
     logging_steps: Optional[int] = field(default=10, metadata={"help": "the logging frequency"})
-    save_steps: Optional[int] = field(default=500, metadata={"help": "the saving frequency"})
-    eval_steps: Optional[int] = field(default=1, metadata={"help": "the evaluation frequency"})
+    save_steps: Optional[int] = field(default=100, metadata={"help": "the saving frequency"})
+    eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./dpo_llama7b_results", metadata={"help": "the output directory"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
